@@ -30,6 +30,12 @@ def _quote(value: str) -> str:
     return value.replace('"', '\\"')
 
 
+def _require_line(name: str, action: str, risk: str, mode: str, evidence: str, owner: str) -> str:
+    return (
+        f"  require {name}[risk={risk}, mode={mode}, evidence={evidence}, owner={owner}] for {action}"
+    )
+
+
 def validate_intent_document(intent: Dict[str, Any]) -> List[str]:
     issues: List[str] = []
     if not intent.get("intent_id"):
@@ -144,11 +150,25 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
     global_safeguards = intent.get("global_safeguards") or {}
     if global_safeguards.get("require_multisignal_before_release", False):
         lines.append(
-            "  require multisignal_recent[risk=high, mode=advisory, owner=safety-core] for trigger_legacy_delivery",
+            _require_line(
+                "multisignal_recent",
+                "trigger_legacy_delivery",
+                "high",
+                "advisory",
+                "global_multisignal_guard",
+                "safety-core",
+            ),
         )
     if global_safeguards.get("require_guardian_approval_for_legacy", False):
         lines.append(
-            "  require guardian_approval[risk=high, mode=strict, owner=safety-core] for trigger_legacy_delivery",
+            _require_line(
+                "guardian_approval",
+                "trigger_legacy_delivery",
+                "high",
+                "strict",
+                "global_guardian_requirement",
+                "safety-core",
+            ),
         )
     lines.append("}")
     lines.append("")
@@ -176,31 +196,73 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
 
         if delivery.get("require_verification_code", False):
             constraint_lines.append(
-                f"  require verification_code[risk=high, mode=strict, owner=delivery-core] for {action}",
+                _require_line(
+                    "verification_code",
+                    action,
+                    "high",
+                    "strict",
+                    f"entry:{entry_id}:delivery",
+                    "delivery-core",
+                ),
             )
         if delivery.get("require_totp", False):
             constraint_lines.append(
-                f"  require totp_factor[risk=high, mode=strict, owner=delivery-core] for {action}",
+                _require_line(
+                    "totp_factor",
+                    action,
+                    "high",
+                    "strict",
+                    f"entry:{entry_id}:delivery",
+                    "delivery-core",
+                ),
             )
         if safeguards.get("legal_disclaimer_required", False):
             constraint_lines.append(
-                f"  require consent_active[risk=high, mode=strict, owner=privacy-core] for {action}",
+                _require_line(
+                    "consent_active",
+                    action,
+                    "high",
+                    "strict",
+                    f"entry:{entry_id}:safeguards",
+                    "privacy-core",
+                ),
             )
         if safeguards.get("require_multisignal", False) and not global_safeguards.get(
             "require_multisignal_before_release",
             False,
         ):
             constraint_lines.append(
-                f"  require multisignal_recent[risk=high, mode=advisory, owner=safety-core] for {action}",
+                _require_line(
+                    "multisignal_recent",
+                    action,
+                    "high",
+                    "advisory",
+                    f"entry:{entry_id}:safeguards",
+                    "safety-core",
+                ),
             )
         if safeguards.get("require_guardian_approval", False):
             constraint_lines.append(
-                f"  require guardian_approval[risk=high, mode=strict, owner=safety-core] for {action}",
+                _require_line(
+                    "guardian_approval",
+                    action,
+                    "high",
+                    "strict",
+                    f"entry:{entry_id}:safeguards",
+                    "safety-core",
+                ),
             )
         cooldown_hours = safeguards.get("cooldown_hours")
         if isinstance(cooldown_hours, int) and cooldown_hours > 0:
             constraint_lines.append(
-                f"  require cooldown_{cooldown_hours}h[risk=medium, mode=strict, owner=safety-core] for {action}",
+                _require_line(
+                    f"cooldown_{cooldown_hours}h",
+                    action,
+                    "medium",
+                    "strict",
+                    f"entry:{entry_id}:safeguards",
+                    "safety-core",
+                ),
             )
 
         policy_block = [
@@ -243,3 +305,29 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
         lines.extend(block)
 
     return "\n".join(lines).strip() + "\n"
+
+
+def compile_intent_document_with_trace(intent: Dict[str, Any]) -> Dict[str, Any]:
+    compiled = compile_intent_document(intent)
+    active_entries = [entry for entry in intent["entries"] if entry.get("status") == "active"]
+    entry_map = {
+        entry["entry_id"]: {
+            "policy_block_id": f"{_slug(entry['entry_id'])}_policy",
+            "action": "trigger_legacy_delivery"
+            if entry["kind"] == "legacy_delivery"
+            else "trigger_self_recovery_delivery",
+            "privacy_profile": (entry.get("privacy") or {}).get(
+                "profile",
+                intent.get("default_privacy_profile", "minimal"),
+            ),
+        }
+        for entry in active_entries
+    }
+    return {
+        "ptn": compiled,
+        "trace": {
+            "intent_id": intent["intent_id"],
+            "owner_ref": intent["owner_ref"],
+            "entries": entry_map,
+        },
+    }

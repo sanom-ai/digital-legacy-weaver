@@ -15,6 +15,7 @@ This is the bridge that makes the product model work:
 Current compiler foundation:
 
 1. `tools/intent_to_ptn.py`
+2. `compile_intent_document_with_trace(...)` for compiler-side trace mapping
 
 ## Input
 
@@ -32,6 +33,7 @@ The compiler emits:
 3. baseline authorities
 4. compiled safeguard constraints
 5. one policy block per active intent entry
+6. optional compiler trace mapping from `entry_id` to generated PTN blocks
 
 ## Compile rules (current foundation)
 
@@ -70,4 +72,4 @@ The next compiler improvements should add:
 
 1. warning channels for ambiguous intent
 2. richer mapping from safeguards to PTN requirement metadata
-3. compiler trace output from `entry_id` to generated PTN block identifiers
+3. runtime consumption of compiler trace output from `entry_id` to generated PTN block identifiers

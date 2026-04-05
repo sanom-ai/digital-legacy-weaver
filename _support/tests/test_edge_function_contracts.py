@@ -61,6 +61,14 @@ def test_dispatch_emits_requirement_trace_metadata() -> None:
     assert "effectiveTraceProfile" in src
 
 
+def test_dispatch_runtime_supports_compiler_emitted_requirement_controls() -> None:
+    src = _read(DISPATCH_FN)
+    assert 'requirement === "multisignal_recent"' in src
+    assert 'requirement === "guardian_approval"' in src
+    assert 'requirement === "verification_code"' in src
+    assert 'requirement === "totp_factor"' in src
+
+
 def test_unlock_accepts_request_code_and_unlock_actions() -> None:
     src = _read(UNLOCK_FN)
     assert "request_code" in src

@@ -286,9 +286,24 @@ async function evaluateRequiredControls(args: {
 
     if (requirement === "consent_active") {
       satisfied = args.safety.legal_disclaimer_accepted;
+    } else if (requirement === "multisignal_recent") {
+      satisfied = await hasRecentMultiSignals(
+        args.ownerId,
+        args.safety.recent_signal_window_hours,
+        args.safety.minimum_recent_signal_types,
+      );
+    } else if (requirement === "guardian_approval") {
+      const cycleDate = new Date().toISOString().slice(0, 10);
+      satisfied = await hasGuardianApproval(args.ownerId, args.mode, cycleDate);
     } else if (requirement === "cooldown_24h") {
       const hasRecent = await hasRecentFinalRelease(args.ownerId, args.mode, 24);
       satisfied = !hasRecent;
+    } else if (requirement === "verification_code") {
+      // Verification code is enforced downstream in unlock flow, so runtime treats it as covered.
+      satisfied = true;
+    } else if (requirement === "totp_factor") {
+      // TOTP is enforced downstream in unlock flow when configured for the delivery path.
+      satisfied = true;
     } else if (requirement === "provider_legal_verification_handoff") {
       // Runtime assumes handoff clause is satisfied via outbound provider checklist messaging.
       satisfied = true;

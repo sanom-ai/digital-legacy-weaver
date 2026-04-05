@@ -10,7 +10,12 @@ TOOLS = ROOT / "tools"
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
-from intent_to_ptn import IntentCompilerError, compile_intent_document, validate_intent_document  # noqa: E402
+from intent_to_ptn import (  # noqa: E402
+    IntentCompilerError,
+    compile_intent_document,
+    compile_intent_document_with_trace,
+    validate_intent_document,
+)
 from ptn_parser import parse_ptn, validate_ptn  # noqa: E402
 
 
@@ -22,7 +27,8 @@ def test_example_intent_compiles_to_valid_ptn() -> None:
     assert issues == []
     assert "policy legacy_wallet_a_policy {" in compiled
     assert 'and intent.entry_id == "legacy_wallet_a"' in compiled
-    assert "require verification_code" in compiled
+    assert "evidence=entry:legacy_wallet_a:delivery" in compiled
+    assert "owner=delivery-core" in compiled
 
 
 def test_compiler_rejects_invalid_delivery_method() -> None:
@@ -64,3 +70,12 @@ def test_compiler_skips_draft_entries_and_requires_active_output() -> None:
         assert "no active entries" in str(exc)
     else:
         raise AssertionError("Expected compiler to fail when no active entries exist")
+
+
+def test_compiler_can_emit_trace_mapping() -> None:
+    intent = json.loads((ROOT / "examples" / "intent-primary.json").read_text(encoding="utf-8"))
+    result = compile_intent_document_with_trace(intent)
+    assert "ptn" in result
+    assert "trace" in result
+    assert result["trace"]["intent_id"] == "intent_primary"
+    assert result["trace"]["entries"]["legacy_wallet_a"]["policy_block_id"] == "legacy_wallet_a_policy"
