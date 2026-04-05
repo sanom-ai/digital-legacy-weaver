@@ -17,6 +17,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     artifact_model = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_canonical_artifact_model.dart"
     artifact_repository = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_canonical_artifact_repository.dart"
     artifact_provider = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_canonical_artifact_provider.dart"
+    readiness_model = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_runtime_readiness_model.dart"
     artifact_review = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_artifact_review_screen.dart"
     artifact_compare = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_artifact_compare_screen.dart"
     artifact_history = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_artifact_history_screen.dart"
@@ -33,6 +34,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert artifact_model.exists()
     assert artifact_repository.exists()
     assert artifact_provider.exists()
+    assert readiness_model.exists()
     assert artifact_review.exists()
     assert artifact_compare.exists()
     assert artifact_history.exists()
@@ -50,6 +52,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     artifact_model_src = _read(artifact_model)
     artifact_repository_src = _read(artifact_repository)
     artifact_provider_src = _read(artifact_provider)
+    readiness_model_src = _read(readiness_model)
     artifact_review_src = _read(artifact_review)
     artifact_compare_src = _read(artifact_compare)
     artifact_history_src = _read(artifact_history)
@@ -150,6 +153,16 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "intentCanonicalArtifactRepositoryProvider" in artifact_provider_src
     assert "intentCanonicalArtifactProvider" in artifact_provider_src
     assert "intentCanonicalArtifactHistoryProvider" in artifact_provider_src
+    assert "intentRuntimeReadinessProvider" in artifact_provider_src
+    assert "class IntentRuntimeReadinessModel" in readiness_model_src
+    assert "Ready for runtime" in readiness_model_src
+    assert "Needs attention" in readiness_model_src
+    assert "Draft only" in readiness_model_src
+    assert "Runtime blockers" in dashboard_src
+    assert "Runtime readiness" in dashboard_src
+    assert "Draft sync: current draft still matches the latest exported artifact." in dashboard_src
+    assert "Draft sync: current draft changed since the latest export." in dashboard_src
+    assert 'child: const Text("Open Intent Builder")' in dashboard_src
     assert "class IntentArtifactReviewScreen" in artifact_review_src
     assert "class IntentArtifactCompareScreen" in artifact_compare_src
     assert "class IntentArtifactHistoryScreen" in artifact_history_src

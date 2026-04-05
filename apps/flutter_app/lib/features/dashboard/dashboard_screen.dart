@@ -4,6 +4,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_co
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_review_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_provider.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_screen.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_model.dart';
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
@@ -110,6 +111,7 @@ class DashboardScreen extends ConsumerWidget {
               data: (settings) {
                 final artifactAsync = ref.watch(intentCanonicalArtifactProvider(profile.id));
                 final artifactHistoryAsync = ref.watch(intentCanonicalArtifactHistoryProvider(profile.id));
+                final readinessAsync = ref.watch(intentRuntimeReadinessProvider(profile.id));
                 return Column(
                   children: [
                     Card(
@@ -130,6 +132,24 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    readinessAsync.when(
+                      data: (readiness) => _RuntimeReadinessCard(
+                        readiness: readiness,
+                        onOpenBuilder: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => IntentBuilderScreen(
+                                profile: profile,
+                                settings: settings,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    if (readinessAsync.hasValue) const SizedBox(height: 12),
                     artifactAsync.when(
                       data: (artifact) => artifactHistoryAsync.when(
                         data: (history) => Card(
@@ -355,6 +375,104 @@ class _DeliveryModeCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RuntimeReadinessCard extends StatelessWidget {
+  const _RuntimeReadinessCard({
+    required this.readiness,
+    required this.onOpenBuilder,
+  });
+
+  final IntentRuntimeReadinessModel readiness;
+  final VoidCallback onOpenBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = readiness.readyForRuntime
+        ? const Color(0xFFE9F6EF)
+        : readiness.hasArtifact
+            ? const Color(0xFFFFF7ED)
+            : const Color(0xFFF7F1E8);
+
+    return Card(
+      color: statusColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.fact_check_outlined),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Runtime readiness",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                _ReadinessBadge(label: readiness.readinessLabel),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(readiness.summary),
+            const SizedBox(height: 10),
+            Text(
+              "History: ${readiness.historyCount} versions · Ready: ${readiness.readyArtifactCount} · Reviewed: ${readiness.reviewedArtifactCount} · Promoted: ${readiness.promotedArtifactCount}",
+            ),
+            const SizedBox(height: 6),
+            Text(
+              readiness.draftInSync
+                  ? "Draft sync: current draft still matches the latest exported artifact."
+                  : "Draft sync: current draft changed since the latest export.",
+            ),
+            if (readiness.blockers.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              const Text(
+                "Runtime blockers",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              ...readiness.blockers.map(
+                (blocker) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text("• $blocker"),
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
+            Text(readiness.nextStep),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton(
+                onPressed: onOpenBuilder,
+                child: const Text("Open Intent Builder"),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReadinessBadge extends StatelessWidget {
+  const _ReadinessBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: const Color(0xFFE5D7C5),
+      ),
+      child: Text(label),
     );
   }
 }
