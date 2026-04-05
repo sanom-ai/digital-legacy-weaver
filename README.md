@@ -178,6 +178,7 @@ Guide:
 - `specs/partner-api.openapi.yaml`
 - `specs/ptn-format.md`
 - `specs/ptn-v2.md`
+- `docs/ptn-intent-schema.md`
 - `examples/default-policy.ptn`
 - `examples/pdpa-policy-pack.ptn`
 - `examples/high-assurance-v2-policy.ptn`
@@ -195,6 +196,9 @@ Guide:
 - `docs/closed-beta-checklist.md`
 - `docs/first-launch-execution.md`
 - `docs/high-assurance-architecture.md`
+- `docs/ecosystem-strategy.md`
+- `docs/ecosystem-execution-roadmap.md`
+- `docs/pr-roadmap.md`
 - `docs/hosted-mode-operations.md`
 - `docs/beta-gate-ops.md`
 - `docs/beta-status-ops.md`
