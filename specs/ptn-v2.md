@@ -51,6 +51,14 @@ Allowed keys:
 1. `mode=strict` controls should block execution when unsatisfied.
 2. `mode=advisory` controls may proceed with audit warning and explicit reason.
 3. Runtime should emit requirement-level audit records for traceability.
+4. Runtime should emit a decision trace object per requirement containing:
+- `name`
+- `mode`
+- `risk`
+- `evidence`
+- `owner`
+- `satisfied`
+- `enforcement` (`block` or `warn`)
 
 ## Conformance baseline
 

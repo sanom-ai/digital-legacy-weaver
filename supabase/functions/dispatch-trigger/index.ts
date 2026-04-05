@@ -221,9 +221,31 @@ async function evaluateRequiredControls(args: {
   mode: "legacy" | "self_recovery";
   safety: SafetySettings;
   requiredControls: RequirementControl[];
-}): Promise<{ allowed: boolean; strictMissing: string[]; advisoryUnmet: string[] }> {
+}): Promise<{
+  allowed: boolean;
+  strictMissing: string[];
+  advisoryUnmet: string[];
+  trace: Array<{
+    name: string;
+    mode: "strict" | "advisory";
+    risk?: string;
+    evidence?: string;
+    owner?: string;
+    satisfied: boolean;
+    enforcement: "block" | "warn";
+  }>;
+}> {
   const strictMissing: string[] = [];
   const advisoryUnmet: string[] = [];
+  const trace: Array<{
+    name: string;
+    mode: "strict" | "advisory";
+    risk?: string;
+    evidence?: string;
+    owner?: string;
+    satisfied: boolean;
+    enforcement: "block" | "warn";
+  }> = [];
   for (const control of args.requiredControls) {
     const requirement = control.name;
     let satisfied = false;
@@ -241,14 +263,24 @@ async function evaluateRequiredControls(args: {
       satisfied = false;
     }
 
-    if (satisfied) continue;
-    if (control.mode === "advisory") {
-      advisoryUnmet.push(requirement);
-    } else {
-      strictMissing.push(requirement);
+    if (!satisfied) {
+      if (control.mode === "advisory") {
+        advisoryUnmet.push(requirement);
+      } else {
+        strictMissing.push(requirement);
+      }
     }
+    trace.push({
+      name: requirement,
+      mode: control.mode,
+      risk: control.risk,
+      evidence: control.evidence,
+      owner: control.owner,
+      satisfied,
+      enforcement: control.mode === "strict" ? "block" : "warn",
+    });
   }
-  return { allowed: strictMissing.length === 0, strictMissing, advisoryUnmet };
+  return { allowed: strictMissing.length === 0, strictMissing, advisoryUnmet, trace };
 }
 
 async function insertDispatchEvent(
@@ -401,6 +433,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         threshold,
         required: decision.required,
         advisoryUnmet: requirementGate.advisoryUnmet,
+        requirementTrace: requirementGate.trace,
       },
       processed_at: new Date().toISOString(),
     });
@@ -410,6 +443,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       required: decision.required,
       strictMissing: requirementGate.strictMissing,
       advisoryUnmet: requirementGate.advisoryUnmet,
+      requirementTrace: requirementGate.trace,
       inactiveDays,
       threshold,
     });
@@ -425,6 +459,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         required: decision.required,
         strictMissing: requirementGate.strictMissing,
         advisoryUnmet: requirementGate.advisoryUnmet,
+        requirementTrace: requirementGate.trace,
       },
       processed_at: new Date().toISOString(),
     });
@@ -558,7 +593,12 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
     action,
     status: "sent",
     reason: "policy-approved",
-    metadata: { inactiveDays, threshold, required: decision.required },
+    metadata: {
+      inactiveDays,
+      threshold,
+      required: decision.required,
+      requirementTrace: requirementGate.trace,
+    },
     processed_at: new Date().toISOString(),
   });
 }

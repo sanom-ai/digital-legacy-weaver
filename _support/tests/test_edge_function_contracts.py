@@ -48,6 +48,14 @@ def test_dispatch_mentions_external_legal_verification_handoff() -> None:
     assert "technical coordination layer only" in src
 
 
+def test_dispatch_emits_requirement_trace_metadata() -> None:
+    src = _read(DISPATCH_FN)
+    assert "requirementTrace" in src
+    assert "strictMissing" in src
+    assert "advisoryUnmet" in src
+    assert "enforcement" in src
+
+
 def test_unlock_accepts_request_code_and_unlock_actions() -> None:
     src = _read(UNLOCK_FN)
     assert "request_code" in src
