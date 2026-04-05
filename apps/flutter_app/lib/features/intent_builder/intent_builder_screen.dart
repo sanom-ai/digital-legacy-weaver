@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_history_screen.dart';
@@ -20,10 +21,18 @@ class IntentBuilderScreen extends ConsumerStatefulWidget {
     super.key,
     required this.profile,
     required this.settings,
+    this.initialDocument,
+    this.storageOwnerRef,
+    this.screenTitle,
+    this.screenSubtitle,
   });
 
   final ProfileModel profile;
   final SafetySettingsModel settings;
+  final IntentDocumentModel? initialDocument;
+  final String? storageOwnerRef;
+  final String? screenTitle;
+  final String? screenSubtitle;
 
   @override
   ConsumerState<IntentBuilderScreen> createState() => _IntentBuilderScreenState();
@@ -41,10 +50,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _historyFilter = 'all';
   String _historySort = 'newest';
 
+  String get _storageOwnerRef => widget.storageOwnerRef ?? widget.profile.id;
+  DemoScenario? get _activeScenario =>
+      demoScenarioById(_document.metadata["demo_scenario"] as String?);
+
   @override
   void initState() {
     super.initState();
-    _document = _seedDocument();
+    _document = widget.initialDocument ?? _seedDocument();
     _restoreDraft();
     _restoreArtifact();
   }
@@ -52,7 +65,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   Future<void> _restoreArtifact() async {
     try {
       final repository = ref.read(intentCanonicalArtifactRepositoryProvider);
-      final history = await repository.loadArtifactHistory(ownerRef: widget.profile.id);
+      final history = await repository.loadArtifactHistory(ownerRef: _storageOwnerRef);
       if (!mounted) {
         return;
       }
@@ -74,12 +87,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   Future<void> _restoreDraft() async {
     try {
       final repository = ref.read(intentDraftRepositoryProvider);
-      final stored = await repository.loadDraft(ownerRef: widget.profile.id);
+      final stored = await repository.loadDraft(ownerRef: _storageOwnerRef);
       if (!mounted) {
         return;
       }
       setState(() {
-        _document = stored ?? _seedDocument();
+        _document = stored ?? widget.initialDocument ?? _seedDocument();
         _hasLocalDraft = stored != null;
         _isLoading = false;
         _loadError = null;
@@ -90,7 +103,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         return;
       }
       setState(() {
-        _document = _seedDocument();
+        _document = widget.initialDocument ?? _seedDocument();
         _isLoading = false;
         _loadError = "Could not restore local draft: $error";
       });
@@ -190,7 +203,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     ];
 
     return IntentDocumentModel.initial(
-      ownerRef: widget.profile.id,
+      ownerRef: _storageOwnerRef,
       defaultPrivacyProfile: widget.settings.tracePrivacyProfile,
     ).copyWith(
       entries: entries,
@@ -220,7 +233,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   Future<void> _resetDraft() async {
     final seed = _seedDocument();
-    await ref.read(intentDraftRepositoryProvider).clearDraft(ownerRef: widget.profile.id);
+    await ref.read(intentDraftRepositoryProvider).clearDraft(ownerRef: _storageOwnerRef);
     if (!mounted) {
       return;
     }
@@ -298,6 +311,19 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       ),
       message: "Draft changes saved locally with device encryption.",
     );
+  }
+
+  Future<void> _applyScenarioPreset(DemoScenario scenario) async {
+    final document = scenario.buildDocument(
+      profile: widget.profile,
+      settings: widget.settings,
+      ownerRefOverride: _storageOwnerRef,
+    );
+    await _persistDocument(
+      document,
+      message: "${scenario.title} preset applied and saved locally with device encryption.",
+    );
+    await _restoreArtifact();
   }
 
   Future<void> _toggleEntryStatus(IntentEntryModel entry) async {
@@ -382,8 +408,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       report: report,
     );
     await ref.read(intentCanonicalArtifactRepositoryProvider).saveArtifact(artifact);
-    ref.invalidate(intentCanonicalArtifactProvider(widget.profile.id));
-    ref.invalidate(intentCanonicalArtifactHistoryProvider(widget.profile.id));
+    ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
+    ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (!mounted) {
       return;
     }
@@ -396,9 +422,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   }
 
   Future<void> _clearCanonicalArtifact() async {
-    await ref.read(intentCanonicalArtifactRepositoryProvider).clearArtifact(ownerRef: widget.profile.id);
-    ref.invalidate(intentCanonicalArtifactProvider(widget.profile.id));
-    ref.invalidate(intentCanonicalArtifactHistoryProvider(widget.profile.id));
+    await ref.read(intentCanonicalArtifactRepositoryProvider).clearArtifact(ownerRef: _storageOwnerRef);
+    ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
+    ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (!mounted) {
       return;
     }
@@ -412,9 +438,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   Future<void> _clearArtifactVersion(String artifactId) async {
     await ref
         .read(intentCanonicalArtifactRepositoryProvider)
-        .clearArtifactVersion(ownerRef: widget.profile.id, artifactId: artifactId);
-    ref.invalidate(intentCanonicalArtifactProvider(widget.profile.id));
-    ref.invalidate(intentCanonicalArtifactHistoryProvider(widget.profile.id));
+        .clearArtifactVersion(ownerRef: _storageOwnerRef, artifactId: artifactId);
+    ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
+    ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     final nextHistory = [
       for (final item in _artifactHistory)
         if (item.artifactId != artifactId) item,
@@ -435,11 +461,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   Future<void> _promoteArtifactVersion(IntentCanonicalArtifactModel artifact) async {
     final promoted = await ref.read(intentCanonicalArtifactRepositoryProvider).promoteArtifactVersion(
-      ownerRef: widget.profile.id,
+      ownerRef: _storageOwnerRef,
       artifactId: artifact.artifactId,
     );
-    ref.invalidate(intentCanonicalArtifactProvider(widget.profile.id));
-    ref.invalidate(intentCanonicalArtifactHistoryProvider(widget.profile.id));
+    ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
+    ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (promoted == null || !mounted) {
       return;
     }
@@ -463,8 +489,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     }
     final updated = artifact.copyWith(artifactState: nextState);
     await ref.read(intentCanonicalArtifactRepositoryProvider).saveArtifact(updated);
-    ref.invalidate(intentCanonicalArtifactProvider(widget.profile.id));
-    ref.invalidate(intentCanonicalArtifactHistoryProvider(widget.profile.id));
+    ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
+    ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (!mounted) {
       return;
     }
@@ -574,9 +600,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenTitle = widget.screenTitle ?? "Intent Builder";
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Intent Builder")),
+        appBar: AppBar(title: Text(screenTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -588,6 +615,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
     final ptnPreview = buildDraftIntentPtnPreview(_document);
     final draftSignature = buildIntentDocumentSignature(_document);
+    final screenSubtitle = widget.screenSubtitle ??
+        "This screen is the draft foundation for building intent in plain language before compiling it into PTN.";
+    final demoScenarioTitle = _document.metadata["demo_title"] as String?;
+    final demoScenarioSummary = _document.metadata["demo_summary"] as String?;
+    final demoScenarioNextStep = _document.metadata["demo_next_step"] as String?;
     final artifactInSync = _artifact != null && _artifact!.sourceDraftSignature == draftSignature;
     final activeEntryCount = _document.entries.where((entry) => entry.status == "active").length;
     final canMarkReviewed = _artifact != null
@@ -604,7 +636,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Intent Builder"),
+        title: Text(screenTitle),
         actions: [
           TextButton(
             onPressed: _hasLocalDraft ? _resetDraft : null,
@@ -626,9 +658,30 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    "This screen is the draft foundation for building intent in plain language before compiling it into PTN.",
-                  ),
+                  Text(screenSubtitle),
+                  if (demoScenarioTitle != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F1E8),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Demo scenario: $demoScenarioTitle",
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          if (demoScenarioSummary != null) ...[
+                            const SizedBox(height: 6),
+                            Text(demoScenarioSummary),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -664,6 +717,69 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         fontSize: 13,
                         color: Colors.redAccent,
                         fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Scenario preset",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Use a preset to make the current workspace concrete faster. Presets seed entries, safeguards, and privacy posture without making you start from a blank document.",
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final scenario in demoScenarios)
+                        ChoiceChip(
+                          label: Text(scenario.title),
+                          selected: _activeScenario?.id == scenario.id,
+                          onSelected: (_) {
+                            _applyScenarioPreset(scenario);
+                          },
+                        ),
+                    ],
+                  ),
+                  if (_activeScenario != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F1E8),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Preset active: ${_activeScenario!.title}",
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(_activeScenario!.summary),
+                          if (demoScenarioNextStep != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              "Preset next step: $demoScenarioNextStep",
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],

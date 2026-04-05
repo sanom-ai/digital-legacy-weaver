@@ -6,7 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('AuthGate shows missing config guidance without supabase defines', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: AuthGate()));
-    expect(find.text('Finish backend setup or open demo mode'), findsOneWidget);
+    expect(find.text('Finish backend setup or start a guided demo'), findsOneWidget);
+    expect(find.text('Start with a guided scenario'), findsOneWidget);
+    expect(find.text('Family beneficiary handoff'), findsOneWidget);
+    expect(find.text('Owner self-recovery'), findsOneWidget);
+    expect(find.text('Private-first archive'), findsOneWidget);
     expect(find.text('Open demo workspace'), findsOneWidget);
     expect(find.text('Show setup reminder'), findsOneWidget);
     expect(find.textContaining('--dart-define=SUPABASE_URL='), findsOneWidget);

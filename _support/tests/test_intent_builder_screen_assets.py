@@ -27,6 +27,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     artifact_sample = ROOT / "examples" / "intent-canonical-artifact.sample.json"
     dashboard = ROOT / "apps" / "flutter_app" / "lib" / "features" / "dashboard" / "dashboard_screen.dart"
     config_landing = ROOT / "apps" / "flutter_app" / "lib" / "features" / "auth" / "config_landing_screen.dart"
+    demo_scenarios = ROOT / "apps" / "flutter_app" / "lib" / "features" / "auth" / "demo_scenarios.dart"
     pubspec = ROOT / "apps" / "flutter_app" / "pubspec.yaml"
     assert screen.exists()
     assert preview.exists()
@@ -46,6 +47,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert artifact_sample.exists()
     assert dashboard.exists()
     assert config_landing.exists()
+    assert demo_scenarios.exists()
     assert pubspec.exists()
 
     screen_src = _read(screen)
@@ -66,6 +68,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     artifact_sample_src = _read(artifact_sample)
     dashboard_src = _read(dashboard)
     config_landing_src = _read(config_landing)
+    demo_scenarios_src = _read(demo_scenarios)
     pubspec_src = _read(pubspec)
 
     assert "class IntentBuilderScreen" in screen_src
@@ -172,16 +175,73 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Three-layer map" in readiness_screen_src
     assert "Runtime blockers" in dashboard_src
     assert "Runtime readiness" in dashboard_src
+    assert "Control room" in dashboard_src
+    assert "Scenario focus:" in dashboard_src
+    assert "Primary action:" in dashboard_src
+    assert "Action plan" in dashboard_src
+    assert "Guided next steps" in dashboard_src
+    assert "Draft workspace only" in dashboard_src
+    assert "Blocking compiler issues" in dashboard_src
+    assert "No active entries yet" in dashboard_src
+    assert "Export completed" in dashboard_src
+    assert "Reviewed but stale" in dashboard_src
+    assert "Reviewed and in sync" in dashboard_src
+    assert "Ready artifact drifted" in dashboard_src
+    assert "Runtime candidate is healthy" in dashboard_src
+    assert "Best next move:" in dashboard_src
+    assert "Live backend mode" in dashboard_src
+    assert "Setup still incomplete" in dashboard_src
+    assert "Next action:" in dashboard_src
+    assert "primaryActionLabel" in dashboard_src
+    assert "onPrimaryAction" in dashboard_src
+    assert "review_exported_artifact" in dashboard_src
+    assert "Open readiness details" in dashboard_src
+    assert "Complete beta setup" in dashboard_src
+    assert "Draft in sync" in dashboard_src
+    assert "Draft changed" in dashboard_src
+    assert "Warnings:" in dashboard_src
+    assert "class _ControlRoomCard" in dashboard_src
+    assert "class _MetricChip" in dashboard_src
+    assert "class _StateHelperCard" in dashboard_src
+    assert "currentScenarioTitle" in readiness_model_src
+    assert "currentScenarioSummary" in readiness_model_src
+    assert "currentScenarioNextStep" in readiness_model_src
+    assert "primaryActionLabel" in readiness_model_src
+    assert "primaryActionKey" in readiness_model_src
+    assert "actionPlan" in readiness_model_src
     assert "Draft sync: current draft still matches the latest exported artifact." in dashboard_src
     assert "Draft sync: current draft changed since the latest export." in dashboard_src
     assert 'child: const Text("Readiness details")' in dashboard_src
     assert 'child: const Text("Open Intent Builder")' in dashboard_src
     assert "class ConfigLandingScreen" in config_landing_src
-    assert "Finish backend setup or open demo mode" in config_landing_src
+    assert "Finish backend setup or start a guided demo" in config_landing_src
     assert "Backend setup required" in config_landing_src
+    assert "Start with a guided scenario" in config_landing_src
+    assert "What happens in demo mode" in config_landing_src
     assert "Open demo workspace" in config_landing_src
     assert "Show setup reminder" in config_landing_src
     assert "Technical companion only" in config_landing_src
+    assert "class DemoScenario" in demo_scenarios_src
+    assert "const demoScenarios" in demo_scenarios_src
+    assert "Family beneficiary handoff" in demo_scenarios_src
+    assert "Owner self-recovery" in demo_scenarios_src
+    assert "Private-first archive" in demo_scenarios_src
+    assert "Start family handoff demo" in demo_scenarios_src
+    assert "Start self-recovery demo" in demo_scenarios_src
+    assert "Start private archive demo" in demo_scenarios_src
+    assert "demoScenarioById" in demo_scenarios_src
+    assert "demo_next_step" in demo_scenarios_src
+    assert "screenTitle" in screen_src
+    assert "screenSubtitle" in screen_src
+    assert 'final demoScenarioTitle = _document.metadata["demo_title"] as String?;' in screen_src
+    assert 'final demoScenarioNextStep = _document.metadata["demo_next_step"] as String?;' in screen_src
+    assert 'Text(screenTitle)' in screen_src
+    assert 'Text(screenSubtitle)' in screen_src
+    assert 'Demo scenario: $demoScenarioTitle' in screen_src
+    assert "Scenario preset" in screen_src
+    assert "Preset active:" in screen_src
+    assert "Preset next step:" in screen_src
+    assert "_applyScenarioPreset" in screen_src
     assert "class IntentArtifactReviewScreen" in artifact_review_src
     assert "class IntentArtifactCompareScreen" in artifact_compare_src
     assert "class IntentArtifactHistoryScreen" in artifact_history_src

@@ -29,6 +29,14 @@ class IntentRuntimeReadinessModel {
 
   int get warningCount => currentArtifact?.report.warningCount ?? 0;
 
+  String? get currentScenarioId => currentDraft?.metadata["demo_scenario"] as String?;
+
+  String? get currentScenarioTitle => currentDraft?.metadata["demo_title"] as String?;
+
+  String? get currentScenarioSummary => currentDraft?.metadata["demo_summary"] as String?;
+
+  String? get currentScenarioNextStep => currentDraft?.metadata["demo_next_step"] as String?;
+
   bool get readyForRuntime =>
       currentArtifact != null &&
       currentArtifact!.artifactState == IntentArtifactState.ready &&
@@ -80,6 +88,87 @@ class IntentRuntimeReadinessModel {
       return "Next step: re-export to refresh the ready artifact from the latest draft.";
     }
     return "Next step: review the latest artifact state in Intent Builder.";
+  }
+
+  String get primaryActionLabel {
+    if (!hasArtifact) {
+      return "Export first artifact";
+    }
+    if (hasBlockingErrors) {
+      return "Fix blocking issues";
+    }
+    if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
+      return "Activate intent entries";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.exported) {
+      return "Review exported artifact";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.reviewed && !draftInSync) {
+      return "Refresh exported artifact";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
+      return "Mark artifact ready";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.ready && !draftInSync) {
+      return "Re-export latest draft";
+    }
+    return "Inspect current workspace";
+  }
+
+  String get primaryActionKey {
+    if (!hasArtifact) {
+      return "export_first_artifact";
+    }
+    if (hasBlockingErrors) {
+      return "fix_blocking_issues";
+    }
+    if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
+      return "activate_entries";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.exported) {
+      return "review_exported_artifact";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.reviewed && !draftInSync) {
+      return "refresh_exported_artifact";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
+      return "mark_artifact_ready";
+    }
+    if (currentArtifact!.artifactState == IntentArtifactState.ready && !draftInSync) {
+      return "reexport_latest_draft";
+    }
+    return "inspect_current_workspace";
+  }
+
+  List<String> get actionPlan {
+    final steps = <String>[];
+    if (!hasArtifact) {
+      steps.add("Open Intent Builder and export the first canonical PTN artifact.");
+    } else if (hasBlockingErrors) {
+      steps.add("Resolve compiler errors before advancing the current artifact.");
+    } else if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
+      steps.add("Activate at least one intent entry so runtime has a concrete route.");
+    } else if (currentArtifact!.artifactState == IntentArtifactState.exported) {
+      steps.add("Review the exported artifact and confirm the PTN, trace, and report.");
+    } else if (currentArtifact!.artifactState == IntentArtifactState.reviewed && !draftInSync) {
+      steps.add("Re-export from the latest draft because the reviewed artifact is now stale.");
+    } else if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
+      steps.add("Mark the reviewed artifact ready while the draft is still in sync.");
+    } else if (currentArtifact!.artifactState == IntentArtifactState.ready && !draftInSync) {
+      steps.add("Refresh the ready artifact from the latest draft to regain confidence.");
+    } else {
+      steps.add("Keep the current ready artifact in sync as you refine the workspace.");
+    }
+
+    if (currentScenarioNextStep != null) {
+      steps.add(currentScenarioNextStep!);
+    }
+
+    if (!draftInSync && hasArtifact) {
+      steps.add("Compare the latest artifact with current draft changes before promotion or export.");
+    }
+
+    return steps;
   }
 
   static IntentRuntimeReadinessModel fromArtifacts({
