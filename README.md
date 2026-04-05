@@ -1,4 +1,4 @@
-# Digital Legacy Weaver
+# Digital Legacy Weaver : Legacy logistics, privately coordinated.
 
 ![Digital Legacy Weaver Header](docs/assets/social/repo-header-banner.png)
 
