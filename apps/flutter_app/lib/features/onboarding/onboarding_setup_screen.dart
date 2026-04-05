@@ -77,6 +77,17 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     return null;
   }
 
+  Color _badgeColor(PrivacyProfilePreset preset) {
+    switch (preset.id) {
+      case "confidential":
+        return const Color(0xFFD9E8FF);
+      case "audit-heavy":
+        return const Color(0xFFFFE4C7);
+      default:
+        return const Color(0xFFE5D7C5);
+    }
+  }
+
   Future<void> _save() async {
     if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
@@ -274,15 +285,14 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                                         ),
                                       ),
-                                      if (preset.recommended)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(999),
-                                            color: const Color(0xFFE5D7C5),
-                                          ),
-                                          child: const Text("Recommended", style: TextStyle(fontSize: 12)),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(999),
+                                          color: _badgeColor(preset),
                                         ),
+                                        child: Text(preset.badgeLabel, style: const TextStyle(fontSize: 12)),
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 6),

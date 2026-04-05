@@ -2,6 +2,7 @@ class PrivacyProfilePreset {
   const PrivacyProfilePreset({
     required this.id,
     required this.title,
+    required this.badgeLabel,
     required this.summary,
     required this.detail,
     required this.privateFirstMode,
@@ -11,6 +12,7 @@ class PrivacyProfilePreset {
 
   final String id;
   final String title;
+  final String badgeLabel;
   final String summary;
   final String detail;
   final bool privateFirstMode;
@@ -22,16 +24,18 @@ const privacyProfilePresets = <PrivacyProfilePreset>[
   PrivacyProfilePreset(
     id: 'confidential',
     title: 'Confidential',
-    summary: 'เก็บ trace ให้น้อยที่สุด เหลือเพียง outcome ระดับสูง',
-    detail: 'เหมาะกับผู้ใช้ที่ต้องการลดร่องรอย runtime metadata ให้มากที่สุดและยอมแลกกับการตรวจสอบย้อนหลังที่บางลง',
+    badgeLabel: 'Highest privacy',
+    summary: 'Keeps trace data to an absolute minimum and stores only high-level outcomes.',
+    detail: 'Best for users who want the smallest runtime metadata footprint and can accept thinner operational forensics.',
     privateFirstMode: true,
     tracePrivacyProfile: 'confidential',
   ),
   PrivacyProfilePreset(
     id: 'minimal',
     title: 'Minimal',
-    summary: 'สมดุลที่สุด เก็บเฉพาะ control-state ที่ sanitize แล้ว',
-    detail: 'เหมาะกับ closed beta และการใช้งานทั่วไป เพราะยังตรวจสอบ flow ได้โดยไม่เก็บรายละเอียดเกินจำเป็น',
+    badgeLabel: 'Recommended for beta',
+    summary: 'Balanced default that stores only sanitized control-state needed for runtime review.',
+    detail: 'Best for closed beta and general usage because it preserves enough signal for debugging without collecting excess detail.',
     privateFirstMode: true,
     tracePrivacyProfile: 'minimal',
     recommended: true,
@@ -39,8 +43,9 @@ const privacyProfilePresets = <PrivacyProfilePreset>[
   PrivacyProfilePreset(
     id: 'audit-heavy',
     title: 'Audit-heavy',
-    summary: 'เพิ่ม evidence/owner reference เพื่อการวิเคราะห์ย้อนหลัง',
-    detail: 'เหมาะกับทีมที่ต้องการสืบเหตุการณ์และทำ incident review ลึกขึ้น โดยยังไม่เก็บ secret จริง',
+    badgeLabel: 'Best for audits',
+    summary: 'Keeps sanitized evidence and owner references for deeper incident review.',
+    detail: 'Best for teams that need richer post-incident analysis while still avoiding actual secret material.',
     privateFirstMode: true,
     tracePrivacyProfile: 'audit-heavy',
   ),

@@ -67,7 +67,7 @@ void main() {
     expect(find.text('Private-first Mode'), findsOneWidget);
     expect(find.text('Keep private-first mode enabled'), findsOneWidget);
     expect(find.text('Privacy preset'), findsOneWidget);
-    expect(find.text('Recommended'), findsOneWidget);
+    expect(find.text('Recommended for beta'), findsOneWidget);
 
     await tester.tap(find.text('Audit-heavy').last);
     await tester.pumpAndSettle();
@@ -76,6 +76,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Safety settings updated.'), findsOneWidget);
+    expect(find.text('Best for audits'), findsOneWidget);
     expect(find.textContaining('evidence/owner reference'), findsOneWidget);
   });
 
@@ -121,11 +122,13 @@ void main() {
     expect(find.text('Keep private-first mode enabled'), findsOneWidget);
     expect(find.text('Privacy preset'), findsOneWidget);
     expect(find.textContaining('does not replace a legal will'), findsOneWidget);
+    expect(find.text('Highest privacy'), findsNothing);
 
     await tester.tap(find.text('Confidential').last);
     await tester.pumpAndSettle();
 
     expect(find.text('Confidential'), findsWidgets);
+    expect(find.text('Highest privacy'), findsOneWidget);
   });
 
   test('privacy presets map to expected trace profiles', () {
