@@ -23,6 +23,10 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "class IntentBuilderScreen" in screen_src
     assert "User-defined legacy intent" in screen_src
     assert "Add draft entry" in screen_src
+    assert "Edit intent entry" in screen_src
+    assert 'child: const Text("Edit")' in screen_src
+    assert 'child: Text(entry.status == \'active\' ? "Move to draft" : "Activate")' in screen_src
+    assert "DropdownButtonFormField<String>" in screen_src
     assert "Compiler bridge" in screen_src
     assert "buildDraftIntentPtnPreview" in screen_src
     assert "Draft canonical preview generated from the current intent document" in screen_src

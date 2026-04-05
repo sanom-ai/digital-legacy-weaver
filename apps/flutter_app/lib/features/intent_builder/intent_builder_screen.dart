@@ -153,6 +153,33 @@ class _IntentBuilderScreenState extends State<IntentBuilderScreen> {
     });
   }
 
+  Future<void> _editEntry(IntentEntryModel entry) async {
+    final updated = await showDialog<IntentEntryModel>(
+      context: context,
+      builder: (_) => _IntentEntryEditorDialog(entry: entry),
+    );
+    if (updated == null) return;
+    setState(() {
+      _document = _document.copyWith(
+        entries: [
+          for (final item in _document.entries) item.entryId == entry.entryId ? updated : item,
+        ],
+      );
+    });
+  }
+
+  void _toggleEntryStatus(IntentEntryModel entry) {
+    final nextStatus = entry.status == 'active' ? 'draft' : 'active';
+    setState(() {
+      _document = _document.copyWith(
+        entries: [
+          for (final item in _document.entries)
+            item.entryId == entry.entryId ? item.copyWith(status: nextStatus) : item,
+        ],
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final primaryLegacy = _document.entries.firstWhere(
@@ -220,7 +247,11 @@ class _IntentBuilderScreenState extends State<IntentBuilderScreen> {
           const SizedBox(height: 12),
           ..._document.entries.map((entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _IntentEntryCard(entry: entry),
+                child: _IntentEntryCard(
+                  entry: entry,
+                  onEdit: () => _editEntry(entry),
+                  onToggleStatus: () => _toggleEntryStatus(entry),
+                ),
               )),
           IntentReviewCard(report: report),
           const SizedBox(height: 12),
@@ -262,9 +293,15 @@ class _IntentBuilderScreenState extends State<IntentBuilderScreen> {
 }
 
 class _IntentEntryCard extends StatelessWidget {
-  const _IntentEntryCard({required this.entry});
+  const _IntentEntryCard({
+    required this.entry,
+    required this.onEdit,
+    required this.onToggleStatus,
+  });
 
   final IntentEntryModel entry;
+  final VoidCallback onEdit;
+  final VoidCallback onToggleStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -283,6 +320,8 @@ class _IntentEntryCard extends StatelessWidget {
                   ),
                 ),
                 _Pill(label: entry.kind),
+                const SizedBox(width: 8),
+                _Pill(label: entry.status),
               ],
             ),
             const SizedBox(height: 8),
@@ -295,9 +334,154 @@ class _IntentEntryCard extends StatelessWidget {
             Text("Privacy: ${entry.privacy.profile}"),
             const SizedBox(height: 4),
             Text("Status: ${entry.status}"),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                OutlinedButton(
+                  onPressed: onEdit,
+                  child: const Text("Edit"),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.tonal(
+                  onPressed: onToggleStatus,
+                  child: Text(entry.status == 'active' ? "Move to draft" : "Activate"),
+                ),
+              ],
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _IntentEntryEditorDialog extends StatefulWidget {
+  const _IntentEntryEditorDialog({required this.entry});
+
+  final IntentEntryModel entry;
+
+  @override
+  State<_IntentEntryEditorDialog> createState() => _IntentEntryEditorDialogState();
+}
+
+class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
+  late final TextEditingController _displayNameController;
+  late final TextEditingController _recipientController;
+  late final TextEditingController _triggerDaysController;
+  late final TextEditingController _graceDaysController;
+  late String _privacyProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayNameController = TextEditingController(text: widget.entry.asset.displayName);
+    _recipientController = TextEditingController(text: widget.entry.recipient.destinationRef);
+    _triggerDaysController = TextEditingController(text: widget.entry.trigger.inactivityDays.toString());
+    _graceDaysController = TextEditingController(text: widget.entry.trigger.graceDays.toString());
+    _privacyProfile = widget.entry.privacy.profile;
+  }
+
+  @override
+  void dispose() {
+    _displayNameController.dispose();
+    _recipientController.dispose();
+    _triggerDaysController.dispose();
+    _graceDaysController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Edit intent entry"),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _displayNameController,
+              decoration: const InputDecoration(labelText: "Asset label"),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _recipientController,
+              decoration: const InputDecoration(labelText: "Recipient destination"),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _triggerDaysController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Inactivity days"),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _graceDaysController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Grace days"),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _privacyProfile,
+              decoration: const InputDecoration(labelText: "Privacy profile"),
+              items: const [
+                DropdownMenuItem(value: "confidential", child: Text("Confidential")),
+                DropdownMenuItem(value: "minimal", child: Text("Minimal")),
+                DropdownMenuItem(value: "audit-heavy", child: Text("Audit-heavy")),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _privacyProfile = value);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: () {
+            final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ?? widget.entry.trigger.inactivityDays;
+            final graceDays = int.tryParse(_graceDaysController.text.trim()) ?? widget.entry.trigger.graceDays;
+            Navigator.of(context).pop(
+              widget.entry.copyWith(
+                asset: IntentAssetModel(
+                  assetId: widget.entry.asset.assetId,
+                  assetType: widget.entry.asset.assetType,
+                  displayName: _displayNameController.text.trim().isEmpty
+                      ? widget.entry.asset.displayName
+                      : _displayNameController.text.trim(),
+                  payloadMode: widget.entry.asset.payloadMode,
+                  payloadRef: widget.entry.asset.payloadRef,
+                  notes: widget.entry.asset.notes,
+                ),
+                recipient: IntentRecipientModel(
+                  recipientId: widget.entry.recipient.recipientId,
+                  relationship: widget.entry.recipient.relationship,
+                  deliveryChannel: widget.entry.recipient.deliveryChannel,
+                  destinationRef: _recipientController.text.trim(),
+                  role: widget.entry.recipient.role,
+                ),
+                trigger: IntentTriggerModel(
+                  mode: widget.entry.trigger.mode,
+                  inactivityDays: inactivityDays,
+                  requireUnconfirmedAliveStatus: widget.entry.trigger.requireUnconfirmedAliveStatus,
+                  graceDays: graceDays,
+                  remindersDaysBefore: widget.entry.trigger.remindersDaysBefore,
+                ),
+                privacy: IntentPrivacyModel(
+                  profile: _privacyProfile,
+                  minimizeTraceMetadata: widget.entry.privacy.minimizeTraceMetadata,
+                ),
+              ),
+            );
+          },
+          child: const Text("Apply"),
+        ),
+      ],
     );
   }
 }
