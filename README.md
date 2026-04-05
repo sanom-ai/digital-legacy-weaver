@@ -164,6 +164,7 @@ Guide:
 
 1. App:
 - `apps/flutter_app`
+- `apps/flutter_app/lib/features/intent_builder`
 
 2. Supabase:
 - `supabase/migrations`

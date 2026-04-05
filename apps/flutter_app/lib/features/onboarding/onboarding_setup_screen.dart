@@ -1,3 +1,5 @@
+import 'package:digital_legacy_weaver/features/intent_builder/intent_compiler_report_model.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
@@ -136,6 +138,14 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final selectedPreset = presetById(_selectedPresetId);
+    final draftReport = buildDraftIntentCompilerReport(
+      beneficiaryEmail: _beneficiaryEmailController.text,
+      legalAccepted: _legalAccepted,
+      privateFirstMode: _privateFirstMode,
+      privacyProfile: selectedPreset.tracePrivacyProfile,
+      legacyInactivityDays: int.tryParse(_legacyDaysController.text) ?? 0,
+      graceDays: int.tryParse(_graceDaysController.text) ?? 0,
+    );
     return Scaffold(
       appBar: AppBar(title: const Text("Complete Setup")),
       body: Form(
@@ -311,6 +321,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     }).toList(),
                   ),
                   Text(selectedPreset.summary),
+                  const SizedBox(height: 12),
+                  IntentReviewCard(report: draftReport),
                   const SizedBox(height: 8),
                   const Text(
                     "For closed beta, keep messaging clear: this app helps coordinate secure delivery. It does not replace a legal will.",
