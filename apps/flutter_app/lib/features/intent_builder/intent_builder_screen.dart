@@ -1,5 +1,6 @@
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_compiler_report_model.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_ptn_preview.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
@@ -166,6 +167,7 @@ class _IntentBuilderScreenState extends State<IntentBuilderScreen> {
       legacyInactivityDays: primaryLegacy.trigger.inactivityDays,
       graceDays: primaryLegacy.trigger.graceDays,
     );
+    final ptnPreview = buildDraftIntentPtnPreview(_document);
 
     return Scaffold(
       appBar: AppBar(title: const Text("Intent Builder")),
@@ -227,14 +229,27 @@ class _IntentBuilderScreenState extends State<IntentBuilderScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "Compiler bridge",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Next step: connect this draft document to the compiler report and PTN emission path so review and activation use the same canonical output.",
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Draft canonical preview generated from the current intent document. This stays close to compiler semantics so users can see the PTN shape early.",
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFFF7F2EA),
+                    ),
+                    child: SelectableText(
+                      ptnPreview,
+                      style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
+                    ),
                   ),
                 ],
               ),
