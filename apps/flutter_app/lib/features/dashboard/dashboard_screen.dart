@@ -2,6 +2,8 @@ import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
 import 'package:digital_legacy_weaver/features/connectors/presentation/connectors_screen.dart';
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
+import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
+import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_screen.dart';
 import 'package:digital_legacy_weaver/features/unlock/unlock_delivery_screen.dart';
@@ -100,6 +102,12 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           const RecoveryVaultSection(),
+          const SizedBox(height: 16),
+          safetyAsync.when(
+            data: (settings) => _PolicySelectorCard(settings: settings),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
@@ -233,6 +241,33 @@ class _DeliveryModeCard extends StatelessWidget {
             Text('Technical companion only: beneficiaries must complete any legal verification directly with the destination provider.'),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PolicySelectorCard extends StatelessWidget {
+  const _PolicySelectorCard({required this.settings});
+
+  final SafetySettingsModel settings;
+
+  @override
+  Widget build(BuildContext context) {
+    final preset = presetById(settings.tracePrivacyProfile);
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.privacy_tip_outlined),
+        title: Text('Privacy Preset: ${preset.title}'),
+        subtitle: Text(
+          '${preset.summary}\nTechnical companion only. Change this in Risk Controls.',
+        ),
+        isThreeLine: true,
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SafetySettingsScreen()),
+          );
+        },
       ),
     );
   }

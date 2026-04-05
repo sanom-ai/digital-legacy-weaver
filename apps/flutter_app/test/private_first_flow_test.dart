@@ -1,5 +1,7 @@
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
+import 'package:digital_legacy_weaver/features/dashboard/dashboard_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
+import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
@@ -130,5 +132,29 @@ void main() {
     expect(presetById('confidential').tracePrivacyProfile, 'confidential');
     expect(presetById('minimal').recommended, isTrue);
     expect(presetById('audit-heavy').privateFirstMode, isTrue);
+  });
+
+  testWidgets('Dashboard policy card shows active privacy preset', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          safetySettingsProvider.overrideWith(_FakeSafetySettingsController.new),
+          profileProvider.overrideWith((ref) async => const ProfileModel(
+                id: 'owner-1',
+                backupEmail: 'owner@example.com',
+                beneficiaryEmail: 'beneficiary@example.com',
+                legacyInactivityDays: 180,
+                selfRecoveryInactivityDays: 45,
+                lastActiveAt: DateTime(2026, 1, 1),
+              )),
+        ],
+        child: const MaterialApp(home: DashboardScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Privacy Preset: Minimal'), findsOneWidget);
+    expect(find.textContaining('Technical companion only'), findsOneWidget);
   });
 }
