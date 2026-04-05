@@ -3,7 +3,10 @@ export type PolicyDecision = {
   required: string[];
   requiredControls: RequirementControl[];
   reasons: string[];
+  privacyProfile: PrivacyProfile;
 };
+
+export type PrivacyProfile = "confidential" | "minimal" | "audit-heavy";
 
 export type RequirementControl = {
   name: string;
@@ -27,6 +30,7 @@ type ConstraintRule = {
 type CompiledPolicy = {
   authorities: Map<string, AuthorityRule>;
   constraints: ConstraintRule[];
+  privacyProfile: PrivacyProfile;
 };
 
 function ensureAuthority(map: Map<string, AuthorityRule>, role: string): AuthorityRule {
@@ -98,6 +102,7 @@ function parseRequirementControl(raw: string): RequirementControl {
 export function compilePTN(source: string): CompiledPolicy {
   const authorities = new Map<string, AuthorityRule>();
   const constraints: ConstraintRule[] = [];
+  let privacyProfile: PrivacyProfile = "minimal";
 
   const lines = source.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   let currentType = "";
@@ -105,6 +110,14 @@ export function compilePTN(source: string): CompiledPolicy {
   let currentConstraint: ConstraintRule | null = null;
 
   for (const line of lines) {
+    if (!currentType && line.startsWith("privacy_profile:")) {
+      const value = line.replace("privacy_profile:", "").trim();
+      if (value === "confidential" || value === "minimal" || value === "audit-heavy") {
+        privacyProfile = value;
+      }
+      continue;
+    }
+
     const blockStart = line.match(/^(role|authority|constraint|policy)\s+([A-Za-z0-9_-]+)\s*\{$/);
     if (blockStart) {
       currentType = blockStart[1];
@@ -163,7 +176,7 @@ export function compilePTN(source: string): CompiledPolicy {
     }
   }
 
-  return { authorities, constraints };
+  return { authorities, constraints, privacyProfile };
 }
 
 export function evaluatePolicy(
@@ -181,6 +194,7 @@ export function evaluatePolicy(
         required: [],
         requiredControls: [],
         reasons: [`no authority block for role '${role}'`],
+        privacyProfile: compiled.privacyProfile,
       };
   }
 
@@ -191,6 +205,7 @@ export function evaluatePolicy(
         required: [],
         requiredControls: [],
         reasons: [`forbidden by constraint for ${role}:${action}`],
+        privacyProfile: compiled.privacyProfile,
       };
     }
     for (const req of constraint.require.get(action)?.values() ?? []) {
@@ -204,6 +219,7 @@ export function evaluatePolicy(
       required: [],
       requiredControls: [],
       reasons: [`denied by authority for ${role}:${action}`],
+      privacyProfile: compiled.privacyProfile,
     };
   }
 
@@ -213,6 +229,7 @@ export function evaluatePolicy(
       required: [],
       requiredControls: [],
       reasons: [`action '${action}' not in allow list for role '${role}'`],
+      privacyProfile: compiled.privacyProfile,
     };
   }
 
@@ -231,5 +248,6 @@ export function evaluatePolicy(
     required: requiredControls.map((control) => control.name),
     requiredControls,
     reasons,
+    privacyProfile: compiled.privacyProfile,
   };
 }

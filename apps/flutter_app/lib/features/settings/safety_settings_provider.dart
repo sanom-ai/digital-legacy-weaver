@@ -24,6 +24,8 @@ class SafetySettingsController extends AsyncNotifier<SafetySettingsModel> {
     required bool legalDisclaimerAccepted,
     required DateTime? emergencyPauseUntil,
     required bool requireTotpUnlock,
+    required bool privateFirstMode,
+    required String tracePrivacyProfile,
   }) async {
     final repo = ref.read(safetySettingsRepositoryProvider);
     await repo.update(
@@ -33,6 +35,8 @@ class SafetySettingsController extends AsyncNotifier<SafetySettingsModel> {
       legalDisclaimerAccepted: legalDisclaimerAccepted,
       emergencyPauseUntil: emergencyPauseUntil,
       requireTotpUnlock: requireTotpUnlock,
+      privateFirstMode: privateFirstMode,
+      tracePrivacyProfile: tracePrivacyProfile,
     );
     state = AsyncData(await repo.getOrCreate());
   }

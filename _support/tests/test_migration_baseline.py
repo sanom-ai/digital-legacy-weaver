@@ -28,6 +28,7 @@ def test_required_migration_files_exist() -> None:
         "20260405_0015_partner_handoff_notices.sql",
         "20260405_0016_beta_feedback.sql",
         "20260405_0017_private_first_trace_controls.sql",
+        "20260405_0018_trace_privacy_profile.sql",
     ]
     existing = {p.name for p in MIGRATIONS.glob("*.sql")}
     for name in required:
@@ -121,3 +122,9 @@ def test_private_first_trace_controls_defined() -> None:
     assert "add column if not exists minimize_trace_metadata boolean not null default true" in src
     assert "add column if not exists trace_retention_days int not null default 14" in src
     assert "metadata = metadata - 'requirementTrace'" in src
+
+
+def test_trace_privacy_profile_defined() -> None:
+    src = _read("20260405_0018_trace_privacy_profile.sql")
+    assert "add column if not exists trace_privacy_profile text not null default 'minimal'" in src
+    assert "trace_privacy_profile in ('confidential', 'minimal', 'audit-heavy')" in src

@@ -22,8 +22,10 @@ class SafetySettingsRepository {
           "reminders_enabled": true,
           "reminder_offsets_days": [14, 7, 1],
           "grace_period_days": 3,
-      "legal_disclaimer_accepted": false,
+          "legal_disclaimer_accepted": false,
           "require_totp_unlock": false,
+          "private_first_mode": true,
+          "trace_privacy_profile": "minimal",
         })
         .select()
         .single();
@@ -37,6 +39,8 @@ class SafetySettingsRepository {
     required bool legalDisclaimerAccepted,
     required DateTime? emergencyPauseUntil,
     required bool requireTotpUnlock,
+    required bool privateFirstMode,
+    required String tracePrivacyProfile,
   }) async {
     final user = _client.auth.currentUser;
     if (user == null) return;
@@ -48,6 +52,8 @@ class SafetySettingsRepository {
       "legal_disclaimer_accepted_at": legalDisclaimerAccepted ? DateTime.now().toUtc().toIso8601String() : null,
       "emergency_pause_until": emergencyPauseUntil?.toUtc().toIso8601String(),
       "require_totp_unlock": requireTotpUnlock,
+      "private_first_mode": privateFirstMode,
+      "trace_privacy_profile": tracePrivacyProfile,
     }).eq("owner_id", user.id);
   }
 }

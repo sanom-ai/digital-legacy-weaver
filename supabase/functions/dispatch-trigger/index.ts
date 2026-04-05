@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { compilePTN, evaluatePolicy, type RequirementControl } from "./ptn_policy.ts";
+import { compilePTN, evaluatePolicy, type PrivacyProfile, type RequirementControl } from "./ptn_policy.ts";
 
 type Profile = {
   id: string;
@@ -25,6 +25,7 @@ type SafetySettings = {
   private_first_mode: boolean;
   minimize_trace_metadata: boolean;
   trace_retention_days: number;
+  trace_privacy_profile: PrivacyProfile;
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -153,7 +154,7 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
   const { data, error } = await supabase
     .from("user_safety_settings")
     .select(
-      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days",
+      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days, trace_privacy_profile",
     )
     .eq("owner_id", ownerId)
     .maybeSingle();
@@ -174,6 +175,7 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
       private_first_mode: true,
       minimize_trace_metadata: true,
       trace_retention_days: 14,
+      trace_privacy_profile: "minimal",
     };
   }
   return data as SafetySettings;
@@ -191,19 +193,18 @@ type RequirementTraceEntry = {
 
 function sanitizeRequirementTrace(
   trace: RequirementTraceEntry[],
-  safety: SafetySettings,
-): Array<{
-  name: string;
-  mode: "strict" | "advisory";
-  risk?: string;
-  satisfied: boolean;
-  enforcement: "block" | "warn";
-}> {
-  if (!safety.private_first_mode || !safety.minimize_trace_metadata) {
+  profile: PrivacyProfile,
+): Array<Record<string, unknown>> {
+  if (profile === "confidential") {
+    return [];
+  }
+  if (profile === "audit-heavy") {
     return trace.map((entry) => ({
       name: entry.name,
       mode: entry.mode,
       risk: entry.risk,
+      evidence: entry.evidence,
+      owner: entry.owner,
       satisfied: entry.satisfied,
       enforcement: entry.enforcement,
     }));
@@ -217,20 +218,103 @@ function sanitizeRequirementTrace(
   }));
 }
 
+function privacyRank(profile: PrivacyProfile): number {
+  if (profile === "confidential") return 3;
+  if (profile === "minimal") return 2;
+  return 1;
+}
+
+function effectiveTraceProfile(
+  safety: SafetySettings,
+  policyProfile: PrivacyProfile,
+): PrivacyProfile {
+  if (!safety.private_first_mode) {
+    return policyProfile;
+  }
+  return privacyRank(safety.trace_privacy_profile) >= privacyRank(policyProfile)
+    ? safety.trace_privacy_profile
+    : policyProfile;
+}
+
+function buildTraceMetadata(
+  trace: RequirementTraceEntry[],
+  profile: PrivacyProfile,
+) {
+  const sanitized = sanitizeRequirementTrace(trace, profile);
+  if (profile === "confidential" || sanitized.length === 0) {
+    return undefined;
+  }
+  return sanitized;
+}
+
 function buildPrivateFirstMetadata(
   base: Record<string, unknown>,
   safety: SafetySettings,
+  traceProfile: PrivacyProfile,
   trace?: RequirementTraceEntry[],
 ) {
   const metadata: Record<string, unknown> = {
     ...base,
     privateFirstMode: safety.private_first_mode,
     traceRetentionDays: safety.trace_retention_days,
+    tracePrivacyProfile: traceProfile,
   };
-  if (trace && trace.length > 0) {
-    metadata.requirementTrace = sanitizeRequirementTrace(trace, safety);
+  const traceMetadata = trace ? buildTraceMetadata(trace, traceProfile) : undefined;
+  if (traceMetadata) {
+    metadata.requirementTrace = traceMetadata;
   }
   return metadata;
+}
+
+async function evaluateRequiredControls(args: {
+  ownerId: string;
+  mode: "legacy" | "self_recovery";
+  safety: SafetySettings;
+  requiredControls: RequirementControl[];
+}): Promise<{
+  allowed: boolean;
+  strictMissing: string[];
+  advisoryUnmet: string[];
+  trace: RequirementTraceEntry[];
+}> {
+  const strictMissing: string[] = [];
+  const advisoryUnmet: string[] = [];
+  const trace: RequirementTraceEntry[] = [];
+  for (const control of args.requiredControls) {
+    const requirement = control.name;
+    let satisfied = false;
+
+    if (requirement === "consent_active") {
+      satisfied = args.safety.legal_disclaimer_accepted;
+    } else if (requirement === "cooldown_24h") {
+      const hasRecent = await hasRecentFinalRelease(args.ownerId, args.mode, 24);
+      satisfied = !hasRecent;
+    } else if (requirement === "provider_legal_verification_handoff") {
+      // Runtime assumes handoff clause is satisfied via outbound provider checklist messaging.
+      satisfied = true;
+    } else {
+      // Unknown controls are treated as unmet with mode-driven handling.
+      satisfied = false;
+    }
+
+    if (!satisfied) {
+      if (control.mode === "advisory") {
+        advisoryUnmet.push(requirement);
+      } else {
+        strictMissing.push(requirement);
+      }
+    }
+    trace.push({
+      name: requirement,
+      mode: control.mode,
+      risk: control.risk,
+      evidence: control.evidence,
+      owner: control.owner,
+      satisfied,
+      enforcement: control.mode === "strict" ? "block" : "warn",
+    });
+  }
+  return { allowed: strictMissing.length === 0, strictMissing, advisoryUnmet, trace };
 }
 
 async function hasRecentMultiSignals(ownerId: string, windowHours: number, minSignalTypes: number): Promise<boolean> {
@@ -274,65 +358,6 @@ async function hasRecentFinalRelease(ownerId: string, mode: "legacy" | "self_rec
     .maybeSingle();
   if (error) throw new Error(error.message);
   return Boolean(data);
-}
-
-async function evaluateRequiredControls(args: {
-  ownerId: string;
-  mode: "legacy" | "self_recovery";
-  safety: SafetySettings;
-  requiredControls: RequirementControl[];
-}): Promise<{
-  allowed: boolean;
-  strictMissing: string[];
-  advisoryUnmet: string[];
-  trace: Array<{
-    name: string;
-    mode: "strict" | "advisory";
-    risk?: string;
-    evidence?: string;
-    owner?: string;
-    satisfied: boolean;
-    enforcement: "block" | "warn";
-  }>;
-}> {
-  const strictMissing: string[] = [];
-  const advisoryUnmet: string[] = [];
-  const trace: RequirementTraceEntry[] = [];
-  for (const control of args.requiredControls) {
-    const requirement = control.name;
-    let satisfied = false;
-
-    if (requirement === "consent_active") {
-      satisfied = args.safety.legal_disclaimer_accepted;
-    } else if (requirement === "cooldown_24h") {
-      const hasRecent = await hasRecentFinalRelease(args.ownerId, args.mode, 24);
-      satisfied = !hasRecent;
-    } else if (requirement === "provider_legal_verification_handoff") {
-      // Runtime assumes handoff clause is satisfied via outbound provider checklist messaging.
-      satisfied = true;
-    } else {
-      // Unknown controls are treated as unmet with mode-driven handling.
-      satisfied = false;
-    }
-
-    if (!satisfied) {
-      if (control.mode === "advisory") {
-        advisoryUnmet.push(requirement);
-      } else {
-        strictMissing.push(requirement);
-      }
-    }
-    trace.push({
-      name: requirement,
-      mode: control.mode,
-      risk: control.risk,
-      evidence: control.evidence,
-      owner: control.owner,
-      satisfied,
-      enforcement: control.mode === "strict" ? "block" : "warn",
-    });
-  }
-  return { allowed: strictMissing.length === 0, strictMissing, advisoryUnmet, trace };
 }
 
 async function insertDispatchEvent(
@@ -454,6 +479,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
   const action = actionFor(mode);
   const compiled = compilePTN(policySource);
   const decision = evaluatePolicy(compiled, "system_scheduler", action);
+  const traceProfile = effectiveTraceProfile(safety, decision.privacyProfile);
 
   if (!decision.allowed) {
     await supabase.from("trigger_logs").insert({
@@ -462,7 +488,13 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       action,
       status: "skipped",
       reason: decision.reasons.join("; "),
-      metadata: { inactiveDays, threshold, required: decision.required, privateFirstMode: safety.private_first_mode },
+      metadata: {
+        inactiveDays,
+        threshold,
+        required: decision.required,
+        privateFirstMode: safety.private_first_mode,
+        tracePrivacyProfile: traceProfile,
+      },
     });
     return;
   }
@@ -485,7 +517,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         threshold,
         required: decision.required,
         advisoryUnmet: requirementGate.advisoryUnmet,
-      }, safety, requirementGate.trace),
+      }, safety, traceProfile, requirementGate.trace),
       processed_at: new Date().toISOString(),
     });
   }
@@ -498,6 +530,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       threshold,
       privateFirstMode: safety.private_first_mode,
       traceRetentionDays: safety.trace_retention_days,
+      tracePrivacyProfile: traceProfile,
     });
     await supabase.from("trigger_logs").insert({
       owner_id: profile.id,
@@ -511,7 +544,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         required: decision.required,
         strictMissing: requirementGate.strictMissing,
         advisoryUnmet: requirementGate.advisoryUnmet,
-      }, safety, requirementGate.trace),
+      }, safety, traceProfile, requirementGate.trace),
       processed_at: new Date().toISOString(),
     });
     return;
@@ -650,7 +683,8 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       required: decision.required,
       privateFirstMode: safety.private_first_mode,
       traceRetentionDays: safety.trace_retention_days,
-      requirementTrace: sanitizeRequirementTrace(requirementGate.trace, safety),
+      tracePrivacyProfile: traceProfile,
+      requirementTrace: buildTraceMetadata(requirementGate.trace, traceProfile),
     },
     processed_at: new Date().toISOString(),
   });

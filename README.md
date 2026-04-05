@@ -54,6 +54,11 @@ Reliability statement:
 
 Current line is `v0.1.x`: strong foundation/prototype, not full production-stable yet.
 
+Closed-beta communication rule:
+
+1. Always present the product as a technical companion.
+2. Never present the product as a legal will or legal adjudication service.
+
 Stability and release criteria are tracked in:
 
 1. `docs/testing-strategy.md`

@@ -57,6 +57,8 @@ def test_dispatch_emits_requirement_trace_metadata() -> None:
     assert "privateFirstMode" in src
     assert "traceRetentionDays" in src
     assert "sanitizeRequirementTrace" in src
+    assert "tracePrivacyProfile" in src
+    assert "effectiveTraceProfile" in src
 
 
 def test_unlock_accepts_request_code_and_unlock_actions() -> None:

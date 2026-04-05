@@ -16,6 +16,7 @@ REQ_NAME_RE = re.compile(r"^[a-z][a-z0-9_:-]*$")
 REQ_METADATA_ALLOWED = {"risk", "mode", "evidence", "owner"}
 REQ_RISK_ALLOWED = {"low", "medium", "high", "critical"}
 REQ_MODE_ALLOWED = {"strict", "advisory"}
+PRIVACY_PROFILE_ALLOWED = {"confidential", "minimal", "audit-heavy"}
 
 
 @dataclass
@@ -97,6 +98,10 @@ def validate_ptn(doc: PTNDocument) -> List[str]:
     missing_headers = sorted(REQUIRED_HEADERS - set(doc.headers))
     if missing_headers:
         issues.append(f"missing required headers: {', '.join(missing_headers)}")
+
+    privacy_profile = doc.headers.get("privacy_profile")
+    if privacy_profile and privacy_profile not in PRIVACY_PROFILE_ALLOWED:
+        issues.append(f"unsupported privacy_profile '{privacy_profile}'")
 
     if not doc.blocks:
         issues.append("contains no blocks")

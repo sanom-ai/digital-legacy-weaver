@@ -32,6 +32,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
 
   late bool _remindersEnabled;
   late bool _legalAccepted;
+  late bool _privateFirstMode;
+  late String _tracePrivacyProfile;
 
   @override
   void initState() {
@@ -43,6 +45,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     _graceDaysController = TextEditingController(text: widget.initialSettings.gracePeriodDays.toString());
     _remindersEnabled = widget.initialSettings.remindersEnabled;
     _legalAccepted = widget.initialSettings.legalDisclaimerAccepted;
+    _privateFirstMode = widget.initialSettings.privateFirstMode;
+    _tracePrivacyProfile = widget.initialSettings.tracePrivacyProfile;
   }
 
   @override
@@ -96,6 +100,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             legalDisclaimerAccepted: _legalAccepted,
             emergencyPauseUntil: null,
             requireTotpUnlock: widget.initialSettings.requireTotpUnlock,
+            privateFirstMode: _privateFirstMode,
+            tracePrivacyProfile: _tracePrivacyProfile,
           );
 
       if (!mounted) return;
@@ -220,8 +226,35 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     onChanged: (v) => setState(() => _legalAccepted = v ?? false),
                     title: const Text("I understand legal companion mode"),
                     subtitle: const Text(
-                      "This app is a technical coordination layer and does not replace legal will procedures.",
+                      "This app is a technical companion and does not replace legal will procedures or legal decision-making.",
                     ),
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    value: _privateFirstMode,
+                    onChanged: (v) => setState(() => _privateFirstMode = v),
+                    title: const Text("Enable private-first mode"),
+                    subtitle: const Text("Prefer the stricter privacy posture between your app settings and active PTN policy."),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _tracePrivacyProfile,
+                    decoration: const InputDecoration(
+                      labelText: "Trace privacy profile",
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: "confidential", child: Text("Confidential")),
+                      DropdownMenuItem(value: "minimal", child: Text("Minimal")),
+                      DropdownMenuItem(value: "audit-heavy", child: Text("Audit-heavy")),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _tracePrivacyProfile = value);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "For closed beta, keep messaging clear: this app helps coordinate secure delivery. It does not replace a legal will.",
                   ),
                 ],
               ),

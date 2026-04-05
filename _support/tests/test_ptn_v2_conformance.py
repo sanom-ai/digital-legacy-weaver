@@ -42,6 +42,31 @@ policy p {
     assert any("unsupported risk value 'severe'" in issue for issue in issues)
 
 
+def test_invalid_privacy_profile_is_reported() -> None:
+    source = """
+language: PTN
+module: demo
+version: 2.0.0
+owner: core
+privacy_profile: forensic
+
+role system_scheduler {
+  label: "Scheduler"
+}
+
+authority system_scheduler {
+  allow: trigger_legacy_delivery
+}
+
+policy p {
+  when action == "trigger_legacy_delivery"
+  then send
+}
+"""
+    issues = validate_ptn(parse_ptn(source))
+    assert any("unsupported privacy_profile 'forensic'" in issue for issue in issues)
+
+
 def test_unsupported_v2_metadata_key_is_reported() -> None:
     source = """
 language: PTN

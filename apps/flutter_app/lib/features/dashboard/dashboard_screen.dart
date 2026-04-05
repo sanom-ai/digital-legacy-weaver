@@ -59,7 +59,7 @@ class DashboardScreen extends ConsumerWidget {
                           leading: const Icon(Icons.auto_fix_high_rounded),
                           title: const Text("Complete setup for beta"),
                           subtitle: const Text(
-                            "Add beneficiary + consent + safe trigger defaults before real usage.",
+                            "Add beneficiary + consent + private-first defaults. This product is a technical companion, not a legal will.",
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () async {
@@ -117,7 +117,7 @@ class DashboardScreen extends ConsumerWidget {
           Card(
             child: ListTile(
               title: const Text("Risk Controls"),
-              subtitle: const Text("Legal consent, reminders, grace period, emergency pause"),
+              subtitle: const Text("Legal consent, reminders, grace period, private-first mode, emergency pause"),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
@@ -229,6 +229,8 @@ class _DeliveryModeCard extends StatelessWidget {
             Text('1) Legacy delivery to beneficiary after long inactivity'),
             SizedBox(height: 4),
             Text('2) Self-recovery delivery to backup email for password recovery'),
+            SizedBox(height: 10),
+            Text('Technical companion only: beneficiaries must complete any legal verification directly with the destination provider.'),
           ],
         ),
       ),

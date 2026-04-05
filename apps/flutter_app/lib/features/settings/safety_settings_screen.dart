@@ -19,6 +19,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   bool _offset7 = true;
   bool _offset1 = true;
   bool _requireTotpUnlock = false;
+  bool _privateFirstMode = true;
+  String _tracePrivacyProfile = "minimal";
   bool _seeded = false;
 
   @override
@@ -39,6 +41,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
             _offset7 = offsets.contains(7);
             _offset1 = offsets.contains(1);
             _requireTotpUnlock = settings.requireTotpUnlock;
+            _privateFirstMode = settings.privateFirstMode;
+            _tracePrivacyProfile = settings.tracePrivacyProfile;
             _seeded = true;
           }
 
@@ -54,6 +58,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                       const Text("Legal & Consent", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       const Text("This tool supports digital legacy workflow but may not replace a legal will in your jurisdiction."),
+                      const SizedBox(height: 6),
+                      const Text("Closed-beta note: Digital Legacy Weaver is a technical companion. It helps coordinate secure delivery but does not act as a legal will or legal decision-maker."),
                       const SizedBox(height: 12),
                       CheckboxListTile(
                         value: _legalAccepted,
@@ -140,6 +146,61 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Private-first Mode", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      const Text("Keep runtime traces as small as possible and align logging posture with your chosen privacy profile."),
+                      SwitchListTile(
+                        value: _privateFirstMode,
+                        onChanged: (v) => setState(() => _privateFirstMode = v),
+                        title: const Text("Enable private-first mode"),
+                        subtitle: const Text("Prefer the stricter privacy posture between your settings and active PTN policy."),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _tracePrivacyProfile,
+                        decoration: const InputDecoration(
+                          labelText: "Trace privacy profile",
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: "confidential",
+                            child: Text("Confidential"),
+                          ),
+                          DropdownMenuItem(
+                            value: "minimal",
+                            child: Text("Minimal"),
+                          ),
+                          DropdownMenuItem(
+                            value: "audit-heavy",
+                            child: Text("Audit-heavy"),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() => _tracePrivacyProfile = value);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _tracePrivacyProfile == "confidential"
+                            ? "Confidential keeps only high-level outcome markers and avoids detailed requirement traces."
+                            : _tracePrivacyProfile == "minimal"
+                                ? "Minimal keeps sanitized control-state only. This is the recommended default."
+                                : "Audit-heavy keeps sanitized evidence and owner references for deeper review without storing secrets.",
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               FilledButton(
                 onPressed: () async {
                   final offsets = <int>[];
@@ -155,6 +216,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         legalDisclaimerAccepted: _legalAccepted,
                         emergencyPauseUntil: _pause7Days ? DateTime.now().add(const Duration(days: 7)) : null,
                         requireTotpUnlock: _requireTotpUnlock,
+                        privateFirstMode: _privateFirstMode,
+                        tracePrivacyProfile: _tracePrivacyProfile,
                       );
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(

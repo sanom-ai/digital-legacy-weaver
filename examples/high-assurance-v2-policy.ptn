@@ -3,6 +3,7 @@ module: digital_legacy_weaver_high_assurance_v2
 version: 2.0.0
 owner: policy-core
 context: high_assurance
+privacy_profile: minimal
 
 role system_scheduler {
   label: "Automated Trigger Scheduler"
