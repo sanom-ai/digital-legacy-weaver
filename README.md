@@ -1,19 +1,29 @@
 # Digital Legacy Weaver : Legacy logistics, privately coordinated.
 
+Legacy logistics, privately coordinated.
+
 ![Digital Legacy Weaver Header](docs/assets/social/repo-header-banner.png)
 
 Private-first digital legacy coordination for secure self-recovery, beneficiary delivery, and partner-ready continuity workflows.
 
 ## Overview
 
-Digital Legacy Weaver is a technical companion for user-defined digital continuity.
+Digital Legacy Weaver is a private-first technical companion for digital continuity.
 
-It helps teams and users coordinate:
+It helps owners prepare secure legacy routes without forcing early disclosure, and it helps intended recipients move through sensitive handoff moments with more clarity, structure, and restraint.
+
+The product is built around three ideas:
+
+1. `Owner-first control` while the owner is alive.
+2. `Policy-driven release` through PTN as the canonical control plane.
+3. `Careful beneficiary handoff` after qualified trigger conditions are met.
+
+In practice, Digital Legacy Weaver coordinates:
 
 1. `Self-recovery` for the owner.
 2. `Legacy delivery` for intended recipients.
-3. `Policy-driven` controls through PTN.
-4. `Private-first` local workflows before broader runtime handoff.
+3. `Private-first` release posture, where secrets stay local whenever possible.
+4. `Partner-ready` verification routes for institutions, legal offices, and trusted service providers.
 
 ## Boundary
 
