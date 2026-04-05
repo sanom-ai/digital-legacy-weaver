@@ -1,0 +1,23 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8F4EE"/>
+      <stop offset="1" stop-color="#F0E3D0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="180" y="110" width="1240" height="680" rx="34" fill="#FFFDF9"/>
+  <rect x="230" y="160" width="1140" height="120" rx="24" fill="#1F1A17"/>
+  <text x="284" y="235" fill="#FFF8F0" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="700">Technical companion, not a legal will</text>
+
+  <rect x="230" y="320" width="1140" height="126" rx="24" fill="#FFFFFF" stroke="#E5DCCF" stroke-width="2"/>
+  <text x="280" y="374" fill="#1E1A16" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">What this beta does</text>
+  <text x="280" y="414" fill="#5A5046" font-family="Segoe UI, Arial, sans-serif" font-size="24">Coordinates secure delivery and recovery workflows with private-first defaults and policy-based controls.</text>
+
+  <rect x="230" y="478" width="1140" height="126" rx="24" fill="#FFF7EE" stroke="#E5D7C5" stroke-width="2"/>
+  <text x="280" y="532" fill="#1E1A16" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">What this beta does not do</text>
+  <text x="280" y="572" fill="#5A5046" font-family="Segoe UI, Arial, sans-serif" font-size="24">It does not replace legal will procedures and does not adjudicate legal entitlement.</text>
+
+  <rect x="230" y="636" width="1140" height="104" rx="24" fill="#231C16"/>
+  <text x="280" y="698" fill="#FFF8F0" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Beneficiaries still verify legal entitlement directly with the destination provider.</text>
+</svg>

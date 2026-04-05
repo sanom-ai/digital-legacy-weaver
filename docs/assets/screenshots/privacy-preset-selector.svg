@@ -1,0 +1,38 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6F1E8"/>
+      <stop offset="1" stop-color="#E5D7C5"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1120" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#231C16"/>
+      <stop offset="1" stop-color="#43342A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <circle cx="1350" cy="160" r="180" fill="#F3E7D6" opacity="0.7"/>
+  <circle cx="180" cy="760" r="210" fill="#EEDCC3" opacity="0.8"/>
+
+  <rect x="240" y="90" width="1120" height="720" rx="34" fill="url(#panel)"/>
+  <rect x="274" y="124" width="1052" height="652" rx="24" fill="#FFFDF9"/>
+  <text x="340" y="190" fill="#1D1916" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="700">Private-first Mode</text>
+  <text x="340" y="232" fill="#62564B" font-family="Segoe UI, Arial, sans-serif" font-size="22">Choose a privacy preset in plain language. The app maps it to runtime behavior automatically.</text>
+
+  <rect x="340" y="290" width="920" height="118" rx="24" fill="#EEF4FF" stroke="#7BA5FF" stroke-width="4"/>
+  <rect x="372" y="324" width="190" height="34" rx="17" fill="#D9E8FF"/>
+  <text x="398" y="347" fill="#2B4D79" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Highest privacy</text>
+  <text x="340" y="372" fill="#1D1916" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">Confidential</text>
+  <text x="340" y="402" fill="#4F463F" font-family="Segoe UI, Arial, sans-serif" font-size="21">Keeps trace data to an absolute minimum and stores only high-level outcomes.</text>
+
+  <rect x="340" y="438" width="920" height="118" rx="24" fill="#FFF7EE" stroke="#D8C0A1" stroke-width="4"/>
+  <rect x="372" y="472" width="228" height="34" rx="17" fill="#E5D7C5"/>
+  <text x="397" y="495" fill="#6A5138" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Recommended for beta</text>
+  <text x="340" y="520" fill="#1D1916" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">Minimal</text>
+  <text x="340" y="550" fill="#4F463F" font-family="Segoe UI, Arial, sans-serif" font-size="21">Balanced default that stores only sanitized control-state needed for runtime review.</text>
+
+  <rect x="340" y="586" width="920" height="118" rx="24" fill="#FFF1E2" stroke="#E3A970" stroke-width="4"/>
+  <rect x="372" y="620" width="182" height="34" rx="17" fill="#FFE4C7"/>
+  <text x="399" y="643" fill="#8B5421" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Best for audits</text>
+  <text x="340" y="668" fill="#1D1916" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">Audit-heavy</text>
+  <text x="340" y="698" fill="#4F463F" font-family="Segoe UI, Arial, sans-serif" font-size="21">Keeps sanitized evidence and owner references for deeper incident review.</text>
+</svg>

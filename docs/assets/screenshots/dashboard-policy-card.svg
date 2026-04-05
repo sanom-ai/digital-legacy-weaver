@@ -1,0 +1,30 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1C1917"/>
+      <stop offset="1" stop-color="#42342A"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="0" y1="0" x2="600" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F3E4D2"/>
+      <stop offset="1" stop-color="#DDBB8C"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="120" y="110" width="1360" height="680" rx="36" fill="#FAF7F2"/>
+  <rect x="170" y="160" width="1260" height="220" rx="28" fill="url(#hero)"/>
+  <text x="220" y="238" fill="#2A211A" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="700">Private First</text>
+  <text x="220" y="286" fill="#4E4034" font-family="Segoe UI, Arial, sans-serif" font-size="28">93 days before legacy trigger</text>
+  <rect x="220" y="315" width="230" height="56" rx="18" fill="#231C16"/>
+  <text x="262" y="350" fill="#FFF8F0" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">I am still alive</text>
+
+  <rect x="170" y="420" width="1260" height="130" rx="26" fill="#FFFFFF" stroke="#E6DED4" stroke-width="2"/>
+  <circle cx="228" cy="485" r="26" fill="#E8F0FF"/>
+  <text x="210" y="494" fill="#2E4C78" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">i</text>
+  <text x="278" y="474" fill="#1C1917" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">Privacy Preset: Minimal</text>
+  <text x="278" y="515" fill="#5A5046" font-family="Segoe UI, Arial, sans-serif" font-size="23">Balanced default that stores only sanitized control-state needed for runtime review.</text>
+  <text x="278" y="545" fill="#7A6A5B" font-family="Segoe UI, Arial, sans-serif" font-size="21">Technical companion only. Change this in Risk Controls.</text>
+
+  <rect x="170" y="580" width="1260" height="130" rx="26" fill="#FFF9F2" stroke="#E5D7C5" stroke-width="2"/>
+  <text x="220" y="635" fill="#1C1917" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Complete setup for beta</text>
+  <text x="220" y="674" fill="#6B5B4C" font-family="Segoe UI, Arial, sans-serif" font-size="22">Add beneficiary, consent, and private-first defaults. This product is a technical companion, not a legal will.</text>
+</svg>
