@@ -27,6 +27,7 @@ def test_required_migration_files_exist() -> None:
         "20260405_0014_external_legal_handoff_default.sql",
         "20260405_0015_partner_handoff_notices.sql",
         "20260405_0016_beta_feedback.sql",
+        "20260405_0017_private_first_trace_controls.sql",
     ]
     existing = {p.name for p in MIGRATIONS.glob("*.sql")}
     for name in required:
@@ -112,3 +113,11 @@ def test_beta_feedback_table_defined() -> None:
     assert "create table if not exists public.beta_feedback_reports" in src
     assert "category in ('ux', 'bug', 'security', 'reliability', 'other')" in src
     assert "severity in ('low', 'medium', 'high', 'critical')" in src
+
+
+def test_private_first_trace_controls_defined() -> None:
+    src = _read("20260405_0017_private_first_trace_controls.sql")
+    assert "add column if not exists private_first_mode boolean not null default true" in src
+    assert "add column if not exists minimize_trace_metadata boolean not null default true" in src
+    assert "add column if not exists trace_retention_days int not null default 14" in src
+    assert "metadata = metadata - 'requirementTrace'" in src

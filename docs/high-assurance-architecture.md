@@ -32,6 +32,13 @@ Server responsibilities are intentionally narrow:
 
 Server must not become a plaintext secret vault.
 
+### 2.1) Private-first trace discipline
+
+1. Persist policy evidence as minimized control-state only.
+2. Do not persist seed phrases, private keys, passphrases, or equivalent recovery material in runtime metadata.
+3. Remove detailed requirement trace metadata on a shorter retention window than base operational logs.
+4. Treat trace persistence as optional audit support, not as a payload archive.
+
 ### 3) Delayed-release safety pipeline
 
 Before any final handoff:

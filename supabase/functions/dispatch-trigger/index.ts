@@ -22,6 +22,9 @@ type SafetySettings = {
   minimum_recent_signal_types: number;
   require_guardian_approval_legacy: boolean;
   guardian_grace_hours: number;
+  private_first_mode: boolean;
+  minimize_trace_metadata: boolean;
+  trace_retention_days: number;
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -150,7 +153,7 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
   const { data, error } = await supabase
     .from("user_safety_settings")
     .select(
-      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours",
+      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days",
     )
     .eq("owner_id", ownerId)
     .maybeSingle();
@@ -168,9 +171,66 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
       minimum_recent_signal_types: 2,
       require_guardian_approval_legacy: false,
       guardian_grace_hours: 72,
+      private_first_mode: true,
+      minimize_trace_metadata: true,
+      trace_retention_days: 14,
     };
   }
   return data as SafetySettings;
+}
+
+type RequirementTraceEntry = {
+  name: string;
+  mode: "strict" | "advisory";
+  risk?: string;
+  evidence?: string;
+  owner?: string;
+  satisfied: boolean;
+  enforcement: "block" | "warn";
+};
+
+function sanitizeRequirementTrace(
+  trace: RequirementTraceEntry[],
+  safety: SafetySettings,
+): Array<{
+  name: string;
+  mode: "strict" | "advisory";
+  risk?: string;
+  satisfied: boolean;
+  enforcement: "block" | "warn";
+}> {
+  if (!safety.private_first_mode || !safety.minimize_trace_metadata) {
+    return trace.map((entry) => ({
+      name: entry.name,
+      mode: entry.mode,
+      risk: entry.risk,
+      satisfied: entry.satisfied,
+      enforcement: entry.enforcement,
+    }));
+  }
+  return trace.map((entry) => ({
+    name: entry.name,
+    mode: entry.mode,
+    risk: entry.risk,
+    satisfied: entry.satisfied,
+    enforcement: entry.enforcement,
+  }));
+}
+
+function buildPrivateFirstMetadata(
+  base: Record<string, unknown>,
+  safety: SafetySettings,
+  trace?: RequirementTraceEntry[],
+) {
+  const metadata: Record<string, unknown> = {
+    ...base,
+    privateFirstMode: safety.private_first_mode,
+    traceRetentionDays: safety.trace_retention_days,
+  };
+  if (trace && trace.length > 0) {
+    metadata.requirementTrace = sanitizeRequirementTrace(trace, safety);
+  }
+  return metadata;
 }
 
 async function hasRecentMultiSignals(ownerId: string, windowHours: number, minSignalTypes: number): Promise<boolean> {
@@ -237,15 +297,7 @@ async function evaluateRequiredControls(args: {
 }> {
   const strictMissing: string[] = [];
   const advisoryUnmet: string[] = [];
-  const trace: Array<{
-    name: string;
-    mode: "strict" | "advisory";
-    risk?: string;
-    evidence?: string;
-    owner?: string;
-    satisfied: boolean;
-    enforcement: "block" | "warn";
-  }> = [];
+  const trace: RequirementTraceEntry[] = [];
   for (const control of args.requiredControls) {
     const requirement = control.name;
     let satisfied = false;
@@ -410,7 +462,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       action,
       status: "skipped",
       reason: decision.reasons.join("; "),
-      metadata: { inactiveDays, threshold, required: decision.required },
+      metadata: { inactiveDays, threshold, required: decision.required, privateFirstMode: safety.private_first_mode },
     });
     return;
   }
@@ -428,13 +480,12 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       action,
       status: "pending",
       reason: `advisory controls unmet: ${requirementGate.advisoryUnmet.join("; ")}`,
-      metadata: {
+      metadata: buildPrivateFirstMetadata({
         inactiveDays,
         threshold,
         required: decision.required,
         advisoryUnmet: requirementGate.advisoryUnmet,
-        requirementTrace: requirementGate.trace,
-      },
+      }, safety, requirementGate.trace),
       processed_at: new Date().toISOString(),
     });
   }
@@ -443,9 +494,10 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       required: decision.required,
       strictMissing: requirementGate.strictMissing,
       advisoryUnmet: requirementGate.advisoryUnmet,
-      requirementTrace: requirementGate.trace,
       inactiveDays,
       threshold,
+      privateFirstMode: safety.private_first_mode,
+      traceRetentionDays: safety.trace_retention_days,
     });
     await supabase.from("trigger_logs").insert({
       owner_id: profile.id,
@@ -453,14 +505,13 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       action,
       status: "skipped",
       reason: `required controls are not satisfied: ${requirementGate.strictMissing.join("; ")}`,
-      metadata: {
+      metadata: buildPrivateFirstMetadata({
         inactiveDays,
         threshold,
         required: decision.required,
         strictMissing: requirementGate.strictMissing,
         advisoryUnmet: requirementGate.advisoryUnmet,
-        requirementTrace: requirementGate.trace,
-      },
+      }, safety, requirementGate.trace),
       processed_at: new Date().toISOString(),
     });
     return;
@@ -597,7 +648,9 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       inactiveDays,
       threshold,
       required: decision.required,
-      requirementTrace: requirementGate.trace,
+      privateFirstMode: safety.private_first_mode,
+      traceRetentionDays: safety.trace_retention_days,
+      requirementTrace: sanitizeRequirementTrace(requirementGate.trace, safety),
     },
     processed_at: new Date().toISOString(),
   });

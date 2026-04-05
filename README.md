@@ -261,3 +261,10 @@ Audience messaging guide:
 
 3. Boundary path for proprietary PTN legacy:
 - `ptn/legacy/private` is reserved and enforced by CI boundary checks.
+
+## Private-first runtime posture
+
+1. Sensitive payload is intended to remain on user-controlled devices.
+2. Runtime traces are minimized to policy-control metadata only.
+3. Trace metadata is retained for a shorter window than general operational logs.
+4. CI blocks known secret-bearing logging patterns before merge.

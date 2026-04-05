@@ -54,6 +54,9 @@ def test_dispatch_emits_requirement_trace_metadata() -> None:
     assert "strictMissing" in src
     assert "advisoryUnmet" in src
     assert "enforcement" in src
+    assert "privateFirstMode" in src
+    assert "traceRetentionDays" in src
+    assert "sanitizeRequirementTrace" in src
 
 
 def test_unlock_accepts_request_code_and_unlock_actions() -> None:
