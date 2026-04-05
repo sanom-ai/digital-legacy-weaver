@@ -1,0 +1,16 @@
+<!--
+  Insert this block into:
+  ios/Runner/Info.plist
+  under the root <dict>.
+-->
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLName</key>
+    <string>app.legacyweaver.client</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>legacyweaver</string>
+    </array>
+  </dict>
+</array>

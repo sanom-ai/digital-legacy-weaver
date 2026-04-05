@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dlw-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: legacy_weaver
+      POSTGRES_USER: legacy_weaver
+      POSTGRES_PASSWORD: legacy_weaver_dev
+    ports:
+      - "54329:5432"
+    volumes:
+      - dlw_pg_data:/var/lib/postgresql/data
+      - ../supabase/migrations:/docker-entrypoint-initdb.d:ro
+
+  weaver-api:
+    image: python:3.12-slim
+    container_name: dlw-api
+    restart: unless-stopped
+    working_dir: /app
+    command: python selfhost/services/api_server.py
+    environment:
+      SELFHOST_BIND: 0.0.0.0
+      SELFHOST_PORT: 8080
+      DATABASE_URL: postgresql://legacy_weaver:legacy_weaver_dev@postgres:5432/legacy_weaver
+    volumes:
+      - ..:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  weaver-worker:
+    image: python:3.12-slim
+    container_name: dlw-worker
+    restart: unless-stopped
+    working_dir: /app
+    command: python selfhost/services/worker_loop.py
+    environment:
+      WORKER_INTERVAL_SECONDS: 60
+      DATABASE_URL: postgresql://legacy_weaver:legacy_weaver_dev@postgres:5432/legacy_weaver
+    volumes:
+      - ..:/app
+    depends_on:
+      - postgres
+
+volumes:
+  dlw_pg_data:

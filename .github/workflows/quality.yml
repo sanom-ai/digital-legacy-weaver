@@ -1,0 +1,37 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  python-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dev dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Compile Python files
+        run: python -m compileall -q .
+
+      - name: PTN smoke test
+        run: python tools/ptn_smoke_test.py
+
+      - name: Naming cleanliness check
+        run: python tools/check_naming_clean.py
+
+      - name: Proprietary PTN boundary check
+        run: python tools/check_proprietary_ptn_boundary.py
+
+      - name: Run unit tests
+        run: python -m pytest _support/tests

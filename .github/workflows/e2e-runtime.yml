@@ -1,0 +1,168 @@
+name: E2E Runtime Checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 */6 * * *"
+
+concurrency:
+  group: e2e-runtime-checks
+  cancel-in-progress: false
+
+jobs:
+  runtime-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare report directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ops/reports | Out-Null
+
+      - name: Preflight test secrets
+        id: readiness
+        shell: pwsh
+        env:
+          TEST_PROJECT_REF: ${{ secrets.SUPABASE_TEST_PROJECT_REF }}
+          TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+          STRICT_MODE: ${{ vars.E2E_REQUIRE_POSITIVE_UNLOCK }}
+          E2E_ACCESS_ID: ${{ secrets.E2E_TEST_ACCESS_ID }}
+          E2E_ACCESS_KEY: ${{ secrets.E2E_TEST_ACCESS_KEY }}
+          E2E_VERIFICATION_CODE: ${{ secrets.E2E_TEST_VERIFICATION_CODE }}
+        run: |
+          $ready = $true
+          $messages = @()
+          if ([string]::IsNullOrWhiteSpace($env:TEST_PROJECT_REF)) {
+            $ready = $false
+            $messages += "Missing required secret: SUPABASE_TEST_PROJECT_REF"
+          }
+          if ([string]::IsNullOrWhiteSpace($env:TEST_ANON_KEY)) {
+            $ready = $false
+            $messages += "Missing required secret: SUPABASE_TEST_ANON_KEY"
+          }
+          $strict = "$env:STRICT_MODE".Trim().ToLowerInvariant()
+          if ($strict -eq "true") {
+            if ([string]::IsNullOrWhiteSpace($env:E2E_ACCESS_ID)) {
+              $ready = $false
+              $messages += "Strict mode requires secret: E2E_TEST_ACCESS_ID"
+            }
+            if ([string]::IsNullOrWhiteSpace($env:E2E_ACCESS_KEY)) {
+              $ready = $false
+              $messages += "Strict mode requires secret: E2E_TEST_ACCESS_KEY"
+            }
+            if ([string]::IsNullOrWhiteSpace($env:E2E_VERIFICATION_CODE)) {
+              $ready = $false
+              $messages += "Strict mode requires secret: E2E_TEST_VERIFICATION_CODE"
+            }
+          }
+          "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          if ($ready) {
+            "preflight_note=runtime checks ready" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            $note = ($messages -join "; ")
+            "preflight_note=$note" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          }
+
+      - name: Run Integration Baseline Check
+        id: integration
+        if: steps.readiness.outputs.ready == 'true'
+        continue-on-error: true
+        shell: pwsh
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+          PROJECT_REF: ${{ secrets.SUPABASE_TEST_PROJECT_REF }}
+          E2E_ACCESS_ID: ${{ secrets.E2E_TEST_ACCESS_ID }}
+          E2E_ACCESS_KEY: ${{ secrets.E2E_TEST_ACCESS_KEY }}
+          E2E_VERIFICATION_CODE: ${{ secrets.E2E_TEST_VERIFICATION_CODE }}
+          E2E_TOTP_CODE: ${{ secrets.E2E_TEST_TOTP_CODE }}
+          E2E_REQUIRE_POSITIVE_UNLOCK: ${{ vars.E2E_REQUIRE_POSITIVE_UNLOCK }}
+        run: |
+          $strict = "$env:E2E_REQUIRE_POSITIVE_UNLOCK".Trim().ToLowerInvariant()
+          if ($strict -eq "") { $strict = "false" }
+          if ($strict -eq "true") {
+            ./scripts/run_integration_unlock_flow.ps1 -ProjectRef $env:PROJECT_REF -AccessId $env:E2E_ACCESS_ID -AccessKey $env:E2E_ACCESS_KEY -VerificationCode $env:E2E_VERIFICATION_CODE -TotpCode $env:E2E_TOTP_CODE -RequirePositiveUnlock | Tee-Object -FilePath ops/reports/e2e-runtime-integration.txt
+          } else {
+            ./scripts/run_integration_unlock_flow.ps1 -ProjectRef $env:PROJECT_REF -AccessId $env:E2E_ACCESS_ID -AccessKey $env:E2E_ACCESS_KEY -VerificationCode $env:E2E_VERIFICATION_CODE -TotpCode $env:E2E_TOTP_CODE | Tee-Object -FilePath ops/reports/e2e-runtime-integration.txt
+          }
+
+      - name: Run Adversarial Runtime Checks
+        id: adversarial
+        if: steps.readiness.outputs.ready == 'true'
+        continue-on-error: true
+        shell: pwsh
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+          PROJECT_REF: ${{ secrets.SUPABASE_TEST_PROJECT_REF }}
+        run: |
+          ./scripts/run_adversarial_unlock_checks.ps1 -ProjectRef $env:PROJECT_REF | Tee-Object -FilePath ops/reports/e2e-runtime-adversarial.txt
+
+      - name: Build runtime summary
+        if: always()
+        shell: pwsh
+        env:
+          READY: ${{ steps.readiness.outputs.ready }}
+          PREFLIGHT_NOTE: ${{ steps.readiness.outputs.preflight_note }}
+          INTEGRATION_OUTCOME: ${{ steps.integration.outcome }}
+          ADVERSARIAL_OUTCOME: ${{ steps.adversarial.outcome }}
+        run: |
+          $utc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+          $integration = if ([string]::IsNullOrWhiteSpace($env:INTEGRATION_OUTCOME)) { "skipped" } else { $env:INTEGRATION_OUTCOME }
+          $adversarial = if ([string]::IsNullOrWhiteSpace($env:ADVERSARIAL_OUTCOME)) { "skipped" } else { $env:ADVERSARIAL_OUTCOME }
+          $summary = @()
+          $summary += "# E2E Runtime Summary"
+          $summary += ""
+          $summary += "- timestamp_utc: $utc"
+          $summary += "- workflow: E2E Runtime Checks"
+          $summary += "- note: test-project runtime evidence artifact"
+          $summary += "- preflight_ready: $env:READY"
+          $summary += "- preflight_note: $env:PREFLIGHT_NOTE"
+          $summary += "- integration_outcome: $integration"
+          $summary += "- adversarial_outcome: $adversarial"
+          $summary += ""
+          $summary += "## Files"
+          $summary += ""
+          $summary += "1. e2e-runtime-integration.txt"
+          $summary += "2. e2e-runtime-adversarial.txt"
+          $summary += "3. e2e-runtime-summary.md"
+          Set-Content -Path ops/reports/e2e-runtime-summary.md -Value ($summary -join "`n") -Encoding utf8
+
+      - name: Publish workflow summary
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path "ops/reports/e2e-runtime-summary.md") {
+            Get-Content "ops/reports/e2e-runtime-summary.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+
+      - name: Upload runtime artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-runtime-reports
+          path: |
+            ops/reports/e2e-runtime-*
+            ops/reports/e2e-runtime-summary.md
+          if-no-files-found: error
+
+      - name: Enforce runtime check gate
+        if: always() && steps.readiness.outputs.ready == 'true'
+        shell: pwsh
+        env:
+          INTEGRATION_OUTCOME: ${{ steps.integration.outcome }}
+          ADVERSARIAL_OUTCOME: ${{ steps.adversarial.outcome }}
+        run: |
+          if ($env:INTEGRATION_OUTCOME -ne "success") {
+            throw "Integration runtime check failed (outcome: $env:INTEGRATION_OUTCOME)"
+          }
+          if ($env:ADVERSARIAL_OUTCOME -ne "success") {
+            throw "Adversarial runtime check failed (outcome: $env:ADVERSARIAL_OUTCOME)"
+          }
+
+      - name: Skip summary (missing secrets)
+        if: steps.readiness.outputs.ready != 'true'
+        shell: pwsh
+        run: |
+          "E2E Runtime Checks skipped due to missing secrets. Configure SUPABASE_TEST_PROJECT_REF and SUPABASE_TEST_ANON_KEY to enable runtime execution." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

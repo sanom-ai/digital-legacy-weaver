@@ -1,0 +1,57 @@
+name: Security Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: "Lookback hours"
+        required: false
+        default: "24"
+      warn_threshold:
+        description: "Warn/Critical threshold"
+        required: false
+        default: "50"
+  schedule:
+    - cron: "15 * * * *"
+
+jobs:
+  triage-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve security gate readiness
+        id: readiness
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
+          "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Run Security Triage Gate
+        if: steps.readiness.outputs.ready == 'true'
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          HOURS: ${{ github.event.inputs.hours || '24' }}
+          WARN_THRESHOLD: ${{ github.event.inputs.warn_threshold || '50' }}
+        run: |
+          ./scripts/security_triage_report.ps1 -Hours $env:HOURS -FailOnCritical -WarnEventThreshold $env:WARN_THRESHOLD
+
+      - name: Skip summary (missing secrets)
+        if: steps.readiness.outputs.ready != 'true'
+        shell: pwsh
+        run: |
+          "Security Gate skipped: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Upload Triage Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-triage-reports
+          path: ops/reports/*.md
+          if-no-files-found: ignore

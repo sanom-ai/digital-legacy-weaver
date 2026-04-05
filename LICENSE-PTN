@@ -1,0 +1,40 @@
+PTN LEGACY PROPRIETARY LICENSE
+Version 1.0
+
+Copyright (c) 2026 Digital Legacy Weaver Maintainers.
+All rights reserved.
+
+1) Scope
+This license applies only to PTN Legacy assets and related policy/runtime materials that are explicitly marked as proprietary, including but not limited to:
+- legacy PTN policy packs
+- premium PTN rule modules
+- proprietary PTN runtime profiles
+- proprietary PTN optimization datasets
+
+2) Grant
+No license is granted by default for copying, modifying, sublicensing, distributing, or creating derivative works from PTN Legacy proprietary assets.
+
+Use is allowed only when:
+- a separate written permission is provided by the rights holder, or
+- a commercial agreement explicitly grants such rights.
+
+3) Prohibited actions without prior written permission
+- copying all or substantial parts of proprietary PTN assets
+- publishing proprietary PTN assets in public repositories, model weights, datasets, or SDK bundles
+- reverse engineering proprietary PTN profiles for redistribution
+- offering a competing policy pack cloned from proprietary PTN structures
+
+4) Public repository boundary
+This repository may include open-core components under MIT.
+PTN Legacy proprietary assets are not part of the MIT grant and remain governed by this license.
+
+5) Trademarks and naming
+No trademark or brand license is granted under this license.
+
+6) Warranty and liability
+PTN Legacy proprietary assets are provided "AS IS", without warranties of any kind, to the maximum extent permitted by law.
+In no event shall the rights holder be liable for damages arising from use or inability to use these assets.
+
+7) Contact
+For licensing, partnership, or usage approval requests, contact:
+licensing@legacyweaver.app

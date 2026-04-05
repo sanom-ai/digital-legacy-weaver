@@ -1,0 +1,39 @@
+name: Flutter Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  flutter-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/flutter_app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Bootstrap Flutter platforms
+        run: flutter create --platforms=android,windows --project-name digital_legacy_weaver .
+
+      - name: Remove generated scaffold test
+        shell: bash
+        run: rm -f test/widget_test.dart
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Flutter tests
+        run: flutter test

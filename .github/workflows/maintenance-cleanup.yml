@@ -1,0 +1,44 @@
+name: Maintenance Cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: "Retention days (minimum 7)"
+        required: false
+        default: "30"
+  schedule:
+    - cron: "40 2 * * *"
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve cleanup readiness
+        id: readiness
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
+          "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Run Cleanup RPC
+        if: steps.readiness.outputs.ready == 'true'
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RETENTION_DAYS: ${{ github.event.inputs.retention_days || '30' }}
+        run: |
+          ./scripts/run_maintenance_cleanup.ps1 -RetentionDays $env:RETENTION_DAYS
+
+      - name: Skip summary (missing secrets)
+        if: steps.readiness.outputs.ready != 'true'
+        shell: pwsh
+        run: |
+          "Maintenance Cleanup skipped: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

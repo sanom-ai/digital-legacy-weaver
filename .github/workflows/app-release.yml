@@ -1,0 +1,155 @@
+name: App Release Pack
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (example: v0.1.0)"
+        required: true
+      prerelease:
+        description: "Mark as prerelease"
+        required: false
+        default: "true"
+      release_title:
+        description: "Release title"
+        required: false
+        default: "Digital Legacy Weaver Release"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: app-release-${{ github.event.inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/flutter_app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Bootstrap Android platform
+        run: flutter create --platforms=android --project-name digital_legacy_weaver .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-android-apk
+          path: apps/flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/flutter_app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Bootstrap Windows platform
+        run: flutter create --platforms=windows --project-name digital_legacy_weaver .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Pack Windows artifact
+        shell: pwsh
+        run: |
+          $source = "build/windows/x64/runner/Release/*"
+          $dest = "build/windows/x64/runner/digital-legacy-weaver-windows.zip"
+          Compress-Archive -Path $source -DestinationPath $dest -Force
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-windows-zip
+          path: apps/flutter_app/build/windows/x64/runner/digital-legacy-weaver-windows.zip
+          if-no-files-found: error
+
+  publish-release:
+    needs:
+      - build-android
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-android-apk
+          path: dist
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-windows-zip
+          path: dist
+
+      - name: Build release notes
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.tag }}"
+          $title = "${{ github.event.inputs.release_title }}"
+          $body = @()
+          $body += "# $title"
+          $body += ""
+          $body += "Release tag: $tag"
+          $body += ""
+          $body += "## Downloads"
+          $body += ""
+          $body += "1. Android APK: app-release.apk"
+          $body += "2. Windows ZIP: digital-legacy-weaver-windows.zip"
+          $body += ""
+          $body += "## Notes"
+          $body += ""
+          $body += "1. This release is a technical-layer app and does not replace legal will procedures."
+          $body += "2. Use production checklist before broad rollout."
+          Set-Content -Path dist/RELEASE_NOTES.md -Value ($body -join "`n") -Encoding utf8
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.event.inputs.release_title }}
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          body_path: dist/RELEASE_NOTES.md
+          files: |
+            dist/app-release.apk
+            dist/digital-legacy-weaver-windows.zip

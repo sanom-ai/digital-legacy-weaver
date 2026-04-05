@@ -1,0 +1,57 @@
+language: PTN
+module: digital_legacy_weaver
+version: 1.0.0
+owner: legacy-core
+context: production
+
+role owner {
+  label: "Primary Account Owner"
+  level: 10
+}
+
+role beneficiary {
+  label: "Registered Beneficiary"
+  level: 2
+}
+
+role system_scheduler {
+  label: "Automated Trigger Scheduler"
+  level: 9
+}
+
+authority owner {
+  allow: upsert_recovery_item, delete_recovery_item, ack_alive_check
+  allow: trigger_self_recovery_delivery
+  deny: trigger_legacy_delivery
+  require mfa for trigger_self_recovery_delivery
+}
+
+authority beneficiary {
+  allow: read_legacy_delivery
+  deny: upsert_recovery_item, delete_recovery_item
+}
+
+authority system_scheduler {
+  allow: trigger_self_recovery_delivery, trigger_legacy_delivery
+  require cooldown_24h for trigger_legacy_delivery
+}
+
+constraint delivery_guardrails {
+  forbid beneficiary to trigger_legacy_delivery
+  require email_verified for trigger_self_recovery_delivery
+}
+
+policy legacy_release_policy {
+  when action == "trigger_legacy_delivery"
+  and profile.inactive_days >= 180
+  and profile.last_alive_check_confirmed == false
+  then send_legacy_email
+  and log_trigger_event
+}
+
+policy self_recovery_policy {
+  when action == "trigger_self_recovery_delivery"
+  and profile.inactive_days >= 45
+  then send_self_recovery_email
+  and log_trigger_event
+}

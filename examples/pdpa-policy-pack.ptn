@@ -1,0 +1,62 @@
+language: PTN
+module: digital_legacy_weaver_pdpa_pack
+version: 1.0.0
+owner: privacy-core
+context: pdpa_thailand
+
+role data_subject {
+  label: "PDPA Data Subject"
+  level: 5
+}
+
+role privacy_officer {
+  label: "Privacy and Compliance Operator"
+  level: 9
+}
+
+role system_scheduler {
+  label: "Automated Scheduler"
+  level: 9
+}
+
+authority data_subject {
+  allow: request_data_access, request_data_correction, request_data_deletion
+  allow: withdraw_release_consent
+  deny: trigger_legacy_delivery
+}
+
+authority privacy_officer {
+  allow: run_retention_cleanup, generate_pdpa_audit_report
+}
+
+authority system_scheduler {
+  allow: trigger_self_recovery_delivery, trigger_legacy_delivery
+  require consent_active for trigger_legacy_delivery
+  require provider_legal_verification_handoff for trigger_legacy_delivery
+  require cooldown_24h for trigger_legacy_delivery
+}
+
+constraint pdpa_purpose_limitation {
+  require explicit_consent for trigger_legacy_delivery
+  require data_minimization for send_legacy_email
+}
+
+constraint pdpa_breach_and_audit {
+  require security_event_logging for trigger_legacy_delivery
+  require incident_escalation for unlock_error
+}
+
+policy pdpa_legacy_release_control {
+  when action == "trigger_legacy_delivery"
+  and settings.legal_disclaimer_accepted == true
+  and partner.legal_verification_handoff_required == true
+  then allow_release_workflow
+  and append_audit_log
+}
+
+policy pdpa_retention_control {
+  when action == "run_retention_cleanup"
+  and actor == "privacy_officer"
+  then purge_expired_access_material
+  and append_audit_log
+}

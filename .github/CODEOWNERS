@@ -1,0 +1,11 @@
+# Default owner group (replace with your org team/user)
+* @legacyweaver-maintainers
+
+# Security and release-critical paths
+/SECURITY.md @legacyweaver-maintainers
+/CONTRIBUTING.md @legacyweaver-maintainers
+/supabase/functions/ @legacyweaver-maintainers
+/supabase/migrations/ @legacyweaver-maintainers
+/scripts/deploy_production.ps1 @legacyweaver-maintainers
+/scripts/post_deploy_smoke.ps1 @legacyweaver-maintainers
+/docs/production-deploy-runbook.md @legacyweaver-maintainers

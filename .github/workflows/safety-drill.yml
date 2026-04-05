@@ -1,0 +1,23 @@
+name: Safety Drill
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "10 3 * * 1"
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Global Safety Drill
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          ./scripts/safety_control_drill.ps1 -ProjectRef $env:PROJECT_REF

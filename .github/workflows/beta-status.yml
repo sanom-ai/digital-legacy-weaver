@@ -1,0 +1,76 @@
+name: Beta Status Snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Lookback days"
+        required: false
+        default: "30"
+  schedule:
+    - cron: "45 1 * * *"
+
+jobs:
+  beta-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve beta status readiness
+        id: readiness
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
+          "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Build beta status snapshot
+        id: snapshot
+        if: steps.readiness.outputs.ready == 'true'
+        continue-on-error: true
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DAYS: ${{ github.event.inputs.days || '30' }}
+        run: |
+          ./scripts/beta_status_snapshot.ps1 -Days $env:DAYS -FailOnStatus
+
+      - name: Publish step summary
+        if: always()
+        shell: pwsh
+        run: |
+          $latest = Get-ChildItem ops/reports -Filter "beta-status-*.md" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if ($null -ne $latest) {
+            Get-Content $latest.FullName | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+
+      - name: Upload beta status artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-status-reports
+          path: |
+            ops/reports/beta-status-*.md
+            ops/reports/security-triage-*.md
+            ops/reports/beta-gate-*.md
+          if-no-files-found: ignore
+
+      - name: Enforce snapshot gate
+        if: always() && steps.readiness.outputs.ready == 'true'
+        shell: pwsh
+        env:
+          SNAPSHOT_OUTCOME: ${{ steps.snapshot.outcome }}
+        run: |
+          if ($env:SNAPSHOT_OUTCOME -ne "success") {
+            throw "Beta status snapshot gate failed (outcome: $env:SNAPSHOT_OUTCOME)"
+          }
+
+      - name: Skip summary (missing secrets)
+        if: steps.readiness.outputs.ready != 'true'
+        shell: pwsh
+        run: |
+          "Beta Status Snapshot skipped: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

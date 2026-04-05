@@ -1,0 +1,264 @@
+openapi: 3.0.3
+info:
+  title: Digital Legacy Weaver Partner API
+  version: 0.1.0
+  description: |
+    Partner API for connector registration, legacy asset references,
+    and release-event collaboration with Digital Legacy Weaver.
+servers:
+  - url: https://api.legacyweaver.app/partner/v1
+security:
+  - bearerAuth: []
+paths:
+  /connectors/register:
+    post:
+      summary: Register or update a partner connector
+      operationId: registerConnector
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectorRegistration'
+      responses:
+        '200':
+          description: Connector accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorRegistrationResponse'
+  /assets/upsert:
+    post:
+      summary: Upsert encrypted legacy asset references
+      operationId: upsertAssets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetUpsertRequest'
+      responses:
+        '200':
+          description: Assets upserted
+  /release-events/ack:
+    post:
+      summary: Acknowledge receipt and handling of release event
+      operationId: acknowledgeReleaseEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseEventAck'
+      responses:
+        '200':
+          description: Ack accepted
+  /verification-signals/legacy:
+    post:
+      summary: Submit legal-verification signal for legacy release review
+      operationId: submitLegacyVerificationSignal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegacyVerificationSignal'
+      responses:
+        '200':
+          description: Signal accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegacyVerificationSignalResponse'
+  /handoff-notices/legacy:
+    post:
+      summary: Submit legacy handoff context notice to destination provider workflow
+      operationId: submitLegacyHandoffNotice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegacyHandoffNotice'
+      responses:
+        '200':
+          description: Handoff notice accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegacyHandoffNoticeResponse'
+  /health:
+    get:
+      summary: Connector health check endpoint contract
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ConnectorRegistration:
+      type: object
+      properties:
+        connector_id:
+          type: string
+        name:
+          type: string
+        supported_asset_types:
+          type: array
+          items:
+            type: string
+        supports_webhooks:
+          type: boolean
+        supported_second_factors:
+          type: array
+          items:
+            type: string
+      required:
+        - connector_id
+        - name
+        - supported_asset_types
+    ConnectorRegistrationResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        connector_id:
+          type: string
+      required: [ok, connector_id]
+    LegacyAssetRef:
+      type: object
+      properties:
+        connector_id:
+          type: string
+        asset_id:
+          type: string
+        asset_type:
+          type: string
+        display_name:
+          type: string
+        encrypted_payload_ref:
+          type: string
+        integrity_hash:
+          type: string
+      required:
+        - connector_id
+        - asset_id
+        - asset_type
+        - encrypted_payload_ref
+    AssetUpsertRequest:
+      type: object
+      properties:
+        owner_ref:
+          type: string
+        assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/LegacyAssetRef'
+      required:
+        - owner_ref
+        - assets
+    ReleaseEventAck:
+      type: object
+      properties:
+        release_event_id:
+          type: string
+        connector_id:
+          type: string
+        status:
+          type: string
+          enum: [received, completed, failed]
+        details:
+          type: object
+          additionalProperties: true
+      required:
+        - release_event_id
+        - connector_id
+        - status
+    LegacyVerificationSignal:
+      type: object
+      properties:
+        case_id:
+          type: string
+        owner_ref:
+          type: string
+        beneficiary_ref:
+          type: string
+        assurance_level:
+          type: string
+          enum: [low, medium, high]
+        document_types_verified:
+          type: array
+          items:
+            type: string
+            enum: [death_certificate, family_registry, court_order, other]
+        verification_timestamp:
+          type: string
+          format: date-time
+        reviewer_ref:
+          type: string
+      required:
+        - case_id
+        - owner_ref
+        - assurance_level
+        - document_types_verified
+        - verification_timestamp
+    LegacyVerificationSignalResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        case_id:
+          type: string
+        accepted_at:
+          type: string
+          format: date-time
+      required: [ok, case_id, accepted_at]
+    LegacyHandoffNotice:
+      type: object
+      properties:
+        case_id:
+          type: string
+        owner_ref:
+          type: string
+        beneficiary_ref:
+          type: string
+        mode:
+          type: string
+          enum: [legacy, self_recovery]
+        trigger_timestamp:
+          type: string
+          format: date-time
+        handoff_disclaimer:
+          type: string
+        audit_reference:
+          type: string
+      required:
+        - case_id
+        - owner_ref
+        - mode
+        - trigger_timestamp
+        - handoff_disclaimer
+    LegacyHandoffNoticeResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        case_id:
+          type: string
+        accepted_at:
+          type: string
+          format: date-time
+      required: [ok, case_id, accepted_at]
