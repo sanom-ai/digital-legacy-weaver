@@ -7,6 +7,7 @@ PRIVACY_PROFILE_ALLOWED = {"confidential", "minimal", "audit-heavy"}
 ENTRY_KIND_ALLOWED = {"legacy_delivery", "self_recovery"}
 DELIVERY_METHOD_ALLOWED = {"secure_link", "notification_only", "self_recovery_route"}
 STATUS_ALLOWED = {"draft", "active", "paused", "archived"}
+COMPILER_CONTRACT_VERSION = "intent-compiler-contract/v1"
 
 
 class IntentCompilerError(Exception):
@@ -417,6 +418,7 @@ def compile_intent_document_with_trace(intent: Dict[str, Any]) -> Dict[str, Any]
         for entry in active_entries
     }
     return {
+        "contract_version": COMPILER_CONTRACT_VERSION,
         "ptn": compiled,
         "trace": {
             "intent_id": intent["intent_id"],
@@ -425,4 +427,17 @@ def compile_intent_document_with_trace(intent: Dict[str, Any]) -> Dict[str, Any]
         },
         "report": report,
         "warnings": warnings,
+    }
+
+
+def build_intent_canonical_artifact(intent: Dict[str, Any], generated_at: str) -> Dict[str, Any]:
+    compiled = compile_intent_document_with_trace(intent)
+    return {
+        "contract_version": COMPILER_CONTRACT_VERSION,
+        "intent_id": intent["intent_id"],
+        "owner_ref": intent["owner_ref"],
+        "generated_at": generated_at,
+        "ptn": compiled["ptn"],
+        "trace": compiled["trace"],
+        "report": compiled["report"],
     }

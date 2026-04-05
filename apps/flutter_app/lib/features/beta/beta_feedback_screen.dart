@@ -76,7 +76,7 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _category,
+              initialValue: _category,
               decoration: const InputDecoration(labelText: "Category"),
               items: const [
                 DropdownMenuItem(value: "ux", child: Text("UX")),
@@ -89,7 +89,7 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _severity,
+              initialValue: _severity,
               decoration: const InputDecoration(labelText: "Severity"),
               items: const [
                 DropdownMenuItem(value: "low", child: Text("Low")),

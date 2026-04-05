@@ -11,8 +11,10 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 from intent_to_ptn import (  # noqa: E402
+    COMPILER_CONTRACT_VERSION,
     IntentCompilerError,
     build_intent_compiler_report,
+    build_intent_canonical_artifact,
     collect_intent_warnings,
     compile_intent_document,
     compile_intent_document_with_trace,
@@ -81,9 +83,21 @@ def test_compiler_can_emit_trace_mapping() -> None:
     assert "trace" in result
     assert "report" in result
     assert "warnings" in result
+    assert result["contract_version"] == COMPILER_CONTRACT_VERSION
     assert result["trace"]["intent_id"] == "intent_primary"
     assert result["trace"]["entries"]["legacy_wallet_a"]["policy_block_id"] == "legacy_wallet_a_policy"
     assert result["report"]["ok"] is True
+
+
+def test_compiler_can_emit_canonical_artifact_bundle() -> None:
+    intent = json.loads((ROOT / "examples" / "intent-primary.json").read_text(encoding="utf-8"))
+    artifact = build_intent_canonical_artifact(intent, generated_at="2026-04-05T00:00:00Z")
+    assert artifact["contract_version"] == COMPILER_CONTRACT_VERSION
+    assert artifact["intent_id"] == "intent_primary"
+    assert artifact["owner_ref"] == "owner_primary"
+    assert artifact["generated_at"] == "2026-04-05T00:00:00Z"
+    assert artifact["trace"]["entries"]["legacy_wallet_a"]["policy_block_id"] == "legacy_wallet_a_policy"
+    assert artifact["report"]["ok"] is True
 
 
 def test_compiler_collects_soft_warnings_for_core_only_entry() -> None:

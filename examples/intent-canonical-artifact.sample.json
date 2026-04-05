@@ -1,0 +1,24 @@
+{
+  "contract_version": "intent-compiler-contract/v1",
+  "intent_id": "intent_primary",
+  "owner_ref": "owner_primary",
+  "generated_at": "2026-04-05T00:00:00Z",
+  "ptn": "language: PTN\nmodule: digital_legacy_weaver_intent_intent_primary\nversion: 0.1.0\nowner: owner_primary\ncontext: intent_compiled\nprivacy_profile: minimal\n\nrole owner {\n  label: \"Primary Account Owner\"\n  level: 10\n}\n",
+  "trace": {
+    "intent_id": "intent_primary",
+    "owner_ref": "owner_primary",
+    "entries": {
+      "legacy_wallet_a": {
+        "policy_block_id": "legacy_wallet_a_policy",
+        "action": "trigger_legacy_delivery",
+        "privacy_profile": "minimal"
+      }
+    }
+  },
+  "report": {
+    "ok": true,
+    "error_count": 0,
+    "warning_count": 0,
+    "issues": []
+  }
+}

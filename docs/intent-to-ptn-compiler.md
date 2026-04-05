@@ -17,6 +17,7 @@ Current compiler foundation:
 1. `tools/intent_to_ptn.py`
 2. `compile_intent_document_with_trace(...)` for compiler-side trace mapping
 3. `build_intent_compiler_report(...)` for UI-facing validation and warning output
+4. `build_intent_canonical_artifact(...)` for canonical artifact bundling
 
 ## Input
 
@@ -35,6 +36,13 @@ The compiler emits:
 4. compiled safeguard constraints
 5. one policy block per active intent entry
 6. optional compiler trace mapping from `entry_id` to generated PTN blocks
+
+Current app-side activation bridge:
+
+1. the Flutter intent builder can now export a locally sealed canonical PTN artifact
+2. the artifact bundles PTN preview output, compiler report, and trace metadata
+3. this export remains local-first and does not imply remote publication
+4. the app can now restore and surface canonical artifact status for local review/activation readiness
 
 ## Compile rules (current foundation)
 
@@ -81,6 +89,9 @@ Flutter adapter note:
 
 1. `apps/flutter_app/lib/features/intent_builder/intent_compiler_report_model.dart`
 2. uses `fromMap()` / `toMap()` so app-side review flows can consume the same report shape as compiler output
+3. `apps/flutter_app/lib/features/intent_builder/intent_canonical_artifact_model.dart`
+4. `apps/flutter_app/lib/features/intent_builder/intent_canonical_artifact_repository.dart`
+5. shared contract reference: `specs/intent-compiler-contract.md`
 
 Current warning examples:
 

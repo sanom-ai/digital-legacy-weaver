@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_compiler_report_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
@@ -91,17 +92,54 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     }
   }
 
+  IntentDocumentModel _buildDraftIntentDocument(PrivacyProfilePreset preset) {
+    final legacyDays = int.tryParse(_legacyDaysController.text) ?? 0;
+    final graceDays = int.tryParse(_graceDaysController.text) ?? 0;
+    final reminders = _remindersEnabled ? const [14, 7, 1] : const <int>[];
+
+    final legacyEntry = IntentEntryModel.legacyDeliveryDraft(
+      entryId: 'onboarding_legacy_delivery',
+      recipientRef: 'beneficiary_primary',
+      destinationRef: _beneficiaryEmailController.text.trim(),
+    ).copyWith(
+      trigger: IntentTriggerModel(
+        mode: 'inactivity',
+        inactivityDays: legacyDays,
+        requireUnconfirmedAliveStatus: true,
+        graceDays: graceDays,
+        remindersDaysBefore: reminders,
+      ),
+      privacy: IntentPrivacyModel(
+        profile: preset.tracePrivacyProfile,
+        minimizeTraceMetadata: _privateFirstMode,
+      ),
+      status: 'active',
+    );
+
+    return IntentDocumentModel.initial(
+      ownerRef: widget.initialProfile.id,
+      defaultPrivacyProfile: preset.tracePrivacyProfile,
+    ).copyWith(
+      entries: [legacyEntry],
+      globalSafeguards: IntentGlobalSafeguardsModel(
+        emergencyPauseEnabled: true,
+        defaultGraceDays: graceDays,
+        defaultRemindersDaysBefore: reminders,
+        requireMultisignalBeforeRelease: true,
+        requireGuardianApprovalForLegacy: false,
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
     final selectedPreset = presetById(_selectedPresetId);
+    final draftDocument = _buildDraftIntentDocument(selectedPreset);
     final draftReport = buildDraftIntentCompilerReport(
-      beneficiaryEmail: _beneficiaryEmailController.text,
+      document: draftDocument,
       legalAccepted: _legalAccepted,
       privateFirstMode: _privateFirstMode,
-      privacyProfile: selectedPreset.tracePrivacyProfile,
-      legacyInactivityDays: int.tryParse(_legacyDaysController.text) ?? 0,
-      graceDays: int.tryParse(_graceDaysController.text) ?? 0,
     );
     if (draftReport.errorCount > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,13 +198,11 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final selectedPreset = presetById(_selectedPresetId);
+    final draftDocument = _buildDraftIntentDocument(selectedPreset);
     final draftReport = buildDraftIntentCompilerReport(
-      beneficiaryEmail: _beneficiaryEmailController.text,
+      document: draftDocument,
       legalAccepted: _legalAccepted,
       privateFirstMode: _privateFirstMode,
-      privacyProfile: selectedPreset.tracePrivacyProfile,
-      legacyInactivityDays: int.tryParse(_legacyDaysController.text) ?? 0,
-      graceDays: int.tryParse(_graceDaysController.text) ?? 0,
     );
     final canFinalize = draftReport.errorCount == 0 &&
         (draftReport.warningCount == 0 || _warningAcknowledged);
@@ -304,7 +340,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                                 color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
                                 width: selected ? 2 : 1,
                               ),
-                              color: selected ? Theme.of(context).colorScheme.primary.withOpacity(0.06) : null,
+                              color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.06) : null,
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(14),

@@ -165,6 +165,8 @@ Guide:
 1. App:
 - `apps/flutter_app`
 - `apps/flutter_app/lib/features/intent_builder`
+- `apps/flutter_app/lib/features/intent_builder/intent_draft_repository.dart`
+- `apps/flutter_app/lib/features/intent_builder/intent_canonical_artifact_repository.dart`
 
 2. Supabase:
 - `supabase/migrations`
@@ -179,6 +181,7 @@ Guide:
 - `specs/partner-api.openapi.yaml`
 - `specs/ptn-format.md`
 - `specs/ptn-v2.md`
+- `specs/intent-compiler-contract.md`
 - `docs/ptn-intent-schema.md`
 - `docs/intent-builder-model.md`
 - `docs/intent-to-ptn-compiler.md`
@@ -283,6 +286,8 @@ Audience messaging guide:
 ## Private-first runtime posture
 
 1. Sensitive payload is intended to remain on user-controlled devices.
-2. Runtime traces are minimized to policy-control metadata only.
-3. Trace metadata is retained for a shorter window than general operational logs.
-4. CI blocks known secret-bearing logging patterns before merge.
+2. Intent drafts can be cached locally with device-side encryption before PTN activation.
+3. Canonical PTN artifacts can be exported into encrypted local history instead of overwriting a single latest draft.
+4. Runtime traces are minimized to policy-control metadata only.
+5. Trace metadata is retained for a shorter window than general operational logs.
+6. CI blocks known secret-bearing logging patterns before merge.

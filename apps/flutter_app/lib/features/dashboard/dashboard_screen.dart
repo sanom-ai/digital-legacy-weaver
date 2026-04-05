@@ -1,5 +1,8 @@
 import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
 import 'package:digital_legacy_weaver/features/connectors/presentation/connectors_screen.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_review_screen.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_provider.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_screen.dart';
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
@@ -104,23 +107,106 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           profileAsync.when(
             data: (profile) => safetyAsync.when(
-              data: (settings) => Card(
-                child: ListTile(
-                  title: const Text("Intent Builder"),
-                  subtitle: const Text("Draft user-defined legacy intent before compiling it into PTN"),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => IntentBuilderScreen(
-                          profile: profile,
-                          settings: settings,
-                        ),
+              data: (settings) {
+                final artifactAsync = ref.watch(intentCanonicalArtifactProvider(profile.id));
+                final artifactHistoryAsync = ref.watch(intentCanonicalArtifactHistoryProvider(profile.id));
+                return Column(
+                  children: [
+                    Card(
+                      child: ListTile(
+                        title: const Text("Intent Builder"),
+                        subtitle: const Text("Draft user-defined legacy intent before compiling it into PTN"),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => IntentBuilderScreen(
+                                profile: profile,
+                                settings: settings,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
+                    const SizedBox(height: 12),
+                    artifactAsync.when(
+                      data: (artifact) => artifactHistoryAsync.when(
+                        data: (history) => Card(
+                          color: artifact == null ? const Color(0xFFFFF7ED) : null,
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.verified_outlined),
+                                title: const Text("Canonical artifact status"),
+                                subtitle: Text(
+                                  artifact == null
+                                      ? "No local canonical PTN artifact exported yet."
+                                      : "State ${artifact.artifactState.name}. Contract ${artifact.contractVersion} with ${artifact.activeEntryCount} active entries across ${history.length} artifact versions.${artifact.promotedFromArtifactId != null ? " Latest artifact was promoted from history." : ""} Reviewed artifacts must stay in sync before they can be treated as ready.",
+                                ),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () {
+                                  if (artifact == null) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => IntentBuilderScreen(
+                                          profile: profile,
+                                          settings: settings,
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => IntentArtifactReviewScreen(artifact: artifact),
+                                    ),
+                                  );
+                                },
+                              ),
+                              if (artifact != null && history.length > 1)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: OutlinedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => IntentArtifactCompareScreen(
+                                              currentArtifact: artifact,
+                                              compareArtifact: history[1],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text("Compare latest with previous"),
+                                    ),
+                                  ),
+                                ),
+                              if (artifact != null && history.length > 1)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      "Older versions can also be promoted again from Intent Builder without deleting history.",
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                  ],
+                );
+              },
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),
             ),
@@ -250,12 +336,12 @@ class _DeliveryModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'Delivery Modes',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),

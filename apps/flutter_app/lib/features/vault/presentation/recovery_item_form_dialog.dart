@@ -60,7 +60,7 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<RecoveryKind>(
-              value: _kind,
+              initialValue: _kind,
               items: const [
                 DropdownMenuItem(value: RecoveryKind.legacy, child: Text("Legacy")),
                 DropdownMenuItem(value: RecoveryKind.selfRecovery, child: Text("Self Recovery")),

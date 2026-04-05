@@ -293,7 +293,7 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<String>(
-              value: _connectorRefId,
+              initialValue: _connectorRefId,
               items: widget.connectors
                   .map((c) => DropdownMenuItem(value: c.id, child: Text("${c.name} (${c.connectorId})")))
                   .toList(),

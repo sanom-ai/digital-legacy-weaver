@@ -65,6 +65,25 @@ class IntentDocumentModel {
       "metadata": metadata,
     };
   }
+
+  factory IntentDocumentModel.fromMap(Map<String, dynamic> map) {
+    return IntentDocumentModel(
+      intentId: map["intent_id"] as String? ?? "intent_primary",
+      version: map["version"] as String? ?? "0.1.0",
+      ownerRef: map["owner_ref"] as String? ?? "",
+      defaultPrivacyProfile: map["default_privacy_profile"] as String? ?? "minimal",
+      entries: (map["entries"] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((entry) => IntentEntryModel.fromMap(Map<String, dynamic>.from(entry)))
+          .toList(),
+      globalSafeguards: IntentGlobalSafeguardsModel.fromMap(
+        Map<String, dynamic>.from(
+          map["global_safeguards"] as Map? ?? const <String, dynamic>{},
+        ),
+      ),
+      metadata: Map<String, dynamic>.from(map["metadata"] as Map? ?? const <String, dynamic>{}),
+    );
+  }
 }
 
 class IntentEntryModel {
@@ -143,6 +162,57 @@ class IntentEntryModel {
     );
   }
 
+  factory IntentEntryModel.selfRecoveryDraft({
+    required String entryId,
+    required String ownerRef,
+    required String destinationRef,
+  }) {
+    return IntentEntryModel(
+      entryId: entryId,
+      kind: "self_recovery",
+      asset: const IntentAssetModel(
+        assetId: "asset_self_recovery",
+        assetType: "backup_email_route",
+        displayName: "Recovery route",
+        payloadMode: "self_recovery_route",
+        payloadRef: "",
+        notes: "Owner self-recovery path",
+      ),
+      recipient: IntentRecipientModel(
+        recipientId: ownerRef,
+        relationship: "owner",
+        deliveryChannel: "email",
+        destinationRef: destinationRef,
+        role: "owner",
+      ),
+      trigger: const IntentTriggerModel(
+        mode: "inactivity",
+        inactivityDays: 45,
+        requireUnconfirmedAliveStatus: false,
+        graceDays: 3,
+        remindersDaysBefore: [14, 7, 1],
+      ),
+      delivery: const IntentDeliveryModel(
+        method: "self_recovery_route",
+        requireVerificationCode: true,
+        requireTotp: false,
+        oneTimeAccess: true,
+      ),
+      safeguards: const IntentSafeguardsModel(
+        requireGuardianApproval: false,
+        requireMultisignal: false,
+        cooldownHours: 24,
+        legalDisclaimerRequired: true,
+      ),
+      privacy: const IntentPrivacyModel(
+        profile: "minimal",
+        minimizeTraceMetadata: true,
+      ),
+      partnerPath: null,
+      status: "draft",
+    );
+  }
+
   IntentEntryModel copyWith({
     String? entryId,
     String? kind,
@@ -183,6 +253,37 @@ class IntentEntryModel {
       "status": status,
     };
   }
+
+  factory IntentEntryModel.fromMap(Map<String, dynamic> map) {
+    return IntentEntryModel(
+      entryId: map["entry_id"] as String? ?? "entry_unknown",
+      kind: map["kind"] as String? ?? "legacy_delivery",
+      asset: IntentAssetModel.fromMap(
+        Map<String, dynamic>.from(map["asset"] as Map? ?? const <String, dynamic>{}),
+      ),
+      recipient: IntentRecipientModel.fromMap(
+        Map<String, dynamic>.from(map["recipient"] as Map? ?? const <String, dynamic>{}),
+      ),
+      trigger: IntentTriggerModel.fromMap(
+        Map<String, dynamic>.from(map["trigger"] as Map? ?? const <String, dynamic>{}),
+      ),
+      delivery: IntentDeliveryModel.fromMap(
+        Map<String, dynamic>.from(map["delivery"] as Map? ?? const <String, dynamic>{}),
+      ),
+      safeguards: IntentSafeguardsModel.fromMap(
+        Map<String, dynamic>.from(map["safeguards"] as Map? ?? const <String, dynamic>{}),
+      ),
+      privacy: IntentPrivacyModel.fromMap(
+        Map<String, dynamic>.from(map["privacy"] as Map? ?? const <String, dynamic>{}),
+      ),
+      partnerPath: map["partner_path"] == null
+          ? null
+          : IntentPartnerPathModel.fromMap(
+              Map<String, dynamic>.from(map["partner_path"] as Map),
+            ),
+      status: map["status"] as String? ?? "draft",
+    );
+  }
 }
 
 class IntentAssetModel {
@@ -212,6 +313,17 @@ class IntentAssetModel {
       "notes": notes,
     };
   }
+
+  factory IntentAssetModel.fromMap(Map<String, dynamic> map) {
+    return IntentAssetModel(
+      assetId: map["asset_id"] as String? ?? "asset_unknown",
+      assetType: map["asset_type"] as String? ?? "unknown",
+      displayName: map["display_name"] as String? ?? "Untitled asset",
+      payloadMode: map["payload_mode"] as String? ?? "secure_link",
+      payloadRef: map["payload_ref"] as String? ?? "",
+      notes: map["notes"] as String?,
+    );
+  }
 }
 
 class IntentRecipientModel {
@@ -237,6 +349,16 @@ class IntentRecipientModel {
       "destination_ref": destinationRef,
       "role": role,
     };
+  }
+
+  factory IntentRecipientModel.fromMap(Map<String, dynamic> map) {
+    return IntentRecipientModel(
+      recipientId: map["recipient_id"] as String? ?? "recipient_unknown",
+      relationship: map["relationship"] as String? ?? "beneficiary",
+      deliveryChannel: map["delivery_channel"] as String? ?? "email",
+      destinationRef: map["destination_ref"] as String? ?? "",
+      role: map["role"] as String? ?? "beneficiary",
+    );
   }
 }
 
@@ -264,6 +386,18 @@ class IntentTriggerModel {
       "reminders_days_before": remindersDaysBefore,
     };
   }
+
+  factory IntentTriggerModel.fromMap(Map<String, dynamic> map) {
+    return IntentTriggerModel(
+      mode: map["mode"] as String? ?? "inactivity",
+      inactivityDays: map["inactivity_days"] as int? ?? 90,
+      requireUnconfirmedAliveStatus: map["require_unconfirmed_alive_status"] as bool? ?? true,
+      graceDays: map["grace_days"] as int? ?? 7,
+      remindersDaysBefore: (map["reminders_days_before"] as List<dynamic>? ?? const [14, 7, 1])
+          .whereType<int>()
+          .toList(),
+    );
+  }
 }
 
 class IntentDeliveryModel {
@@ -286,6 +420,15 @@ class IntentDeliveryModel {
       "require_totp": requireTotp,
       "one_time_access": oneTimeAccess,
     };
+  }
+
+  factory IntentDeliveryModel.fromMap(Map<String, dynamic> map) {
+    return IntentDeliveryModel(
+      method: map["method"] as String? ?? "secure_link",
+      requireVerificationCode: map["require_verification_code"] as bool? ?? true,
+      requireTotp: map["require_totp"] as bool? ?? false,
+      oneTimeAccess: map["one_time_access"] as bool? ?? true,
+    );
   }
 }
 
@@ -310,6 +453,15 @@ class IntentSafeguardsModel {
       "legal_disclaimer_required": legalDisclaimerRequired,
     };
   }
+
+  factory IntentSafeguardsModel.fromMap(Map<String, dynamic> map) {
+    return IntentSafeguardsModel(
+      requireGuardianApproval: map["require_guardian_approval"] as bool? ?? false,
+      requireMultisignal: map["require_multisignal"] as bool? ?? true,
+      cooldownHours: map["cooldown_hours"] as int? ?? 24,
+      legalDisclaimerRequired: map["legal_disclaimer_required"] as bool? ?? true,
+    );
+  }
 }
 
 class IntentPrivacyModel {
@@ -326,6 +478,13 @@ class IntentPrivacyModel {
       "profile": profile,
       "minimize_trace_metadata": minimizeTraceMetadata,
     };
+  }
+
+  factory IntentPrivacyModel.fromMap(Map<String, dynamic> map) {
+    return IntentPrivacyModel(
+      profile: map["profile"] as String? ?? "minimal",
+      minimizeTraceMetadata: map["minimize_trace_metadata"] as bool? ?? true,
+    );
   }
 }
 
@@ -349,6 +508,17 @@ class IntentPartnerPathModel {
       "handoff_template": handoffTemplate,
       "required_context": requiredContext,
     };
+  }
+
+  factory IntentPartnerPathModel.fromMap(Map<String, dynamic> map) {
+    return IntentPartnerPathModel(
+      pathId: map["path_id"] as String? ?? "path_unknown",
+      pathType: map["path_type"] as String? ?? "handoff_route",
+      handoffTemplate: map["handoff_template"] as String? ?? "",
+      requiredContext: (map["required_context"] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
+    );
   }
 }
 
@@ -375,5 +545,17 @@ class IntentGlobalSafeguardsModel {
       "require_multisignal_before_release": requireMultisignalBeforeRelease,
       "require_guardian_approval_for_legacy": requireGuardianApprovalForLegacy,
     };
+  }
+
+  factory IntentGlobalSafeguardsModel.fromMap(Map<String, dynamic> map) {
+    return IntentGlobalSafeguardsModel(
+      emergencyPauseEnabled: map["emergency_pause_enabled"] as bool? ?? true,
+      defaultGraceDays: map["default_grace_days"] as int? ?? 3,
+      defaultRemindersDaysBefore: (map["default_reminders_days_before"] as List<dynamic>? ?? const [14, 7, 1])
+          .whereType<int>()
+          .toList(),
+      requireMultisignalBeforeRelease: map["require_multisignal_before_release"] as bool? ?? true,
+      requireGuardianApprovalForLegacy: map["require_guardian_approval_for_legacy"] as bool? ?? false,
+    );
   }
 }

@@ -158,7 +158,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
-                    value: _status,
+                    initialValue: _status,
                     decoration: const InputDecoration(labelText: "Queue Status"),
                     items: const [
                       DropdownMenuItem(value: "submitted", child: Text("submitted")),

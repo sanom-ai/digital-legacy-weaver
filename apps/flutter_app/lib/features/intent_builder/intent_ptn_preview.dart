@@ -24,7 +24,47 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
     '  level: 9',
     '}',
     '',
+    'authority owner {',
+    '  allow: upsert_recovery_item, delete_recovery_item, ack_alive_check',
+    '  allow: trigger_self_recovery_delivery',
+    '  require mfa for trigger_self_recovery_delivery',
+    '}',
+    '',
+    'authority beneficiary {',
+    '  allow: read_legacy_delivery',
+    '  deny: upsert_recovery_item, delete_recovery_item',
+    '}',
+    '',
+    'authority system_scheduler {',
+    '  allow: trigger_self_recovery_delivery, trigger_legacy_delivery',
   ];
+
+  if (document.globalSafeguards.requireMultisignalBeforeRelease) {
+    lines.add(
+      _requireLine(
+        'multisignal_recent',
+        'trigger_legacy_delivery',
+        'high',
+        'advisory',
+        'global_multisignal_guard',
+        'safety-core',
+      ),
+    );
+  }
+  if (document.globalSafeguards.requireGuardianApprovalForLegacy) {
+    lines.add(
+      _requireLine(
+        'guardian_approval',
+        'trigger_legacy_delivery',
+        'high',
+        'strict',
+        'global_guardian_requirement',
+        'safety-core',
+      ),
+    );
+  }
+  lines.add('}');
+  lines.add('');
 
   final activeEntries = document.entries.where((entry) => entry.status == 'active').toList();
   if (activeEntries.isEmpty) {
@@ -32,52 +72,152 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
     return '${lines.join('\n')}\n';
   }
 
-  lines.add('constraint compiled_intent_safeguards {');
+  final constraintLines = <String>[];
   for (final entry in activeEntries) {
     final action = entry.kind == 'legacy_delivery'
         ? 'trigger_legacy_delivery'
         : 'trigger_self_recovery_delivery';
+
     if (entry.delivery.requireVerificationCode) {
-      lines.add(
-        '  require verification_code[risk=high, mode=strict, evidence=entry:${_slug(entry.entryId)}:delivery, owner=delivery-core] for $action',
+      constraintLines.add(
+        _requireLine(
+          'verification_code',
+          action,
+          'high',
+          'strict',
+          'entry:${_slug(entry.entryId)}:delivery',
+          'delivery-core',
+        ),
       );
     }
     if (entry.delivery.requireTotp) {
-      lines.add(
-        '  require totp_factor[risk=high, mode=strict, evidence=entry:${_slug(entry.entryId)}:delivery, owner=delivery-core] for $action',
+      constraintLines.add(
+        _requireLine(
+          'totp_factor',
+          action,
+          'high',
+          'strict',
+          'entry:${_slug(entry.entryId)}:delivery',
+          'delivery-core',
+        ),
       );
     }
     if (entry.safeguards.legalDisclaimerRequired) {
-      lines.add(
-        '  require consent_active[risk=high, mode=strict, evidence=entry:${_slug(entry.entryId)}:safeguards, owner=privacy-core] for $action',
+      constraintLines.add(
+        _requireLine(
+          'consent_active',
+          action,
+          'high',
+          'strict',
+          'entry:${_slug(entry.entryId)}:safeguards',
+          'privacy-core',
+        ),
+      );
+    }
+    if (entry.safeguards.requireMultisignal &&
+        !document.globalSafeguards.requireMultisignalBeforeRelease) {
+      constraintLines.add(
+        _requireLine(
+          'multisignal_recent',
+          action,
+          'high',
+          'advisory',
+          'entry:${_slug(entry.entryId)}:safeguards',
+          'safety-core',
+        ),
+      );
+    }
+    if (entry.safeguards.requireGuardianApproval) {
+      constraintLines.add(
+        _requireLine(
+          'guardian_approval',
+          action,
+          'high',
+          'strict',
+          'entry:${_slug(entry.entryId)}:safeguards',
+          'safety-core',
+        ),
+      );
+    }
+    if (entry.safeguards.cooldownHours > 0) {
+      constraintLines.add(
+        _requireLine(
+          'cooldown_${entry.safeguards.cooldownHours}h',
+          action,
+          'medium',
+          'strict',
+          'entry:${_slug(entry.entryId)}:safeguards',
+          'safety-core',
+        ),
       );
     }
   }
-  lines.add('}');
-  lines.add('');
+
+  if (constraintLines.isNotEmpty) {
+    lines.add('constraint compiled_intent_safeguards {');
+    for (final line in _dedupe(constraintLines)) {
+      lines.add(line);
+    }
+    lines.add('}');
+    lines.add('');
+  }
 
   for (final entry in activeEntries) {
     final action = entry.kind == 'legacy_delivery'
         ? 'trigger_legacy_delivery'
         : 'trigger_self_recovery_delivery';
-    final effect = entry.kind == 'legacy_delivery'
+    var event = entry.kind == 'legacy_delivery'
         ? 'send_legacy_secure_link'
-        : 'send_self_recovery_route';
+        : 'send_self_recovery_secure_link';
+    if (entry.delivery.method == 'notification_only') {
+      event = 'send_notification_only';
+    } else if (entry.delivery.method == 'self_recovery_route') {
+      event = 'send_self_recovery_route';
+    }
+
     lines.add('policy ${_slug(entry.entryId)}_policy {');
     lines.add('  when action == "$action"');
-    lines.add('  and intent.entry_id == "${entry.entryId}"');
+    lines.add('  and intent.entry_id == "${_quote(entry.entryId)}"');
     lines.add('  and profile.inactive_days >= ${entry.trigger.inactivityDays}');
     if (entry.trigger.requireUnconfirmedAliveStatus) {
       lines.add('  and profile.last_alive_check_confirmed == false');
     }
-    lines.add('  then $effect');
+    lines.add('  then $event');
     lines.add('  and append_audit_log');
     lines.add('  and set_privacy_profile_${entry.privacy.profile.replaceAll('-', '_')}');
+    lines.add('  and route_to_${_slug(entry.recipient.recipientId)}');
+    lines.add('  and label_asset_${_slug(entry.asset.assetId)}');
     lines.add('}');
     lines.add('');
   }
 
   return '${lines.join('\n')}\n';
+}
+
+String _requireLine(
+  String name,
+  String action,
+  String risk,
+  String mode,
+  String evidence,
+  String owner,
+) {
+  return '  require $name[risk=$risk, mode=$mode, evidence=$evidence, owner=$owner] for $action';
+}
+
+List<String> _dedupe(List<String> input) {
+  final seen = <String>{};
+  final output = <String>[];
+  for (final line in input) {
+    if (seen.add(line)) {
+      output.add(line);
+    }
+  }
+  return output;
+}
+
+String _quote(String value) {
+  return value.replaceAll('"', r'\"');
 }
 
 String _slug(String value) {

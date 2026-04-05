@@ -1,3 +1,5 @@
+import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
+
 class IntentCompilerIssueModel {
   const IntentCompilerIssueModel({
     required this.severity,
@@ -67,85 +69,177 @@ class IntentCompilerReportModel {
 }
 
 IntentCompilerReportModel buildDraftIntentCompilerReport({
-  required String beneficiaryEmail,
+  required IntentDocumentModel document,
   required bool legalAccepted,
   required bool privateFirstMode,
-  required String privacyProfile,
-  required int legacyInactivityDays,
-  required int graceDays,
 }) {
   final issues = <Map<String, dynamic>>[];
 
-  if (beneficiaryEmail.trim().isEmpty) {
+  if (document.ownerRef.trim().isEmpty) {
     issues.add(
       _issue(
         severity: "error",
-        code: "missing_beneficiary_destination",
-        message: "Add a beneficiary destination before activating a legacy delivery intent.",
-        entryId: "legacy_delivery_primary",
+        code: "intent_validation_error",
+        message: "missing owner_ref",
       ),
     );
   }
 
-  if (!legalAccepted) {
+  if (document.entries.isEmpty) {
     issues.add(
       _issue(
         severity: "error",
-        code: "missing_legal_companion_consent",
-        message: "Accept legal companion consent before activating a legacy delivery intent.",
-        entryId: "legacy_delivery_primary",
+        code: "intent_validation_error",
+        message: "intent must include at least one entry",
       ),
     );
   }
 
-  if (!privateFirstMode) {
+  final activeEntries = document.entries.where((entry) => entry.status == "active").toList();
+  if (activeEntries.isEmpty) {
     issues.add(
       _issue(
         severity: "warning",
-        code: "private_first_disabled",
-        message: "Private-first mode is off; runtime will prefer the PTN posture instead of the stricter local posture.",
-        entryId: "legacy_delivery_primary",
+        code: "inactive_entry_skipped",
+        message: "No active entries yet. Activate at least one entry to emit canonical PTN.",
       ),
     );
   }
 
-  if (privacyProfile == "audit-heavy") {
-    issues.add(
-      _issue(
-        severity: "warning",
-        code: "audit_heavy_profile",
-        message: "Audit-heavy keeps more operational context and is best when review detail matters more than minimal trace data.",
-        entryId: "legacy_delivery_primary",
-      ),
-    );
+  for (final entry in document.entries) {
+    if (entry.asset.displayName.trim().isEmpty) {
+      issues.add(
+        _issue(
+          severity: "error",
+          code: "intent_validation_error",
+          message: "${entry.entryId}: missing asset.display_name",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.recipient.destinationRef.trim().isEmpty) {
+      issues.add(
+        _issue(
+          severity: "error",
+          code: "intent_validation_error",
+          message: "${entry.entryId}: missing recipient.destination_ref",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.trigger.inactivityDays <= 0) {
+      issues.add(
+        _issue(
+          severity: "error",
+          code: "intent_validation_error",
+          message: "${entry.entryId}: trigger.inactivity_days must be a positive integer",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.safeguards.legalDisclaimerRequired && !legalAccepted) {
+      issues.add(
+        _issue(
+          severity: "error",
+          code: "intent_validation_error",
+          message: "${entry.entryId}: legal companion consent is required before activation",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.status != "active") {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "inactive_entry_skipped",
+          message: "${entry.entryId}: entry is not active and will not compile into PTN output",
+          entryId: entry.entryId,
+        ),
+      );
+      continue;
+    }
+
+    if (entry.asset.payloadRef.trim().isEmpty) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "missing_payload_ref",
+          message: "${entry.entryId}: asset.payload_ref is empty; delivery may be incomplete",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.partnerPath == null) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "missing_partner_path",
+          message: "${entry.entryId}: no partner_path defined; workflow will remain core-only",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (!document.globalSafeguards.requireMultisignalBeforeRelease &&
+        !entry.safeguards.requireMultisignal) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "missing_multisignal_safeguard",
+          message: "${entry.entryId}: no multisignal safeguard configured for this active entry",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.privacy.profile == "audit-heavy" && entry.privacy.minimizeTraceMetadata) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "privacy_trace_tension",
+          message:
+              "${entry.entryId}: audit-heavy profile with minimize_trace_metadata=true may reduce operational detail",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.delivery.method == "notification_only" && entry.safeguards.requireGuardianApproval) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "intent_warning",
+          message:
+              "${entry.entryId}: notification_only with guardian approval may need clearer operator messaging",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (!privateFirstMode) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "private_first_disabled",
+          message:
+              "${entry.entryId}: private-first mode is off; runtime will prefer the PTN posture instead of the stricter local posture.",
+          entryId: entry.entryId,
+        ),
+      );
+    }
   }
 
-  if (legacyInactivityDays < 120) {
-    issues.add(
-      _issue(
-        severity: "warning",
-        code: "short_inactivity_window",
-        message: "A shorter inactivity window can raise the risk of accidental release if the owner is temporarily offline.",
-        entryId: "legacy_delivery_primary",
-      ),
-    );
-  }
-
-  if (graceDays <= 2) {
-    issues.add(
-      _issue(
-        severity: "warning",
-        code: "short_grace_window",
-        message: "A very short grace window reduces the time available to stop an unintended release.",
-        entryId: "legacy_delivery_primary",
-      ),
-    );
-  }
-
+  final errorCount = issues.where((issue) => issue["severity"] == "error").length;
+  final warningCount = issues.where((issue) => issue["severity"] == "warning").length;
   return IntentCompilerReportModel.fromMap({
-    "ok": !issues.any((issue) => issue["severity"] == "error"),
-    "error_count": issues.where((issue) => issue["severity"] == "error").length,
-    "warning_count": issues.where((issue) => issue["severity"] == "warning").length,
+    "ok": errorCount == 0,
+    "error_count": errorCount,
+    "warning_count": warningCount,
     "issues": issues,
   });
 }

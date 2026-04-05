@@ -201,7 +201,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                                     color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
                                     width: selected ? 2 : 1,
                                   ),
-                                  color: selected ? Theme.of(context).colorScheme.primary.withOpacity(0.06) : null,
+                                  color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.06) : null,
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(14),
@@ -256,6 +256,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                   if (_offset1) offsets.add(1);
                   if (offsets.isEmpty) offsets.add(1);
 
+                  final messenger = ScaffoldMessenger.of(context);
                   await ref.read(safetySettingsProvider.notifier).save(
                         remindersEnabled: _remindersEnabled,
                         reminderOffsetsDays: offsets,
@@ -267,7 +268,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         tracePrivacyProfile: selectedPreset.tracePrivacyProfile,
                       );
                   if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(content: Text("Safety settings updated.")),
                   );
                 },
