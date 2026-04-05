@@ -1,4 +1,5 @@
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
+import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/totp_factor_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,8 +21,16 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   bool _offset1 = true;
   bool _requireTotpUnlock = false;
   bool _privateFirstMode = true;
-  String _tracePrivacyProfile = "minimal";
+  String _selectedPresetId = "minimal";
   bool _seeded = false;
+
+  void _applyPreset(String presetId) {
+    final preset = presetById(presetId);
+    setState(() {
+      _selectedPresetId = preset.id;
+      _privateFirstMode = preset.privateFirstMode;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +51,10 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
             _offset1 = offsets.contains(1);
             _requireTotpUnlock = settings.requireTotpUnlock;
             _privateFirstMode = settings.privateFirstMode;
-            _tracePrivacyProfile = settings.tracePrivacyProfile;
+            _selectedPresetId = settings.tracePrivacyProfile;
             _seeded = true;
           }
+          final selectedPreset = presetById(_selectedPresetId);
 
           return ListView(
             padding: const EdgeInsets.all(20),
@@ -154,48 +164,75 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                     children: [
                       const Text("Private-first Mode", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
-                      const Text("Keep runtime traces as small as possible and align logging posture with your chosen privacy profile."),
+                      const Text("Choose a privacy preset in plain language. The app will map it to private-first settings and trace behavior automatically."),
                       SwitchListTile(
                         value: _privateFirstMode,
                         onChanged: (v) => setState(() => _privateFirstMode = v),
-                        title: const Text("Enable private-first mode"),
+                        title: const Text("Keep private-first mode enabled"),
                         subtitle: const Text("Prefer the stricter privacy posture between your settings and active PTN policy."),
                         contentPadding: EdgeInsets.zero,
                       ),
                       const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: _tracePrivacyProfile,
-                        decoration: const InputDecoration(
-                          labelText: "Trace privacy profile",
-                          border: OutlineInputBorder(),
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: "confidential",
-                            child: Text("Confidential"),
-                          ),
-                          DropdownMenuItem(
-                            value: "minimal",
-                            child: Text("Minimal"),
-                          ),
-                          DropdownMenuItem(
-                            value: "audit-heavy",
-                            child: Text("Audit-heavy"),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() => _tracePrivacyProfile = value);
-                        },
+                      const Text("Privacy preset", style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Column(
+                        children: privacyProfilePresets.map((preset) {
+                          final selected = preset.id == _selectedPresetId;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () => _applyPreset(preset.id),
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
+                                    width: selected ? 2 : 1,
+                                  ),
+                                  color: selected ? Theme.of(context).colorScheme.primary.withOpacity(0.06) : null,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              preset.title,
+                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                          if (preset.recommended)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(999),
+                                                color: const Color(0xFFE5D7C5),
+                                              ),
+                                              child: const Text("Recommended", style: TextStyle(fontSize: 12)),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(preset.summary),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        preset.detail,
+                                        style: Theme.of(context).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        _tracePrivacyProfile == "confidential"
-                            ? "Confidential keeps only high-level outcome markers and avoids detailed requirement traces."
-                            : _tracePrivacyProfile == "minimal"
-                                ? "Minimal keeps sanitized control-state only. This is the recommended default."
-                                : "Audit-heavy keeps sanitized evidence and owner references for deeper review without storing secrets.",
-                      ),
+                      Text(selectedPreset.summary),
                     ],
                   ),
                 ),
@@ -217,7 +254,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         emergencyPauseUntil: _pause7Days ? DateTime.now().add(const Duration(days: 7)) : null,
                         requireTotpUnlock: _requireTotpUnlock,
                         privateFirstMode: _privateFirstMode,
-                        tracePrivacyProfile: _tracePrivacyProfile,
+                        tracePrivacyProfile: selectedPreset.tracePrivacyProfile,
                       );
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(

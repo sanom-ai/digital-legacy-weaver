@@ -1,5 +1,6 @@
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
+import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_screen.dart';
@@ -62,11 +63,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Private-first Mode'), findsOneWidget);
-    expect(find.text('Enable private-first mode'), findsOneWidget);
-    expect(find.text('Trace privacy profile'), findsOneWidget);
+    expect(find.text('Keep private-first mode enabled'), findsOneWidget);
+    expect(find.text('Privacy preset'), findsOneWidget);
+    expect(find.text('Recommended'), findsOneWidget);
 
-    await tester.tap(find.text('Minimal'));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('Audit-heavy').last);
     await tester.pumpAndSettle();
 
@@ -74,7 +74,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Safety settings updated.'), findsOneWidget);
-    expect(find.textContaining('evidence and owner references'), findsOneWidget);
+    expect(find.textContaining('evidence/owner reference'), findsOneWidget);
   });
 
   testWidgets('Onboarding setup shows technical companion and privacy profile choices', (tester) async {
@@ -116,15 +116,19 @@ void main() {
 
     expect(find.text('I understand legal companion mode'), findsOneWidget);
     expect(find.textContaining('technical companion'), findsOneWidget);
-    expect(find.text('Enable private-first mode'), findsOneWidget);
-    expect(find.text('Trace privacy profile'), findsOneWidget);
+    expect(find.text('Keep private-first mode enabled'), findsOneWidget);
+    expect(find.text('Privacy preset'), findsOneWidget);
     expect(find.textContaining('does not replace a legal will'), findsOneWidget);
 
-    await tester.tap(find.text('Minimal'));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('Confidential').last);
     await tester.pumpAndSettle();
 
     expect(find.text('Confidential'), findsWidgets);
+  });
+
+  test('privacy presets map to expected trace profiles', () {
+    expect(presetById('confidential').tracePrivacyProfile, 'confidential');
+    expect(presetById('minimal').recommended, isTrue);
+    expect(presetById('audit-heavy').privateFirstMode, isTrue);
   });
 }

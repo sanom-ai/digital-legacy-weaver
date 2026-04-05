@@ -1,5 +1,6 @@
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
+import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   late bool _remindersEnabled;
   late bool _legalAccepted;
   late bool _privateFirstMode;
-  late String _tracePrivacyProfile;
+  late String _selectedPresetId;
 
   @override
   void initState() {
@@ -46,7 +47,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     _remindersEnabled = widget.initialSettings.remindersEnabled;
     _legalAccepted = widget.initialSettings.legalDisclaimerAccepted;
     _privateFirstMode = widget.initialSettings.privateFirstMode;
-    _tracePrivacyProfile = widget.initialSettings.tracePrivacyProfile;
+    _selectedPresetId = widget.initialSettings.tracePrivacyProfile;
   }
 
   @override
@@ -101,7 +102,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             emergencyPauseUntil: null,
             requireTotpUnlock: widget.initialSettings.requireTotpUnlock,
             privateFirstMode: _privateFirstMode,
-            tracePrivacyProfile: _tracePrivacyProfile,
+            tracePrivacyProfile: presetById(_selectedPresetId).tracePrivacyProfile,
           );
 
       if (!mounted) return;
@@ -123,6 +124,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPreset = presetById(_selectedPresetId);
     return Scaffold(
       appBar: AppBar(title: const Text("Complete Setup")),
       body: Form(
@@ -233,25 +235,72 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     contentPadding: EdgeInsets.zero,
                     value: _privateFirstMode,
                     onChanged: (v) => setState(() => _privateFirstMode = v),
-                    title: const Text("Enable private-first mode"),
+                    title: const Text("Keep private-first mode enabled"),
                     subtitle: const Text("Prefer the stricter privacy posture between your app settings and active PTN policy."),
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: _tracePrivacyProfile,
-                    decoration: const InputDecoration(
-                      labelText: "Trace privacy profile",
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: "confidential", child: Text("Confidential")),
-                      DropdownMenuItem(value: "minimal", child: Text("Minimal")),
-                      DropdownMenuItem(value: "audit-heavy", child: Text("Audit-heavy")),
-                    ],
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() => _tracePrivacyProfile = value);
-                    },
+                  const Text("Privacy preset", style: TextStyle(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Column(
+                    children: privacyProfilePresets.map((preset) {
+                      final selected = preset.id == _selectedPresetId;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => setState(() {
+                            _selectedPresetId = preset.id;
+                            _privateFirstMode = preset.privateFirstMode;
+                          }),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
+                                width: selected ? 2 : 1,
+                              ),
+                              color: selected ? Theme.of(context).colorScheme.primary.withOpacity(0.06) : null,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          preset.title,
+                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                        ),
+                                      ),
+                                      if (preset.recommended)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(999),
+                                            color: const Color(0xFFE5D7C5),
+                                          ),
+                                          child: const Text("Recommended", style: TextStyle(fontSize: 12)),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(preset.summary),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    preset.detail,
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
+                  Text(selectedPreset.summary),
                   const SizedBox(height: 8),
                   const Text(
                     "For closed beta, keep messaging clear: this app helps coordinate secure delivery. It does not replace a legal will.",
