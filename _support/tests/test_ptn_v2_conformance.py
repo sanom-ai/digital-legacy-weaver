@@ -17,6 +17,18 @@ def test_high_assurance_v2_policy_is_valid() -> None:
     assert issues == []
 
 
+def test_privacy_profile_presets_are_valid() -> None:
+    preset_files = [
+        ROOT / "examples" / "privacy-profile-confidential.ptn",
+        ROOT / "examples" / "privacy-profile-minimal.ptn",
+        ROOT / "examples" / "privacy-profile-audit-heavy.ptn",
+    ]
+    for path in preset_files:
+        doc = parse_ptn(path.read_text(encoding="utf-8"))
+        issues = validate_ptn(doc)
+        assert issues == [], f"{path.name} should be valid"
+
+
 def test_invalid_v2_risk_value_is_reported() -> None:
     source = """
 language: PTN

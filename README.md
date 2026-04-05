@@ -179,6 +179,9 @@ Guide:
 - `examples/default-policy.ptn`
 - `examples/pdpa-policy-pack.ptn`
 - `examples/high-assurance-v2-policy.ptn`
+- `examples/privacy-profile-confidential.ptn`
+- `examples/privacy-profile-minimal.ptn`
+- `examples/privacy-profile-audit-heavy.ptn`
 - `ptn/legacy` (reserved boundary for proprietary PTN legacy modules)
 
 4. Operations and runbooks:
