@@ -1,5 +1,6 @@
 import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
 import 'package:digital_legacy_weaver/features/connectors/presentation/connectors_screen.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_screen.dart';
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
@@ -99,6 +100,32 @@ class DashboardScreen extends ConsumerWidget {
                 child: Text("Profile load error: $error"),
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          profileAsync.when(
+            data: (profile) => safetyAsync.when(
+              data: (settings) => Card(
+                child: ListTile(
+                  title: const Text("Intent Builder"),
+                  subtitle: const Text("Draft user-defined legacy intent before compiling it into PTN"),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => IntentBuilderScreen(
+                          profile: profile,
+                          settings: settings,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
           const SizedBox(height: 16),
           const RecoveryVaultSection(),
