@@ -26,6 +26,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     contract_spec = ROOT / "specs" / "intent-compiler-contract.md"
     artifact_sample = ROOT / "examples" / "intent-canonical-artifact.sample.json"
     dashboard = ROOT / "apps" / "flutter_app" / "lib" / "features" / "dashboard" / "dashboard_screen.dart"
+    config_landing = ROOT / "apps" / "flutter_app" / "lib" / "features" / "auth" / "config_landing_screen.dart"
     pubspec = ROOT / "apps" / "flutter_app" / "pubspec.yaml"
     assert screen.exists()
     assert preview.exists()
@@ -44,6 +45,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert contract_spec.exists()
     assert artifact_sample.exists()
     assert dashboard.exists()
+    assert config_landing.exists()
     assert pubspec.exists()
 
     screen_src = _read(screen)
@@ -63,6 +65,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     contract_spec_src = _read(contract_spec)
     artifact_sample_src = _read(artifact_sample)
     dashboard_src = _read(dashboard)
+    config_landing_src = _read(config_landing)
     pubspec_src = _read(pubspec)
 
     assert "class IntentBuilderScreen" in screen_src
@@ -173,6 +176,12 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Draft sync: current draft changed since the latest export." in dashboard_src
     assert 'child: const Text("Readiness details")' in dashboard_src
     assert 'child: const Text("Open Intent Builder")' in dashboard_src
+    assert "class ConfigLandingScreen" in config_landing_src
+    assert "Finish backend setup or open demo mode" in config_landing_src
+    assert "Backend setup required" in config_landing_src
+    assert "Open demo workspace" in config_landing_src
+    assert "Show setup reminder" in config_landing_src
+    assert "Technical companion only" in config_landing_src
     assert "class IntentArtifactReviewScreen" in artifact_review_src
     assert "class IntentArtifactCompareScreen" in artifact_compare_src
     assert "class IntentArtifactHistoryScreen" in artifact_history_src
