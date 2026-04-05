@@ -51,6 +51,12 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text("Active entries: ${artifact.activeEntryCount}"),
                   const SizedBox(height: 4),
+                  Text("Sealed release mode: ${artifact.sealedReleaseCandidate.releaseMode}"),
+                  const SizedBox(height: 4),
+                  Text("Secret residency: ${artifact.sealedReleaseCandidate.deviceSecretResidency}"),
+                  const SizedBox(height: 4),
+                  Text("Sealed release entries: ${artifact.sealedReleaseCandidate.entries.length}"),
+                  const SizedBox(height: 4),
                   Text(
                     "Compiler status: ${artifact.report.errorCount} errors / ${artifact.report.warningCount} warnings",
                   ),
@@ -67,6 +73,64 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   const Text(
                     "Historical artifacts may be promoted into a fresh exported version when the owner wants to resume from an earlier canonical snapshot.",
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Sealed release candidate",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text("Candidate: ${artifact.sealedReleaseCandidate.candidateId}"),
+                  const SizedBox(height: 4),
+                  Text("Sealed at: ${artifact.sealedReleaseCandidate.sealedAt.toLocal()}"),
+                  const SizedBox(height: 4),
+                  const Text(
+                    "This candidate represents the release posture only. Secret payloads stay device-local and value disclosure should remain hidden or institution-verified.",
+                  ),
+                  const SizedBox(height: 10),
+                  ...artifact.sealedReleaseCandidate.entries.map(
+                    (entry) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFF7F2EA),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.assetLabel,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 6),
+                            Text("Kind: ${entry.kind}"),
+                            const SizedBox(height: 4),
+                            Text("Release channel: ${entry.releaseChannel}"),
+                            const SizedBox(height: 4),
+                            Text("Pre-trigger visibility: ${entry.preTriggerVisibility}"),
+                            const SizedBox(height: 4),
+                            Text("Post-trigger visibility: ${entry.postTriggerVisibility}"),
+                            const SizedBox(height: 4),
+                            Text("Value disclosure: ${entry.valueDisclosureMode}"),
+                            const SizedBox(height: 4),
+                            Text("Partner verification required: ${entry.partnerVerificationRequired ? "yes" : "no"}"),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

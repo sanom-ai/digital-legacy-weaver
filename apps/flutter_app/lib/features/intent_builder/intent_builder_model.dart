@@ -159,6 +159,9 @@ class IntentEntryModel {
       privacy: const IntentPrivacyModel(
         profile: "minimal",
         minimizeTraceMetadata: true,
+        preTriggerVisibility: "none",
+        postTriggerVisibility: "route_only",
+        valueDisclosureMode: "institution_verified_only",
       ),
       partnerPath: null,
       status: "draft",
@@ -213,6 +216,9 @@ class IntentEntryModel {
       privacy: const IntentPrivacyModel(
         profile: "minimal",
         minimizeTraceMetadata: true,
+        preTriggerVisibility: "none",
+        postTriggerVisibility: "route_only",
+        valueDisclosureMode: "institution_verified_only",
       ),
       partnerPath: null,
       status: "draft",
@@ -488,15 +494,24 @@ class IntentPrivacyModel {
   const IntentPrivacyModel({
     required this.profile,
     required this.minimizeTraceMetadata,
+    required this.preTriggerVisibility,
+    required this.postTriggerVisibility,
+    required this.valueDisclosureMode,
   });
 
   final String profile;
   final bool minimizeTraceMetadata;
+  final String preTriggerVisibility;
+  final String postTriggerVisibility;
+  final String valueDisclosureMode;
 
   Map<String, dynamic> toMap() {
     return {
       "profile": profile,
       "minimize_trace_metadata": minimizeTraceMetadata,
+      "pre_trigger_visibility": preTriggerVisibility,
+      "post_trigger_visibility": postTriggerVisibility,
+      "value_disclosure_mode": valueDisclosureMode,
     };
   }
 
@@ -504,6 +519,9 @@ class IntentPrivacyModel {
     return IntentPrivacyModel(
       profile: map["profile"] as String? ?? "minimal",
       minimizeTraceMetadata: map["minimize_trace_metadata"] as bool? ?? true,
+      preTriggerVisibility: map["pre_trigger_visibility"] as String? ?? "none",
+      postTriggerVisibility: map["post_trigger_visibility"] as String? ?? "route_only",
+      valueDisclosureMode: map["value_disclosure_mode"] as String? ?? "institution_verified_only",
     );
   }
 }
@@ -582,7 +600,7 @@ class IntentGlobalSafeguardsModel {
   factory IntentGlobalSafeguardsModel.fromMap(Map<String, dynamic> map) {
     return IntentGlobalSafeguardsModel(
       emergencyPauseEnabled: map["emergency_pause_enabled"] as bool? ?? true,
-      defaultGraceDays: map["default_grace_days"] as int? ?? 3,
+      defaultGraceDays: map["default_grace_days"] as int? ?? 7,
       defaultRemindersDaysBefore: (map["default_reminders_days_before"] as List<dynamic>? ?? const [14, 7, 1])
           .whereType<int>()
           .toList(),

@@ -133,6 +133,38 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
   }
 
+  Future<void> _showWrongRecipientDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Not the intended recipient?"),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "If this receipt was delivered to the wrong person, do not request codes or attempt to open the bundle.",
+            ),
+            SizedBox(height: 10),
+            Text("1. Stop using the access link immediately."),
+            SizedBox(height: 4),
+            Text("2. Do not forward the link, code, or verification phrase."),
+            SizedBox(height: 4),
+            Text("3. Contact the owner, guardian, operator, or designated partner so the route can be re-verified."),
+            SizedBox(height: 4),
+            Text("4. Treat this receipt as confidential until the rightful recipient is confirmed."),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Close"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildJourneyStep({
     required String title,
     required String body,
@@ -330,6 +362,33 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         Text("2. A one-time receipt code from the registered fallback channel."),
                         SizedBox(height: 4),
                         Text("3. The registered beneficiary name and private verification phrase."),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7ED),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Not the intended recipient?",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          "Do not try to guess missing details or keep retrying. Stop here and re-verify the recipient path with the owner, guardian, operator, or designated partner first.",
+                        ),
+                        const SizedBox(height: 10),
+                        OutlinedButton(
+                          onPressed: _showWrongRecipientDialog,
+                          child: const Text("This receipt is not mine"),
+                        ),
                       ],
                     ),
                   ),
@@ -537,6 +596,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                           Text("3. Verify balances, legal status, or account details directly with the relevant partner, institution, or law office."),
                           SizedBox(height: 4),
                           Text("4. Complete any legal or service-specific verification outside this technical receipt flow."),
+                          SizedBox(height: 4),
+                          Text("5. If you think this receipt reached the wrong person, stop and re-verify the recipient path before sharing anything."),
                         ],
                       ),
                     ),

@@ -186,6 +186,30 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
           ),
         );
       }
+      if (entry.privacy.preTriggerVisibility == 'none') {
+        constraintLines.add(
+          _requireLine(
+            'pretrigger_visibility_dark',
+            action,
+            'high',
+            'strict',
+            'entry:${_slug(entry.entryId)}:visibility',
+            'privacy-core',
+          ),
+        );
+      }
+      if (entry.privacy.valueDisclosureMode == 'institution_verified_only') {
+        constraintLines.add(
+          _requireLine(
+            'institution_verified_value_only',
+            action,
+            'high',
+            'strict',
+            'entry:${_slug(entry.entryId)}:visibility',
+            'privacy-core',
+          ),
+        );
+      }
     }
   }
 

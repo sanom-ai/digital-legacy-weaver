@@ -164,11 +164,16 @@ class IntentCanonicalArtifactRepository {
       return null;
     }
 
+    final promotedAt = DateTime.now().toUtc();
     final promoted = source.copyWith(
-      artifactId: 'artifact_${DateTime.now().toUtc().millisecondsSinceEpoch}',
+      artifactId: 'artifact_${promotedAt.millisecondsSinceEpoch}',
       promotedFromArtifactId: source.artifactId,
       artifactState: IntentArtifactState.exported,
-      generatedAt: DateTime.now().toUtc(),
+      generatedAt: promotedAt,
+      sealedReleaseCandidate: source.sealedReleaseCandidate.copyWith(
+        candidateId: 'release_candidate_${promotedAt.millisecondsSinceEpoch}',
+        sealedAt: promotedAt,
+      ),
     );
     await saveArtifact(promoted);
     return promoted;

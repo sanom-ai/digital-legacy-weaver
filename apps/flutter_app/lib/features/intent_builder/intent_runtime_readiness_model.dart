@@ -29,6 +29,13 @@ class IntentRuntimeReadinessModel {
 
   int get warningCount => currentArtifact?.report.warningCount ?? 0;
 
+  int get sealedReleaseEntryCount =>
+      currentArtifact?.sealedReleaseCandidate.entries.length ?? 0;
+
+  bool get deviceOnlySecretResidency =>
+      currentArtifact?.sealedReleaseCandidate.deviceSecretResidency ==
+      "device_local_only";
+
   String? get currentScenarioId => currentDraft?.metadata["demo_scenario"] as String?;
 
   String? get currentScenarioTitle => currentDraft?.metadata["demo_title"] as String?;
@@ -60,9 +67,9 @@ class IntentRuntimeReadinessModel {
     }
     final artifact = currentArtifact!;
     if (readyForRuntime) {
-      return "Latest artifact ${artifact.artifactId} is ready, in sync with the current draft, and can be treated as the current runtime candidate.";
+      return "Latest artifact ${artifact.artifactId} is ready, in sync with the current draft, and has a sealed release candidate with ${artifact.sealedReleaseCandidate.entries.length} release entries.";
     }
-    return "Latest artifact ${artifact.artifactId} is ${artifact.artifactState.name} with ${artifact.activeEntryCount} active entries. Review blockers before treating it as runtime-ready.";
+    return "Latest artifact ${artifact.artifactId} is ${artifact.artifactState.name} with ${artifact.activeEntryCount} active entries and ${artifact.sealedReleaseCandidate.entries.length} sealed release entries. Review blockers before treating it as runtime-ready.";
   }
 
   String get nextStep {
@@ -166,6 +173,10 @@ class IntentRuntimeReadinessModel {
 
     if (!draftInSync && hasArtifact) {
       steps.add("Compare the latest artifact with current draft changes before promotion or export.");
+    }
+
+    if (deviceOnlySecretResidency) {
+      steps.add("Device-only secret residency is active; verify that the release path still remains usable if the owner device changes.");
     }
 
     return steps;

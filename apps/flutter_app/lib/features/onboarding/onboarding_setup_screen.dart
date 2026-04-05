@@ -169,6 +169,9 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       privacy: IntentPrivacyModel(
         profile: preset.tracePrivacyProfile,
         minimizeTraceMetadata: _privateFirstMode,
+        preTriggerVisibility: 'none',
+        postTriggerVisibility: 'route_only',
+        valueDisclosureMode: 'institution_verified_only',
       ),
       status: 'active',
     );

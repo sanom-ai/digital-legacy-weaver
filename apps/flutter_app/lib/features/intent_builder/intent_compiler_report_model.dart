@@ -206,6 +206,31 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
       );
     }
 
+    if (entry.privacy.preTriggerVisibility != "none") {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "pretrigger_visibility_too_open",
+          message:
+              "${entry.entryId}: visibility before trigger should stay none to avoid disclosing legacy intent while the owner is alive.",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.privacy.valueDisclosureMode != "hidden" &&
+        entry.privacy.valueDisclosureMode != "institution_verified_only") {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "value_disclosure_too_open",
+          message:
+              "${entry.entryId}: value disclosure should stay hidden or institution-verified-only; do not expose value inside the technical receipt flow.",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
     if (entry.trigger.graceDays < 7) {
       issues.add(
         _issue(

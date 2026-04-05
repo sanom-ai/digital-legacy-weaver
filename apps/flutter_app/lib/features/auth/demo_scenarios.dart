@@ -108,6 +108,9 @@ class DemoScenario {
           privacy: const IntentPrivacyModel(
             profile: 'minimal',
             minimizeTraceMetadata: true,
+            preTriggerVisibility: 'none',
+            postTriggerVisibility: 'route_only',
+            valueDisclosureMode: 'institution_verified_only',
           ),
         ),
       ],
@@ -189,6 +192,9 @@ class DemoScenario {
           privacy: IntentPrivacyModel(
             profile: settings.tracePrivacyProfile,
             minimizeTraceMetadata: settings.privateFirstMode,
+            preTriggerVisibility: 'none',
+            postTriggerVisibility: 'route_only',
+            valueDisclosureMode: 'institution_verified_only',
           ),
         ),
       ],
@@ -270,6 +276,9 @@ class DemoScenario {
           privacy: const IntentPrivacyModel(
             profile: 'confidential',
             minimizeTraceMetadata: true,
+            preTriggerVisibility: 'none',
+            postTriggerVisibility: 'route_only',
+            valueDisclosureMode: 'institution_verified_only',
           ),
           partnerPath: const IntentPartnerPathModel(
             pathId: 'private_archive_handoff',

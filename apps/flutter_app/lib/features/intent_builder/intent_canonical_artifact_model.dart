@@ -14,6 +14,140 @@ enum IntentArtifactState {
   }
 }
 
+class SealedReleaseEntryModel {
+  const SealedReleaseEntryModel({
+    required this.entryId,
+    required this.kind,
+    required this.assetLabel,
+    required this.releaseChannel,
+    required this.payloadResidency,
+    required this.preTriggerVisibility,
+    required this.postTriggerVisibility,
+    required this.valueDisclosureMode,
+    required this.partnerVerificationRequired,
+  });
+
+  final String entryId;
+  final String kind;
+  final String assetLabel;
+  final String releaseChannel;
+  final String payloadResidency;
+  final String preTriggerVisibility;
+  final String postTriggerVisibility;
+  final String valueDisclosureMode;
+  final bool partnerVerificationRequired;
+
+  factory SealedReleaseEntryModel.fromMap(Map<String, dynamic> map) {
+    return SealedReleaseEntryModel(
+      entryId: map["entry_id"] as String? ?? "entry_unknown",
+      kind: map["kind"] as String? ?? "legacy_delivery",
+      assetLabel: map["asset_label"] as String? ?? "Untitled asset",
+      releaseChannel: map["release_channel"] as String? ?? "secure_link",
+      payloadResidency: map["payload_residency"] as String? ?? "device_local_only",
+      preTriggerVisibility: map["pre_trigger_visibility"] as String? ?? "none",
+      postTriggerVisibility: map["post_trigger_visibility"] as String? ?? "route_only",
+      valueDisclosureMode: map["value_disclosure_mode"] as String? ?? "institution_verified_only",
+      partnerVerificationRequired: map["partner_verification_required"] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "entry_id": entryId,
+      "kind": kind,
+      "asset_label": assetLabel,
+      "release_channel": releaseChannel,
+      "payload_residency": payloadResidency,
+      "pre_trigger_visibility": preTriggerVisibility,
+      "post_trigger_visibility": postTriggerVisibility,
+      "value_disclosure_mode": valueDisclosureMode,
+      "partner_verification_required": partnerVerificationRequired,
+    };
+  }
+
+  SealedReleaseEntryModel copyWith({
+    String? entryId,
+    String? kind,
+    String? assetLabel,
+    String? releaseChannel,
+    String? payloadResidency,
+    String? preTriggerVisibility,
+    String? postTriggerVisibility,
+    String? valueDisclosureMode,
+    bool? partnerVerificationRequired,
+  }) {
+    return SealedReleaseEntryModel(
+      entryId: entryId ?? this.entryId,
+      kind: kind ?? this.kind,
+      assetLabel: assetLabel ?? this.assetLabel,
+      releaseChannel: releaseChannel ?? this.releaseChannel,
+      payloadResidency: payloadResidency ?? this.payloadResidency,
+      preTriggerVisibility: preTriggerVisibility ?? this.preTriggerVisibility,
+      postTriggerVisibility: postTriggerVisibility ?? this.postTriggerVisibility,
+      valueDisclosureMode: valueDisclosureMode ?? this.valueDisclosureMode,
+      partnerVerificationRequired:
+          partnerVerificationRequired ?? this.partnerVerificationRequired,
+    );
+  }
+}
+
+class SealedReleaseCandidateModel {
+  const SealedReleaseCandidateModel({
+    required this.candidateId,
+    required this.sealedAt,
+    required this.deviceSecretResidency,
+    required this.releaseMode,
+    required this.entries,
+  });
+
+  final String candidateId;
+  final DateTime sealedAt;
+  final String deviceSecretResidency;
+  final String releaseMode;
+  final List<SealedReleaseEntryModel> entries;
+
+  factory SealedReleaseCandidateModel.fromMap(Map<String, dynamic> map) {
+    return SealedReleaseCandidateModel(
+      candidateId: map["candidate_id"] as String? ?? "release_candidate_latest",
+      sealedAt: DateTime.parse(
+        map["sealed_at"] as String? ?? DateTime.fromMillisecondsSinceEpoch(0).toUtc().toIso8601String(),
+      ),
+      deviceSecretResidency: map["device_secret_residency"] as String? ?? "device_local_only",
+      releaseMode: map["release_mode"] as String? ?? "hybrid_secure_link",
+      entries: (map["entries"] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((item) => SealedReleaseEntryModel.fromMap(Map<String, dynamic>.from(item)))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "candidate_id": candidateId,
+      "sealed_at": sealedAt.toUtc().toIso8601String(),
+      "device_secret_residency": deviceSecretResidency,
+      "release_mode": releaseMode,
+      "entries": entries.map((item) => item.toMap()).toList(),
+    };
+  }
+
+  SealedReleaseCandidateModel copyWith({
+    String? candidateId,
+    DateTime? sealedAt,
+    String? deviceSecretResidency,
+    String? releaseMode,
+    List<SealedReleaseEntryModel>? entries,
+  }) {
+    return SealedReleaseCandidateModel(
+      candidateId: candidateId ?? this.candidateId,
+      sealedAt: sealedAt ?? this.sealedAt,
+      deviceSecretResidency: deviceSecretResidency ?? this.deviceSecretResidency,
+      releaseMode: releaseMode ?? this.releaseMode,
+      entries: entries ?? this.entries,
+    );
+  }
+}
+
 class IntentCanonicalArtifactModel {
   const IntentCanonicalArtifactModel({
     required this.artifactId,
@@ -28,6 +162,7 @@ class IntentCanonicalArtifactModel {
     required this.ptn,
     required this.trace,
     required this.report,
+    required this.sealedReleaseCandidate,
   });
 
   final String artifactId;
@@ -42,6 +177,7 @@ class IntentCanonicalArtifactModel {
   final String ptn;
   final Map<String, dynamic> trace;
   final IntentCompilerReportModel report;
+  final SealedReleaseCandidateModel sealedReleaseCandidate;
 
   factory IntentCanonicalArtifactModel.fromMap(Map<String, dynamic> map) {
     return IntentCanonicalArtifactModel(
@@ -63,6 +199,11 @@ class IntentCanonicalArtifactModel {
       report: IntentCompilerReportModel.fromMap(
         Map<String, dynamic>.from(map["report"] as Map? ?? const <String, dynamic>{}),
       ),
+      sealedReleaseCandidate: SealedReleaseCandidateModel.fromMap(
+        Map<String, dynamic>.from(
+          map["sealed_release_candidate"] as Map? ?? const <String, dynamic>{},
+        ),
+      ),
     );
   }
 
@@ -80,6 +221,7 @@ class IntentCanonicalArtifactModel {
       "ptn": ptn,
       "trace": trace,
       "report": report.toMap(),
+      "sealed_release_candidate": sealedReleaseCandidate.toMap(),
     };
   }
 
@@ -96,6 +238,7 @@ class IntentCanonicalArtifactModel {
     String? ptn,
     Map<String, dynamic>? trace,
     IntentCompilerReportModel? report,
+    SealedReleaseCandidateModel? sealedReleaseCandidate,
   }) {
     return IntentCanonicalArtifactModel(
       artifactId: artifactId ?? this.artifactId,
@@ -110,6 +253,7 @@ class IntentCanonicalArtifactModel {
       ptn: ptn ?? this.ptn,
       trace: trace ?? this.trace,
       report: report ?? this.report,
+      sealedReleaseCandidate: sealedReleaseCandidate ?? this.sealedReleaseCandidate,
     );
   }
 }

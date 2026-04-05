@@ -155,6 +155,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         privacy: IntentPrivacyModel(
           profile: widget.settings.tracePrivacyProfile,
           minimizeTraceMetadata: widget.settings.privateFirstMode,
+          preTriggerVisibility: "none",
+          postTriggerVisibility: "route_only",
+          valueDisclosureMode: "institution_verified_only",
         ),
         partnerPath: null,
         status: "draft",
@@ -202,6 +205,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         privacy: IntentPrivacyModel(
           profile: widget.settings.tracePrivacyProfile,
           minimizeTraceMetadata: widget.settings.privateFirstMode,
+          preTriggerVisibility: "none",
+          postTriggerVisibility: "route_only",
+          valueDisclosureMode: "institution_verified_only",
         ),
         partnerPath: null,
         status: "draft",
@@ -297,6 +303,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       privacy: IntentPrivacyModel(
         profile: _document.defaultPrivacyProfile,
         minimizeTraceMetadata: widget.settings.privateFirstMode,
+        preTriggerVisibility: "none",
+        postTriggerVisibility: "route_only",
+        valueDisclosureMode: "institution_verified_only",
       ),
     );
     await _persistDocument(
@@ -403,19 +412,21 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _isExporting = true;
     });
+    final generatedAt = DateTime.now().toUtc();
     final artifact = IntentCanonicalArtifactModel(
-      artifactId: "artifact_${DateTime.now().toUtc().millisecondsSinceEpoch}",
+      artifactId: "artifact_${generatedAt.millisecondsSinceEpoch}",
       promotedFromArtifactId: null,
       contractVersion: "intent-compiler-contract/v1",
       artifactState: IntentArtifactState.exported,
       intentId: _document.intentId,
       ownerRef: _document.ownerRef,
-      generatedAt: DateTime.now().toUtc(),
+      generatedAt: generatedAt,
       sourceDraftSignature: buildIntentDocumentSignature(_document),
       activeEntryCount: _document.entries.where((entry) => entry.status == "active").length,
       ptn: ptnPreview,
       trace: buildDraftIntentTrace(_document),
       report: report,
+      sealedReleaseCandidate: _buildSealedReleaseCandidate(generatedAt),
     );
     await ref.read(intentCanonicalArtifactRepositoryProvider).saveArtifact(artifact);
     ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
@@ -429,6 +440,30 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _isExporting = false;
       _saveMessage = "Canonical PTN artifact exported and sealed locally on this device.";
     });
+  }
+
+  SealedReleaseCandidateModel _buildSealedReleaseCandidate(DateTime generatedAt) {
+    final activeEntries = _document.entries.where((entry) => entry.status == "active");
+    return SealedReleaseCandidateModel(
+      candidateId: "release_candidate_${generatedAt.millisecondsSinceEpoch}",
+      sealedAt: generatedAt,
+      deviceSecretResidency: "device_local_only",
+      releaseMode: "hybrid_secure_link",
+      entries: [
+        for (final entry in activeEntries)
+          SealedReleaseEntryModel(
+            entryId: entry.entryId,
+            kind: entry.kind,
+            assetLabel: entry.asset.displayName,
+            releaseChannel: entry.delivery.method,
+            payloadResidency: "device_local_only",
+            preTriggerVisibility: entry.privacy.preTriggerVisibility,
+            postTriggerVisibility: entry.privacy.postTriggerVisibility,
+            valueDisclosureMode: entry.privacy.valueDisclosureMode,
+            partnerVerificationRequired: true,
+          ),
+      ],
+    );
   }
 
   Future<void> _clearCanonicalArtifact() async {
@@ -1240,6 +1275,12 @@ class _IntentEntryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text("Privacy: ${entry.privacy.profile}"),
             const SizedBox(height: 4),
+            Text("Visibility before trigger: ${entry.privacy.preTriggerVisibility}"),
+            const SizedBox(height: 4),
+            Text("Visibility after trigger: ${entry.privacy.postTriggerVisibility}"),
+            const SizedBox(height: 4),
+            Text("Value disclosure: ${entry.privacy.valueDisclosureMode}"),
+            const SizedBox(height: 4),
             Text(
               "Safeguards: "
               "${entry.safeguards.requireMultisignal ? "multisignal" : "single-signal"}"
@@ -1297,6 +1338,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late String _payloadMode;
   late String _triggerMode;
   late String _privacyProfile;
+  late String _preTriggerVisibility;
+  late String _postTriggerVisibility;
+  late String _valueDisclosureMode;
   late bool _requireVerificationCode;
   late bool _requireTotp;
   late bool _requireGuardianApproval;
@@ -1323,6 +1367,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _payloadMode = widget.entry.asset.payloadMode;
     _triggerMode = widget.entry.trigger.mode;
     _privacyProfile = widget.entry.privacy.profile;
+    _preTriggerVisibility = widget.entry.privacy.preTriggerVisibility;
+    _postTriggerVisibility = widget.entry.privacy.postTriggerVisibility;
+    _valueDisclosureMode = widget.entry.privacy.valueDisclosureMode;
     _requireVerificationCode = widget.entry.delivery.requireVerificationCode;
     _requireTotp = widget.entry.delivery.requireTotp;
     _requireGuardianApproval = widget.entry.safeguards.requireGuardianApproval;
@@ -1510,6 +1557,49 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               },
             ),
             const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              initialValue: _preTriggerVisibility,
+              decoration: const InputDecoration(labelText: "Visibility before trigger"),
+              items: const [
+                DropdownMenuItem(value: "none", child: Text("None")),
+                DropdownMenuItem(value: "notice_only", child: Text("Notice only")),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _preTriggerVisibility = value);
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              initialValue: _postTriggerVisibility,
+              decoration: const InputDecoration(labelText: "Visibility after trigger"),
+              items: const [
+                DropdownMenuItem(value: "existence_only", child: Text("Existence only")),
+                DropdownMenuItem(value: "route_only", child: Text("Route only")),
+                DropdownMenuItem(value: "route_and_instructions", child: Text("Route and instructions")),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _postTriggerVisibility = value);
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              initialValue: _valueDisclosureMode,
+              decoration: const InputDecoration(labelText: "Value disclosure"),
+              items: const [
+                DropdownMenuItem(value: "hidden", child: Text("Hidden")),
+                DropdownMenuItem(value: "institution_verified_only", child: Text("Institution verified only")),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _valueDisclosureMode = value);
+                }
+              },
+            ),
+            const SizedBox(height: 8),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: const Text("Require verification code"),
@@ -1623,6 +1713,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 privacy: IntentPrivacyModel(
                   profile: _privacyProfile,
                   minimizeTraceMetadata: widget.entry.privacy.minimizeTraceMetadata,
+                  preTriggerVisibility: _preTriggerVisibility,
+                  postTriggerVisibility: _postTriggerVisibility,
+                  valueDisclosureMode: _valueDisclosureMode,
                 ),
               ),
             );

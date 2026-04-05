@@ -133,6 +133,7 @@ def collect_intent_warnings(intent: Dict[str, Any]) -> List[str]:
     for index, entry in enumerate(intent.get("entries", [])):
         label = f"entry[{index}]"
         entry_id = entry.get("entry_id") or label
+        privacy = entry.get("privacy") or {}
         if entry.get("status") != "active":
             warnings.append(f"{entry_id}: entry is not active and will not compile into PTN output")
             continue
@@ -148,6 +149,12 @@ def collect_intent_warnings(intent: Dict[str, Any]) -> List[str]:
         if entry.get("kind") == "legacy_delivery" and len(set(recipient_fallbacks)) < 2:
             warnings.append(f"{entry_id}: beneficiary flow only has one fallback channel; add email plus SMS before treating proof-of-life as resilient")
 
+        if (privacy.get("pre_trigger_visibility") or "none") != "none":
+            warnings.append(f"{entry_id}: visibility before trigger should stay none to avoid disclosing legacy intent while the owner is alive")
+
+        if (privacy.get("value_disclosure_mode") or "institution_verified_only") not in {"hidden", "institution_verified_only"}:
+            warnings.append(f"{entry_id}: value disclosure should stay hidden or institution-verified-only; do not expose value inside the technical receipt flow")
+
         asset = entry.get("asset") or {}
         if not asset.get("payload_ref"):
             warnings.append(f"{entry_id}: asset.payload_ref is empty; delivery may be incomplete")
@@ -160,7 +167,6 @@ def collect_intent_warnings(intent: Dict[str, Any]) -> List[str]:
         if not partner_path:
             warnings.append(f"{entry_id}: no partner_path defined; workflow will remain core-only")
 
-        privacy = entry.get("privacy") or {}
         profile = privacy.get("profile", default_profile)
         if profile == "audit-heavy" and privacy.get("minimize_trace_metadata", True):
             warnings.append(
@@ -211,6 +217,10 @@ def build_intent_compiler_report(intent: Dict[str, Any]) -> Dict[str, Any]:
             code = "missing_beneficiary_verification_hint"
         elif "only has one fallback channel" in warning:
             code = "missing_multi_channel_fallback"
+        elif "visibility before trigger should stay none" in warning:
+            code = "pretrigger_visibility_too_open"
+        elif "value disclosure should stay hidden or institution-verified-only" in warning:
+            code = "value_disclosure_too_open"
         elif "grace_days is below 7" in warning:
             code = "short_grace_period"
         elif "proof-of-life confirmation is heavier" in warning:
@@ -422,8 +432,30 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
                     "strict",
                     f"entry:{entry_id}:beneficiary_identity",
                     "delivery-core",
-                ),
-            )
+                    ),
+                )
+            if (privacy.get("pre_trigger_visibility") or "none") == "none":
+                constraint_lines.append(
+                    _require_line(
+                        "pretrigger_visibility_dark",
+                        action,
+                        "high",
+                        "strict",
+                        f"entry:{entry_id}:visibility",
+                        "privacy-core",
+                    ),
+                )
+            if (privacy.get("value_disclosure_mode") or "institution_verified_only") == "institution_verified_only":
+                constraint_lines.append(
+                    _require_line(
+                        "institution_verified_value_only",
+                        action,
+                        "high",
+                        "strict",
+                        f"entry:{entry_id}:visibility",
+                        "privacy-core",
+                    ),
+                )
             if len(set(recipient_fallbacks)) >= 2:
                 constraint_lines.append(
                     _require_line(

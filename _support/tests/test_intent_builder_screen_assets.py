@@ -92,6 +92,9 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "DropdownButtonFormField<String>" in screen_src
     assert "SwitchListTile.adaptive" in screen_src
     assert "Recipient channel:" in screen_src
+    assert "Visibility before trigger:" in screen_src
+    assert "Visibility after trigger:" in screen_src
+    assert "Value disclosure:" in screen_src
     assert "Safeguards:" in screen_src
     assert "Remove draft entry" in screen_src
     assert "Compiler bridge" in screen_src
@@ -147,9 +150,14 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "factory IntentDocumentModel.fromMap" in model_src
     assert "factory IntentEntryModel.fromMap" in model_src
     assert "factory IntentEntryModel.selfRecoveryDraft" in model_src
+    assert "pre_trigger_visibility" in model_src
+    assert "post_trigger_visibility" in model_src
+    assert "value_disclosure_mode" in model_src
     assert "document: _document" in screen_src
     assert "missing_partner_path" in _read(ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_compiler_report_model.dart")
     assert "class IntentCanonicalArtifactModel" in artifact_model_src
+    assert "class SealedReleaseCandidateModel" in artifact_model_src
+    assert "class SealedReleaseEntryModel" in artifact_model_src
     assert "contractVersion" in artifact_model_src
     assert "IntentArtifactState" in artifact_model_src
     assert "artifactId" in artifact_model_src
@@ -157,6 +165,10 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "artifactState" in artifact_model_src
     assert "sourceDraftSignature" in artifact_model_src
     assert "activeEntryCount" in artifact_model_src
+    assert "sealedReleaseCandidate" in artifact_model_src
+    assert "preTriggerVisibility" in artifact_model_src
+    assert "postTriggerVisibility" in artifact_model_src
+    assert "valueDisclosureMode" in artifact_model_src
     assert "class IntentCanonicalArtifactRepository" in artifact_repository_src
     assert "encrypted_intent_canonical_artifact" in artifact_repository_src
     assert "loadArtifactHistory" in artifact_repository_src
@@ -258,6 +270,9 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Verification hint:" in screen_src
     assert "Fallback channels:" in screen_src
     assert "Registered beneficiary name" in screen_src
+    assert "Visibility before trigger" in screen_src
+    assert "Visibility after trigger" in screen_src
+    assert "Value disclosure" in screen_src
     assert "Email fallback" in screen_src
     assert "SMS fallback" in screen_src
     assert "class IntentArtifactReviewScreen" in artifact_review_src
@@ -294,6 +309,12 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Badge: Has issues" in artifact_review_src
     assert "State:" in artifact_review_src
     assert "State policy:" in artifact_review_src
+    assert "Sealed release candidate" in artifact_review_src
+    assert "Sealed release mode:" in artifact_review_src
+    assert "Secret residency:" in artifact_review_src
+    assert "Pre-trigger visibility:" in artifact_review_src
+    assert "Post-trigger visibility:" in artifact_review_src
+    assert "Value disclosure:" in artifact_review_src
     assert "Historical artifacts may be promoted into a fresh exported version" in artifact_review_src
     assert "Compiler report" in artifact_review_src
     assert "Trace" in artifact_review_src
@@ -341,6 +362,9 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Secure web-link default" in unlock_src
     assert "App optional" in unlock_src
     assert "What the beneficiary needs" in unlock_src
+    assert "Not the intended recipient?" in unlock_src
+    assert "This receipt is not mine" in unlock_src
+    assert "Stop here and re-verify the recipient path" in unlock_src or "Stop here and re-verify the recipient path with the owner, guardian, operator, or designated partner first." in unlock_src
     assert "Need help?" in unlock_src
     assert "fallback path such as email plus SMS" in unlock_src
     assert "One-time code sent through the active fallback channel." in unlock_src
@@ -354,10 +378,13 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Verification route:" in unlock_src
     assert "Verify balances, legal status, or account details directly with the relevant partner, institution, or law office." in unlock_src
     assert "Complete any legal or service-specific verification outside this technical receipt flow." in unlock_src
+    assert "If you think this receipt reached the wrong person, stop and re-verify the recipient path before sharing anything." in unlock_src
     assert 'title: const Text("Beneficiary Receipt")' in dashboard_src
     assert 'subtitle: const Text("Secure link, receipt code, and pre-registered identity flow")' in dashboard_src
     assert "missing_beneficiary_identity" in compiler_report_src
     assert "missing_beneficiary_verification_hint" in compiler_report_src
     assert "missing_multi_channel_fallback" in compiler_report_src
+    assert "pretrigger_visibility_too_open" in compiler_report_src
+    assert "value_disclosure_too_open" in compiler_report_src
     assert "short_grace_period" in compiler_report_src
     assert "server_heartbeat_fallback_disabled" in compiler_report_src
