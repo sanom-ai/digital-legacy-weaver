@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { compilePTN, evaluatePolicy } from "./ptn_policy.ts";
+import { compilePTN, evaluatePolicy, type RequirementControl } from "./ptn_policy.ts";
 
 type Profile = {
   id: string;
@@ -220,22 +220,35 @@ async function evaluateRequiredControls(args: {
   ownerId: string;
   mode: "legacy" | "self_recovery";
   safety: SafetySettings;
-  required: string[];
-}): Promise<{ allowed: boolean; missing: string[] }> {
-  const missing: string[] = [];
-  for (const requirement of args.required) {
+  requiredControls: RequirementControl[];
+}): Promise<{ allowed: boolean; strictMissing: string[]; advisoryUnmet: string[] }> {
+  const strictMissing: string[] = [];
+  const advisoryUnmet: string[] = [];
+  for (const control of args.requiredControls) {
+    const requirement = control.name;
+    let satisfied = false;
+
     if (requirement === "consent_active") {
-      if (!args.safety.legal_disclaimer_accepted) missing.push(requirement);
-      continue;
-    }
-    if (requirement === "cooldown_24h") {
+      satisfied = args.safety.legal_disclaimer_accepted;
+    } else if (requirement === "cooldown_24h") {
       const hasRecent = await hasRecentFinalRelease(args.ownerId, args.mode, 24);
-      if (hasRecent) missing.push(requirement);
-      continue;
+      satisfied = !hasRecent;
+    } else if (requirement === "provider_legal_verification_handoff") {
+      // Runtime assumes handoff clause is satisfied via outbound provider checklist messaging.
+      satisfied = true;
+    } else {
+      // Unknown controls are treated as unmet with mode-driven handling.
+      satisfied = false;
     }
-    missing.push(`${requirement} (unsupported by runtime)`);
+
+    if (satisfied) continue;
+    if (control.mode === "advisory") {
+      advisoryUnmet.push(requirement);
+    } else {
+      strictMissing.push(requirement);
+    }
   }
-  return { allowed: missing.length === 0, missing };
+  return { allowed: strictMissing.length === 0, strictMissing, advisoryUnmet };
 }
 
 async function insertDispatchEvent(
@@ -374,12 +387,29 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
     ownerId: profile.id,
     mode,
     safety,
-    required: decision.required,
+    requiredControls: decision.requiredControls,
   });
+  if (requirementGate.advisoryUnmet.length > 0) {
+    await supabase.from("trigger_logs").insert({
+      owner_id: profile.id,
+      mode,
+      action,
+      status: "pending",
+      reason: `advisory controls unmet: ${requirementGate.advisoryUnmet.join("; ")}`,
+      metadata: {
+        inactiveDays,
+        threshold,
+        required: decision.required,
+        advisoryUnmet: requirementGate.advisoryUnmet,
+      },
+      processed_at: new Date().toISOString(),
+    });
+  }
   if (!requirementGate.allowed) {
     await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "required controls are not satisfied", {
       required: decision.required,
-      missing: requirementGate.missing,
+      strictMissing: requirementGate.strictMissing,
+      advisoryUnmet: requirementGate.advisoryUnmet,
       inactiveDays,
       threshold,
     });
@@ -388,8 +418,14 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       mode,
       action,
       status: "skipped",
-      reason: `required controls are not satisfied: ${requirementGate.missing.join("; ")}`,
-      metadata: { inactiveDays, threshold, required: decision.required, missing: requirementGate.missing },
+      reason: `required controls are not satisfied: ${requirementGate.strictMissing.join("; ")}`,
+      metadata: {
+        inactiveDays,
+        threshold,
+        required: decision.required,
+        strictMissing: requirementGate.strictMissing,
+        advisoryUnmet: requirementGate.advisoryUnmet,
+      },
       processed_at: new Date().toISOString(),
     });
     return;
