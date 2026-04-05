@@ -77,6 +77,11 @@ Each issue contains:
 3. `message`
 4. optional `entry_id`
 
+Flutter adapter note:
+
+1. `apps/flutter_app/lib/features/intent_builder/intent_compiler_report_model.dart`
+2. uses `fromMap()` / `toMap()` so app-side review flows can consume the same report shape as compiler output
+
 Current warning examples:
 
 1. active entry has no `payload_ref`

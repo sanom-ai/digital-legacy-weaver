@@ -22,6 +22,10 @@ def test_intent_review_card_assets_exist() -> None:
 
     assert "class IntentCompilerReportModel" in model_src
     assert "buildDraftIntentCompilerReport" in model_src
+    assert "IntentCompilerReportModel.fromMap" in model_src
+    assert "IntentCompilerIssueModel.fromMap" in model_src
+    assert '"error_count"' in model_src
+    assert '"warning_count"' in model_src
     assert "class IntentReviewCard" in card_src
     assert "Intent review" in card_src
     assert "IntentReviewCard(report: draftReport)" in onboarding_src
