@@ -180,7 +180,9 @@ Guide:
 - `specs/ptn-v2.md`
 - `docs/ptn-intent-schema.md`
 - `docs/intent-builder-model.md`
+- `docs/intent-to-ptn-compiler.md`
 - `examples/default-policy.ptn`
+- `examples/intent-primary.json`
 - `examples/pdpa-policy-pack.ptn`
 - `examples/high-assurance-v2-policy.ptn`
 - `examples/privacy-profile-confidential.ptn`

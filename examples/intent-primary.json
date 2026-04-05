@@ -1,0 +1,67 @@
+{
+  "intent_id": "intent_primary",
+  "version": "0.1.0",
+  "owner_ref": "owner_primary",
+  "default_privacy_profile": "minimal",
+  "entries": [
+    {
+      "entry_id": "legacy_wallet_a",
+      "kind": "legacy_delivery",
+      "asset": {
+        "asset_id": "wallet_primary",
+        "asset_type": "wallet",
+        "display_name": "Primary Wallet",
+        "payload_mode": "secure_link",
+        "payload_ref": "vault://wallet_primary",
+        "notes": "Primary wallet handoff reference"
+      },
+      "recipient": {
+        "recipient_id": "beneficiary_anna",
+        "relationship": "spouse",
+        "delivery_channel": "email",
+        "destination_ref": "anna@example.com",
+        "role": "beneficiary"
+      },
+      "trigger": {
+        "mode": "inactivity",
+        "inactivity_days": 90,
+        "require_unconfirmed_alive_status": true,
+        "grace_days": 7,
+        "reminders_days_before": [14, 7, 1]
+      },
+      "delivery": {
+        "method": "secure_link",
+        "require_verification_code": true,
+        "require_totp": false,
+        "one_time_access": true
+      },
+      "safeguards": {
+        "require_guardian_approval": false,
+        "require_multisignal": true,
+        "cooldown_hours": 24,
+        "legal_disclaimer_required": true
+      },
+      "privacy": {
+        "profile": "confidential",
+        "minimize_trace_metadata": true
+      },
+      "partner_path": {
+        "path_id": "path_wallet_support",
+        "path_type": "destination_service",
+        "handoff_template": "default_provider_handoff",
+        "required_context": ["service_contact", "asset_reference"]
+      },
+      "status": "active"
+    }
+  ],
+  "global_safeguards": {
+    "emergency_pause_enabled": true,
+    "default_grace_days": 3,
+    "default_reminders_days_before": [14, 7, 1],
+    "require_multisignal_before_release": true,
+    "require_guardian_approval_for_legacy": false
+  },
+  "metadata": {
+    "source": "intent_builder"
+  }
+}

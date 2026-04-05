@@ -54,3 +54,8 @@ The next PR should introduce:
 
 1. validation helpers for incomplete or contradictory intent
 2. compiler mapping from intent models to PTN output
+
+Current compiler foundation:
+
+1. `docs/intent-to-ptn-compiler.md`
+2. `tools/intent_to_ptn.py`
