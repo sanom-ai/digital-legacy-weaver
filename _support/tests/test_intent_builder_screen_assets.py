@@ -189,6 +189,11 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Ready artifact drifted" in dashboard_src
     assert "Runtime candidate is healthy" in dashboard_src
     assert "Best next move:" in dashboard_src
+    assert 'actionLabel: "Open builder"' in dashboard_src
+    assert 'actionLabel: "Fix in builder"' in dashboard_src
+    assert 'actionLabel: "Open review"' in dashboard_src
+    assert 'actionLabel: "Open history"' in dashboard_src
+    assert 'actionLabel: "Review artifact"' in dashboard_src
     assert "Live backend mode" in dashboard_src
     assert "Setup still incomplete" in dashboard_src
     assert "Next action:" in dashboard_src
@@ -203,6 +208,9 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "class _ControlRoomCard" in dashboard_src
     assert "class _MetricChip" in dashboard_src
     assert "class _StateHelperCard" in dashboard_src
+    assert "IntentArtifactHistoryScreen" in dashboard_src
+    assert "onOpenArtifactReview" in dashboard_src
+    assert "onOpenArtifactHistory" in dashboard_src
     assert "currentScenarioTitle" in readiness_model_src
     assert "currentScenarioSummary" in readiness_model_src
     assert "currentScenarioNextStep" in readiness_model_src

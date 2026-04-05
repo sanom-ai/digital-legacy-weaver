@@ -1,6 +1,7 @@
 import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
 import 'package:digital_legacy_weaver/features/connectors/presentation/connectors_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_history_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_review_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_provider.dart';
@@ -120,44 +121,19 @@ class DashboardScreen extends ConsumerWidget {
                 return Column(
                   children: [
                     readinessAsync.when(
-                      data: (readiness) => _ControlRoomCard(
-                        readiness: readiness,
-                        setupComplete: setupComplete,
-                        primaryActionLabel: readiness.primaryActionLabel,
-                        onPrimaryAction: () {
-                          final actionKey = readiness.primaryActionKey;
-                          if (actionKey == "review_exported_artifact" &&
-                              readiness.currentArtifact != null) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => IntentArtifactReviewScreen(
-                                  artifact: readiness.currentArtifact!,
-                                ),
+                      data: (readiness) {
+                        void openBuilder() {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => IntentBuilderScreen(
+                                profile: profile,
+                                settings: settings,
                               ),
-                            );
-                            return;
-                          }
+                            ),
+                          );
+                        }
 
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => IntentBuilderScreen(
-                                profile: profile,
-                                settings: settings,
-                              ),
-                            ),
-                          );
-                        },
-                        onOpenBuilder: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => IntentBuilderScreen(
-                                profile: profile,
-                                settings: settings,
-                              ),
-                            ),
-                          );
-                        },
-                        onOpenReadiness: () {
+                        void openReadiness() {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => IntentRuntimeReadinessScreen(
@@ -165,8 +141,9 @@ class DashboardScreen extends ConsumerWidget {
                               ),
                             ),
                           );
-                        },
-                        onOpenSetup: () async {
+                        }
+
+                        Future<void> openSetup() async {
                           final changed = await Navigator.of(context).push<bool>(
                             MaterialPageRoute(
                               builder: (_) => OnboardingSetupScreen(
@@ -179,8 +156,87 @@ class DashboardScreen extends ConsumerWidget {
                             ref.invalidate(profileProvider);
                             ref.invalidate(safetySettingsProvider);
                           }
-                        },
-                      ),
+                        }
+
+                        void openReviewArtifact() {
+                          if (readiness.currentArtifact == null) {
+                            openBuilder();
+                            return;
+                          }
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => IntentArtifactReviewScreen(
+                                artifact: readiness.currentArtifact!,
+                              ),
+                            ),
+                          );
+                        }
+
+                        void openHistory() {
+                          final artifact = readiness.currentArtifact;
+                          final history = artifactHistoryAsync.valueOrNull;
+                          if (artifact == null || history == null) {
+                            openBuilder();
+                            return;
+                          }
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => IntentArtifactHistoryScreen(
+                                currentArtifact: artifact,
+                                artifactHistory: history,
+                                onPromote: (selected) async {
+                                  await ref
+                                      .read(intentCanonicalArtifactRepositoryProvider)
+                                      .promoteArtifactVersion(
+                                        ownerRef: profile.id,
+                                        artifactId: selected.artifactId,
+                                      );
+                                  ref.invalidate(intentCanonicalArtifactProvider(profile.id));
+                                  ref.invalidate(intentCanonicalArtifactHistoryProvider(profile.id));
+                                  ref.invalidate(intentRuntimeReadinessProvider(profile.id));
+                                },
+                                onRemove: (selected) async {
+                                  await ref
+                                      .read(intentCanonicalArtifactRepositoryProvider)
+                                      .clearArtifactVersion(
+                                        ownerRef: profile.id,
+                                        artifactId: selected.artifactId,
+                                      );
+                                  ref.invalidate(intentCanonicalArtifactProvider(profile.id));
+                                  ref.invalidate(intentCanonicalArtifactHistoryProvider(profile.id));
+                                  ref.invalidate(intentRuntimeReadinessProvider(profile.id));
+                                },
+                              ),
+                            ),
+                          );
+                        }
+
+                        void openPrimaryAction() {
+                          final actionKey = readiness.primaryActionKey;
+                          if (actionKey == "review_exported_artifact") {
+                            openReviewArtifact();
+                            return;
+                          }
+                          if (actionKey == "refresh_exported_artifact" ||
+                              actionKey == "reexport_latest_draft") {
+                            openHistory();
+                            return;
+                          }
+                          openBuilder();
+                        }
+
+                        return _ControlRoomCard(
+                          readiness: readiness,
+                          setupComplete: setupComplete,
+                          primaryActionLabel: readiness.primaryActionLabel,
+                          onPrimaryAction: openPrimaryAction,
+                          onOpenBuilder: openBuilder,
+                          onOpenReadiness: openReadiness,
+                          onOpenSetup: openSetup,
+                          onOpenArtifactReview: openReviewArtifact,
+                          onOpenArtifactHistory: openHistory,
+                        );
+                      },
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
                     ),
@@ -467,6 +523,8 @@ class _ControlRoomCard extends StatelessWidget {
     required this.onOpenBuilder,
     required this.onOpenReadiness,
     required this.onOpenSetup,
+    required this.onOpenArtifactReview,
+    required this.onOpenArtifactHistory,
   });
 
   final IntentRuntimeReadinessModel readiness;
@@ -476,6 +534,8 @@ class _ControlRoomCard extends StatelessWidget {
   final VoidCallback onOpenBuilder;
   final VoidCallback onOpenReadiness;
   final VoidCallback onOpenSetup;
+  final VoidCallback onOpenArtifactReview;
+  final VoidCallback onOpenArtifactHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -612,90 +672,106 @@ class _ControlRoomCard extends StatelessWidget {
 
   List<Widget> _buildHelperCards() {
     if (!readiness.hasArtifact) {
-      return const [
+      return [
         _StateHelperCard(
           title: "Draft workspace only",
           body:
               "You have a working draft but no canonical artifact yet. Export the first PTN artifact so review, history, and readiness can start tracking a concrete runtime candidate.",
           cue: "Best next move: export the first canonical artifact from Intent Builder.",
+          actionLabel: "Open builder",
+          onTap: onOpenBuilder,
         ),
       ];
     }
 
     if (readiness.hasBlockingErrors) {
-      return const [
+      return [
         _StateHelperCard(
           title: "Blocking compiler issues",
           body:
               "The latest artifact still carries compiler errors. Keep editing in Intent Builder until those errors are resolved before you treat this artifact as reviewable or ready.",
           cue: "Best next move: fix blocking issues and export again.",
+          actionLabel: "Fix in builder",
+          onTap: onOpenBuilder,
         ),
       ];
     }
 
     if ((readiness.currentArtifact?.activeEntryCount ?? 0) == 0) {
-      return const [
+      return [
         _StateHelperCard(
           title: "No active entries yet",
           body:
               "The current artifact does not contain an active route. Activate at least one intent entry so the artifact reflects a real delivery or self-recovery path.",
           cue: "Best next move: activate an entry, then export again.",
+          actionLabel: "Open builder",
+          onTap: onOpenBuilder,
         ),
       ];
     }
 
     final artifact = readiness.currentArtifact!;
     if (artifact.artifactState == IntentArtifactState.exported) {
-      return const [
+      return [
         _StateHelperCard(
           title: "Export completed",
           body:
               "The artifact exists and is now waiting for review. This is the right moment to inspect the PTN, compiler report, and trace before advancing the state.",
           cue: "Best next move: review the exported artifact now.",
+          actionLabel: "Open review",
+          onTap: onOpenArtifactReview,
         ),
       ];
     }
 
     if (artifact.artifactState == IntentArtifactState.reviewed && !readiness.draftInSync) {
-      return const [
+      return [
         _StateHelperCard(
           title: "Reviewed but stale",
           body:
               "The artifact was reviewed, but the draft changed afterward. Treat the review as outdated until a fresh export captures the current draft again.",
           cue: "Best next move: re-export from the latest draft before marking anything ready.",
+          actionLabel: "Open history",
+          onTap: onOpenArtifactHistory,
         ),
       ];
     }
 
     if (artifact.artifactState == IntentArtifactState.reviewed) {
-      return const [
+      return [
         _StateHelperCard(
           title: "Reviewed and in sync",
           body:
               "The artifact has been reviewed and still matches the current draft. This is the cleanest moment to mark it ready for runtime use.",
           cue: "Best next move: mark the reviewed artifact ready while sync still holds.",
+          actionLabel: "Open builder",
+          onTap: onOpenBuilder,
         ),
       ];
     }
 
     if (artifact.artifactState == IntentArtifactState.ready && !readiness.draftInSync) {
-      return const [
+      return [
         _StateHelperCard(
           title: "Ready artifact drifted",
           body:
               "The latest artifact was ready, but the draft changed later. Keep the ready state as historical context only until you export a fresh runtime candidate.",
           cue: "Best next move: re-export the latest draft to restore runtime confidence.",
+          actionLabel: "Open history",
+          onTap: onOpenArtifactHistory,
         ),
       ];
     }
 
     if (artifact.artifactState == IntentArtifactState.ready) {
-      return const [
+      return [
         _StateHelperCard(
           title: "Runtime candidate is healthy",
           body:
               "The latest artifact is ready, in sync, and suitable to treat as the current runtime candidate. From here the main job is to keep the workspace stable as changes happen.",
           cue: "Best next move: use review and history tools only when you intentionally change the draft.",
+          actionLabel: "Review artifact",
+          onTap: onOpenArtifactReview,
         ),
       ];
     }
@@ -834,11 +910,15 @@ class _StateHelperCard extends StatelessWidget {
     required this.title,
     required this.body,
     required this.cue,
+    required this.actionLabel,
+    required this.onTap,
   });
 
   final String title;
   final String body;
   final String cue;
+  final String actionLabel;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -863,6 +943,14 @@ class _StateHelperCard extends StatelessWidget {
           Text(
             cue,
             style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton(
+              onPressed: onTap,
+              child: Text(actionLabel),
+            ),
           ),
         ],
       ),
