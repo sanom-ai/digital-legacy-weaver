@@ -1,5 +1,7 @@
 # Digital Legacy Weaver
 
+![Digital Legacy Weaver Header](docs/assets/social/repo-header-banner.png)
+
 Private-first digital legacy orchestration platform for secure self-recovery and beneficiary handoff.
 
 ## Why this exists
