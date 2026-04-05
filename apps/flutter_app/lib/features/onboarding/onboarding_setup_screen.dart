@@ -37,6 +37,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   late bool _legalAccepted;
   late bool _privateFirstMode;
   late String _selectedPresetId;
+  bool _warningAcknowledged = false;
 
   @override
   void initState() {
@@ -93,6 +94,27 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   Future<void> _save() async {
     if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
+    final selectedPreset = presetById(_selectedPresetId);
+    final draftReport = buildDraftIntentCompilerReport(
+      beneficiaryEmail: _beneficiaryEmailController.text,
+      legalAccepted: _legalAccepted,
+      privateFirstMode: _privateFirstMode,
+      privacyProfile: selectedPreset.tracePrivacyProfile,
+      legacyInactivityDays: int.tryParse(_legacyDaysController.text) ?? 0,
+      graceDays: int.tryParse(_graceDaysController.text) ?? 0,
+    );
+    if (draftReport.errorCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Resolve blocking intent review items before saving.")),
+      );
+      return;
+    }
+    if (draftReport.warningCount > 0 && !_warningAcknowledged) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Acknowledge intent review warnings before saving.")),
+      );
+      return;
+    }
     if (!_legalAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please accept legal companion consent to continue.")),
@@ -146,6 +168,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       legacyInactivityDays: int.tryParse(_legacyDaysController.text) ?? 0,
       graceDays: int.tryParse(_graceDaysController.text) ?? 0,
     );
+    final canFinalize = draftReport.errorCount == 0 &&
+        (draftReport.warningCount == 0 || _warningAcknowledged);
     return Scaffold(
       appBar: AppBar(title: const Text("Complete Setup")),
       body: Form(
@@ -171,7 +195,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             return Row(
               children: [
                 FilledButton(
-                  onPressed: _saving ? null : details.onStepContinue,
+                  onPressed: _saving || (isFinalStep && !canFinalize) ? null : details.onStepContinue,
                   child: Text(isFinalStep ? "Save setup" : "Continue"),
                 ),
                 const SizedBox(width: 12),
@@ -323,6 +347,18 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                   Text(selectedPreset.summary),
                   const SizedBox(height: 12),
                   IntentReviewCard(report: draftReport),
+                  if (draftReport.warningCount > 0) ...[
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _warningAcknowledged,
+                      onChanged: (v) => setState(() => _warningAcknowledged = v ?? false),
+                      title: const Text("I reviewed these warnings and want to continue"),
+                      subtitle: const Text(
+                        "Warnings are allowed, but they must be acknowledged before activation.",
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   const Text(
                     "For closed beta, keep messaging clear: this app helps coordinate secure delivery. It does not replace a legal will.",

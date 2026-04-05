@@ -52,7 +52,7 @@ class IntentReviewCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "${issue.severity.toUpperCase()} · ${issue.code}",
+                          "${issue.severity.toUpperCase()} | ${issue.code}",
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
@@ -73,3 +73,5 @@ class IntentReviewCard extends StatelessWidget {
     );
   }
 }
+
+

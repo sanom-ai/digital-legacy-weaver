@@ -25,3 +25,6 @@ def test_intent_review_card_assets_exist() -> None:
     assert "class IntentReviewCard" in card_src
     assert "Intent review" in card_src
     assert "IntentReviewCard(report: draftReport)" in onboarding_src
+    assert "_warningAcknowledged" in onboarding_src
+    assert "Resolve blocking intent review items before saving." in onboarding_src
+    assert "Acknowledge intent review warnings before saving." in onboarding_src
