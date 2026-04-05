@@ -179,6 +179,7 @@ Guide:
 - `specs/ptn-format.md`
 - `specs/ptn-v2.md`
 - `docs/ptn-intent-schema.md`
+- `docs/intent-builder-model.md`
 - `examples/default-policy.ptn`
 - `examples/pdpa-policy-pack.ptn`
 - `examples/high-assurance-v2-policy.ptn`
