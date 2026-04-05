@@ -1,0 +1,29 @@
+language: PTN
+module: digital_legacy_weaver_high_assurance_v2
+version: 2.0.0
+owner: policy-core
+context: high_assurance
+
+role system_scheduler {
+  label: "Automated Trigger Scheduler"
+  level: 9
+}
+
+authority system_scheduler {
+  allow: trigger_self_recovery_delivery, trigger_legacy_delivery
+  require consent_active[risk=high, mode=strict, owner=privacy-core] for trigger_legacy_delivery
+  require cooldown_24h[risk=medium, mode=strict, evidence=dispatch_events] for trigger_legacy_delivery
+  require provider_legal_verification_handoff[risk=high, mode=advisory, owner=handoff-ops] for trigger_legacy_delivery
+}
+
+constraint release_integrity {
+  require security_event_logging[risk=high, mode=strict, evidence=security_events] for trigger_legacy_delivery
+  require incident_escalation[risk=critical, mode=advisory, owner=oncall] for unlock_error
+}
+
+policy legacy_release_v2 {
+  when action == "trigger_legacy_delivery"
+  and settings.legal_disclaimer_accepted == true
+  then allow_release_workflow
+  and append_audit_log
+}

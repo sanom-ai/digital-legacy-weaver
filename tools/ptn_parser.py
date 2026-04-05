@@ -11,6 +11,11 @@ from typing import Dict, List
 REQUIRED_HEADERS = {"language", "module", "version", "owner"}
 SUPPORTED_BLOCKS = {"role", "authority", "constraint", "policy"}
 BLOCK_OPEN_RE = re.compile(r"^(role|authority|constraint|policy)\s+([A-Za-z0-9_\-]+)\s*\{\s*$")
+REQUIRE_RE = re.compile(r"^require\s+([A-Za-z0-9_:-]+)(?:\[([^\]]+)\])?\s+for\s+([A-Za-z0-9_:-]+)$")
+REQ_NAME_RE = re.compile(r"^[a-z][a-z0-9_:-]*$")
+REQ_METADATA_ALLOWED = {"risk", "mode", "evidence", "owner"}
+REQ_RISK_ALLOWED = {"low", "medium", "high", "critical"}
+REQ_MODE_ALLOWED = {"strict", "advisory"}
 
 
 @dataclass
@@ -28,6 +33,27 @@ class PTNDocument:
 
 class PTNError(Exception):
     pass
+
+
+def parse_requirement_statement(line: str) -> tuple[str, str, Dict[str, str]] | None:
+    match = REQUIRE_RE.match(line.strip())
+    if not match:
+        return None
+
+    requirement = match.group(1).strip()
+    metadata_raw = (match.group(2) or "").strip()
+    action = match.group(3).strip()
+    metadata: Dict[str, str] = {}
+    if metadata_raw:
+        for pair in metadata_raw.split(","):
+            item = pair.strip()
+            if not item:
+                continue
+            if "=" not in item:
+                raise PTNError(f"invalid require metadata item '{item}'")
+            key, value = item.split("=", 1)
+            metadata[key.strip()] = value.strip()
+    return requirement, action, metadata
 
 
 def parse_ptn(text: str) -> PTNDocument:
@@ -97,6 +123,37 @@ def validate_ptn(doc: PTNDocument) -> List[str]:
 
     if not constraints and not policies:
         issues.append("must define at least one constraint or policy")
+
+    for block in doc.blocks:
+        if block.block_type not in {"authority", "constraint"}:
+            continue
+        for line in block.lines:
+            try:
+                parsed = parse_requirement_statement(line)
+            except PTNError as exc:
+                issues.append(f"{block.block_type} '{block.block_id}': {exc}")
+                continue
+            if parsed is None:
+                continue
+            requirement, _action, metadata = parsed
+            if not REQ_NAME_RE.match(requirement):
+                issues.append(
+                    f"{block.block_type} '{block.block_id}': invalid requirement identifier '{requirement}'",
+                )
+            for key, value in metadata.items():
+                if key not in REQ_METADATA_ALLOWED:
+                    issues.append(
+                        f"{block.block_type} '{block.block_id}': unsupported require metadata key '{key}'",
+                    )
+                    continue
+                if key == "risk" and value not in REQ_RISK_ALLOWED:
+                    issues.append(
+                        f"{block.block_type} '{block.block_id}': unsupported risk value '{value}'",
+                    )
+                if key == "mode" and value not in REQ_MODE_ALLOWED:
+                    issues.append(
+                        f"{block.block_type} '{block.block_id}': unsupported mode value '{value}'",
+                    )
 
     return issues
 

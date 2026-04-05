@@ -14,6 +14,7 @@ def main() -> int:
     files = [
         Path("examples/default-policy.ptn"),
         Path("examples/pdpa-policy-pack.ptn"),
+        Path("examples/high-assurance-v2-policy.ptn"),
     ]
     for file_path in files:
         headers, blocks, issues = _validate(file_path)

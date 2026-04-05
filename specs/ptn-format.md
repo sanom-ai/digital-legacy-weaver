@@ -5,6 +5,10 @@
 `.ptn` is the policy transfer notation for Digital Legacy Weaver, derived from PTAG concepts.
 It defines **who can do what**, **under which constraints**, and **when delivery triggers can run**.
 
+For high-assurance profile extensions, see:
+
+- `specs/ptn-v2.md`
+
 ## File extension
 
 - `.ptn`
@@ -63,6 +67,14 @@ Inside `constraint`:
 
 - `forbid role_name to action_name`
 - `require requirement_name for action_name`
+
+## Statement pattern extensions (v2 profile)
+
+Inside `authority` or `constraint`:
+
+- `require requirement_name[risk=high, mode=strict, evidence=..., owner=...] for action_name`
+
+The v2 profile is backward-compatible with v1 and adds typed metadata to requirement statements.
 
 Inside `policy`:
 

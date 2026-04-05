@@ -35,6 +35,13 @@ function parseCsvList(raw: string): string[] {
     .filter(Boolean);
 }
 
+function parseRequirementToken(raw: string): string {
+  const requirementExpr = raw.trim();
+  const bracketIndex = requirementExpr.indexOf("[");
+  if (bracketIndex <= 0) return requirementExpr;
+  return requirementExpr.slice(0, bracketIndex).trim();
+}
+
 export function compilePTN(source: string): CompiledPolicy {
   const authorities = new Map<string, AuthorityRule>();
   const constraints: ConstraintRule[] = [];
@@ -75,9 +82,9 @@ export function compilePTN(source: string): CompiledPolicy {
         parseCsvList(line.replace("deny:", "")).forEach((action) => authority.deny.add(action));
         continue;
       }
-      const requireMatch = line.match(/^require\s+([A-Za-z0-9_:-]+)\s+for\s+([A-Za-z0-9_:-]+)$/);
+      const requireMatch = line.match(/^require\s+([A-Za-z0-9_:-]+(?:\[[^\]]+\])?)\s+for\s+([A-Za-z0-9_:-]+)$/);
       if (requireMatch) {
-        const requirement = requireMatch[1];
+        const requirement = parseRequirementToken(requireMatch[1]);
         const action = requireMatch[2];
         const set = authority.require.get(action) ?? new Set<string>();
         set.add(requirement);
@@ -92,9 +99,9 @@ export function compilePTN(source: string): CompiledPolicy {
         currentConstraint.forbid.push({ role: forbidMatch[1], action: forbidMatch[2] });
         continue;
       }
-      const requireMatch = line.match(/^require\s+([A-Za-z0-9_:-]+)\s+for\s+([A-Za-z0-9_:-]+)$/);
+      const requireMatch = line.match(/^require\s+([A-Za-z0-9_:-]+(?:\[[^\]]+\])?)\s+for\s+([A-Za-z0-9_:-]+)$/);
       if (requireMatch) {
-        const requirement = requireMatch[1];
+        const requirement = parseRequirementToken(requireMatch[1]);
         const action = requireMatch[2];
         const set = currentConstraint.require.get(action) ?? new Set<string>();
         set.add(requirement);

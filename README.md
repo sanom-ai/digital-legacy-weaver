@@ -170,8 +170,10 @@ Guide:
 3. Specs and policy:
 - `specs/partner-api.openapi.yaml`
 - `specs/ptn-format.md`
+- `specs/ptn-v2.md`
 - `examples/default-policy.ptn`
 - `examples/pdpa-policy-pack.ptn`
+- `examples/high-assurance-v2-policy.ptn`
 - `ptn/legacy` (reserved boundary for proprietary PTN legacy modules)
 
 4. Operations and runbooks:
