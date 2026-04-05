@@ -2,7 +2,7 @@
 
 ![Digital Legacy Weaver Header](docs/assets/social/repo-header-banner.png)
 
-Private-first digital legacy orchestration platform for secure self-recovery and beneficiary handoff.
+Private-first digital legacy coordination for secure self-recovery, beneficiary delivery, and partner-ready continuity workflows.
 
 ## Why this exists
 
@@ -21,7 +21,7 @@ Digital Legacy Weaver is a technical coordination layer that helps manage:
 
 1. `Self-Recovery` flow for owners.
 2. `Legacy Delivery` flow for beneficiaries.
-3. Partner handoff workflows across external apps/providers.
+3. Partner-ready destination workflows without changing the private-first core.
 
 ## What this project is not
 
@@ -30,7 +30,7 @@ Digital Legacy Weaver is a technical coordination layer that helps manage:
 3. Not a place to email plaintext secrets.
 4. Not a universal guarantee mechanism in every device/network condition.
 
-Legal entitlement must be verified directly with destination apps/providers and formal legal processes.
+Legal entitlement must be handled within the destination service or legal process designated by the owner.
 
 Reliability statement:
 
@@ -42,7 +42,7 @@ Reliability statement:
 1. Security-focused users who need safer digital continuity.
 2. Developers building digital legacy features in apps/wallets/platforms.
 3. Operations teams that need auditable, policy-based release workflows.
-4. Partner ecosystems (legal offices, family offices, custodial services) that need a collaboration layer.
+4. Teams that need a partner-ready coordination layer for family, legal, or custodial workflows.
 
 ## Product principles
 
@@ -101,7 +101,7 @@ High-assurance reference:
 - optional multi-signal proof-of-life gate
 - optional guardian approval gate
 - optional TOTP unlock requirement
-7. Partner handoff notice runtime with audit trail.
+7. Partner-ready handoff notice runtime with audit trail.
 8. Reviewer/admin key management endpoints for controlled workflows.
 9. Runtime E2E/adversarial CI checks with evidence artifacts.
 10. In-app setup wizard for new users (beneficiary, trigger defaults, legal companion consent).
@@ -241,12 +241,12 @@ See:
 3. `docs/legal-evidence-gate.md`
 4. `docs/provider-handoff-template.md`
 
-## Positioning for builders and partners
+## Positioning
 
 This project is best presented as:
 
 1. A **developer-first infrastructure layer** for digital legacy safety.
-2. A **partner-ready orchestration core** for ecosystem collaboration.
+2. A **partner-ready coordination core** for future destination workflows.
 3. A **responsible technical companion** that respects legal boundaries.
 
 This keeps the narrative strong without over-claiming legal or production status.

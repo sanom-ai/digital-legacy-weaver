@@ -111,8 +111,8 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Card(
             child: ListTile(
-              title: const Text("Partner Connectors"),
-              subtitle: const Text("Connect legacy providers and asset references"),
+              title: const Text("Partner-ready Paths"),
+              subtitle: const Text("Prepare destination references and optional handoff routes"),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
@@ -238,7 +238,7 @@ class _DeliveryModeCard extends StatelessWidget {
             SizedBox(height: 4),
             Text('2) Self-recovery delivery to backup email for password recovery'),
             SizedBox(height: 10),
-            Text('Technical companion only: beneficiaries must complete any legal verification directly with the destination provider.'),
+            Text('Technical companion only: beneficiaries complete any required legal verification in the appropriate legal or service context.'),
           ],
         ),
       ),
