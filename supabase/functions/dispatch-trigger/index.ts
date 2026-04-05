@@ -15,6 +15,10 @@ type SafetySettings = {
   reminder_channels: string[];
   reminder_offsets_days: number[];
   grace_period_days: number;
+  proof_of_life_check_mode: "biometric_tap" | "single_tap" | "verification_code";
+  proof_of_life_fallback_channels: string[];
+  server_heartbeat_fallback_enabled: boolean;
+  ios_background_risk_acknowledged: boolean;
   legal_disclaimer_accepted: boolean;
   emergency_pause_until: string | null;
   require_multisignal_before_release: boolean;
@@ -154,7 +158,7 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
   const { data, error } = await supabase
     .from("user_safety_settings")
     .select(
-      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days, trace_privacy_profile",
+      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, proof_of_life_check_mode, proof_of_life_fallback_channels, server_heartbeat_fallback_enabled, ios_background_risk_acknowledged, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days, trace_privacy_profile",
     )
     .eq("owner_id", ownerId)
     .maybeSingle();
@@ -164,7 +168,11 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
       reminders_enabled: true,
       reminder_channels: ["email"],
       reminder_offsets_days: [14, 7, 1],
-      grace_period_days: 3,
+      grace_period_days: 7,
+      proof_of_life_check_mode: "biometric_tap",
+      proof_of_life_fallback_channels: ["email", "sms"],
+      server_heartbeat_fallback_enabled: true,
+      ios_background_risk_acknowledged: false,
       legal_disclaimer_accepted: false,
       emergency_pause_until: null,
       require_multisignal_before_release: true,
@@ -307,6 +315,13 @@ async function evaluateRequiredControls(args: {
     } else if (requirement === "provider_legal_verification_handoff") {
       // Runtime assumes handoff clause is satisfied via outbound provider checklist messaging.
       satisfied = true;
+    } else if (requirement === "beneficiary_identity_match") {
+      // Beneficiary identity is enforced downstream in unlock flow against pre-registered owner configuration.
+      satisfied = true;
+    } else if (requirement === "fallback_channels_ready") {
+      satisfied = (args.safety.proof_of_life_fallback_channels ?? []).length >= 2;
+    } else if (requirement === "server_heartbeat_fallback") {
+      satisfied = args.safety.server_heartbeat_fallback_enabled;
     } else {
       // Unknown controls are treated as unmet with mode-driven handling.
       satisfied = false;
@@ -584,7 +599,8 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
     }
   }
 
-  if (inactiveDays < threshold + safety.grace_period_days) {
+  const effectiveGraceDays = Math.max(7, safety.grace_period_days);
+  if (inactiveDays < threshold + effectiveGraceDays) {
     return;
   }
 
@@ -621,7 +637,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
 
   if (mode === "legacy" && safety.require_guardian_approval_legacy) {
     const guardianGraceDays = Math.ceil(safety.guardian_grace_hours / 24);
-    if (inactiveDays < threshold + safety.grace_period_days + guardianGraceDays) {
+    if (inactiveDays < threshold + effectiveGraceDays + guardianGraceDays) {
       await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "guardian grace window still active", {
         inactiveDays,
         threshold,
@@ -656,7 +672,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
   const isFresh = await insertDispatchEvent(profile.id, mode, "final_release", "pending", "awaiting secure-link email", {
     inactiveDays,
     threshold,
-    gracePeriodDays: safety.grace_period_days,
+    gracePeriodDays: effectiveGraceDays,
   });
   if (!isFresh) return;
 

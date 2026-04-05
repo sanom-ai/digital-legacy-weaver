@@ -8,6 +8,8 @@ type RequestPayload = {
   access_key: string;
   verification_code?: string;
   totp_code?: string;
+  beneficiary_name?: string;
+  verification_phrase?: string;
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -74,6 +76,10 @@ function extractClientIp(req: Request): string {
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function normalizeIdentityText(value: string): string {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
@@ -357,6 +363,40 @@ async function getTargetEmail(ownerId: string, mode: "legacy" | "self_recovery")
   return email as string;
 }
 
+async function verifyLegacyBeneficiaryIdentity(
+  ownerId: string,
+  providedName?: string,
+  providedPhrase?: string,
+) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("beneficiary_name, beneficiary_verification_phrase_hash")
+    .eq("id", ownerId)
+    .maybeSingle();
+  if (error) throw new Error(`Beneficiary identity lookup failed: ${error.message}`);
+  if (!data) throw new Error("Owner profile missing.");
+
+  const registeredName = (data.beneficiary_name ?? "").trim();
+  const phraseHash = (data.beneficiary_verification_phrase_hash ?? "").trim();
+  if (!registeredName || !phraseHash) {
+    throw new Error("Beneficiary identity is not fully configured for this release.");
+  }
+
+  const normalizedName = normalizeIdentityText(providedName ?? "");
+  if (!normalizedName || normalizedName !== normalizeIdentityText(registeredName)) {
+    throw new Error("Beneficiary identity did not match the pre-registered name.");
+  }
+
+  const normalizedPhrase = normalizeIdentityText(providedPhrase ?? "");
+  if (!normalizedPhrase) {
+    throw new Error("Missing verification phrase.");
+  }
+  const providedHash = await sha256Hex(normalizedPhrase);
+  if (providedHash !== phraseHash) {
+    throw new Error("Verification phrase did not match the pre-registered identity.");
+  }
+}
+
 async function requestCode(accessId: string, accessKey: string) {
   const valid = await getValidAccessKey(accessId, accessKey);
   const code = String(Math.floor(100000 + Math.random() * 900000));
@@ -380,7 +420,14 @@ async function requestCode(accessId: string, accessKey: string) {
   return { ok: true, message: "Verification code sent." };
 }
 
-async function unlock(accessId: string, accessKey: string, code: string, totpCode?: string) {
+async function unlock(
+  accessId: string,
+  accessKey: string,
+  code: string,
+  totpCode?: string,
+  beneficiaryName?: string,
+  verificationPhrase?: string,
+) {
   const valid = await getValidAccessKey(accessId, accessKey);
   const now = Date.now();
 
@@ -415,6 +462,10 @@ async function unlock(accessId: string, accessKey: string, code: string, totpCod
       details: { attemptsAfter: challenge.attempts + 1, maxAttempts: challenge.max_attempts },
     });
     throw new Error("Invalid verification code.");
+  }
+
+  if (valid.mode === "legacy") {
+    await verifyLegacyBeneficiaryIdentity(valid.owner_id, beneficiaryName, verificationPhrase);
   }
 
   const totpPolicy = await getTotpPolicy(valid.owner_id);
@@ -546,7 +597,14 @@ Deno.serve(async (req) => {
       if (!payload.verification_code) throw new Error("Missing verification_code.");
       await enforceRateLimit("unlock_by_ip", clientIp, 25, 15, 30);
       await enforceRateLimit("unlock_by_access_id", payload.access_id, 10, 15, 30);
-      const result = await unlock(payload.access_id, payload.access_key, payload.verification_code, payload.totp_code);
+      const result = await unlock(
+        payload.access_id,
+        payload.access_key,
+        payload.verification_code,
+        payload.totp_code,
+        payload.beneficiary_name,
+        payload.verification_phrase,
+      );
       return new Response(JSON.stringify(result), {
         status: 200,
         headers: { "Content-Type": "application/json" },

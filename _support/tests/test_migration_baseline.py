@@ -29,6 +29,7 @@ def test_required_migration_files_exist() -> None:
         "20260405_0016_beta_feedback.sql",
         "20260405_0017_private_first_trace_controls.sql",
         "20260405_0018_trace_privacy_profile.sql",
+        "20260405_0019_reliability_and_beneficiary_identity.sql",
     ]
     existing = {p.name for p in MIGRATIONS.glob("*.sql")}
     for name in required:
@@ -128,3 +129,13 @@ def test_trace_privacy_profile_defined() -> None:
     src = _read("20260405_0018_trace_privacy_profile.sql")
     assert "add column if not exists trace_privacy_profile text not null default 'minimal'" in src
     assert "trace_privacy_profile in ('confidential', 'minimal', 'audit-heavy')" in src
+
+
+def test_reliability_and_beneficiary_identity_defined() -> None:
+    src = _read("20260405_0019_reliability_and_beneficiary_identity.sql")
+    assert "add column if not exists proof_of_life_check_mode text not null default 'biometric_tap'" in src
+    assert "add column if not exists proof_of_life_fallback_channels text[] not null default array['email', 'sms']::text[]" in src
+    assert "add column if not exists server_heartbeat_fallback_enabled boolean not null default true" in src
+    assert "add column if not exists ios_background_risk_acknowledged boolean not null default false" in src
+    assert "add column if not exists beneficiary_name text" in src
+    assert "add column if not exists beneficiary_verification_phrase_hash text" in src

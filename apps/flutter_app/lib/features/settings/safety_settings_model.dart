@@ -3,6 +3,10 @@ class SafetySettingsModel {
     required this.remindersEnabled,
     required this.reminderOffsetsDays,
     required this.gracePeriodDays,
+    required this.proofOfLifeCheckMode,
+    required this.proofOfLifeFallbackChannels,
+    required this.serverHeartbeatFallbackEnabled,
+    required this.iosBackgroundRiskAcknowledged,
     required this.legalDisclaimerAccepted,
     required this.emergencyPauseUntil,
     required this.requireTotpUnlock,
@@ -13,6 +17,10 @@ class SafetySettingsModel {
   final bool remindersEnabled;
   final List<int> reminderOffsetsDays;
   final int gracePeriodDays;
+  final String proofOfLifeCheckMode;
+  final List<String> proofOfLifeFallbackChannels;
+  final bool serverHeartbeatFallbackEnabled;
+  final bool iosBackgroundRiskAcknowledged;
   final bool legalDisclaimerAccepted;
   final DateTime? emergencyPauseUntil;
   final bool requireTotpUnlock;
@@ -23,7 +31,14 @@ class SafetySettingsModel {
     return SafetySettingsModel(
       remindersEnabled: map["reminders_enabled"] as bool? ?? true,
       reminderOffsetsDays: (map["reminder_offsets_days"] as List<dynamic>? ?? [14, 7, 1]).map((e) => e as int).toList(),
-      gracePeriodDays: map["grace_period_days"] as int? ?? 3,
+      gracePeriodDays: map["grace_period_days"] as int? ?? 7,
+      proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
+      proofOfLifeFallbackChannels:
+          (map["proof_of_life_fallback_channels"] as List<dynamic>? ?? ["email", "sms"])
+              .map((e) => e as String)
+              .toList(),
+      serverHeartbeatFallbackEnabled: map["server_heartbeat_fallback_enabled"] as bool? ?? true,
+      iosBackgroundRiskAcknowledged: map["ios_background_risk_acknowledged"] as bool? ?? false,
       legalDisclaimerAccepted: map["legal_disclaimer_accepted"] as bool? ?? false,
       emergencyPauseUntil: map["emergency_pause_until"] != null ? DateTime.parse(map["emergency_pause_until"] as String) : null,
       requireTotpUnlock: map["require_totp_unlock"] as bool? ?? false,

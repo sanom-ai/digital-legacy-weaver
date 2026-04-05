@@ -129,6 +129,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           deliveryChannel: "email",
           destinationRef: widget.profile.beneficiaryEmail ?? "",
           role: "beneficiary",
+          registeredLegalName: widget.profile.beneficiaryName ?? "",
+          verificationHint: widget.profile.beneficiaryVerificationHint ?? "",
+          fallbackChannels: widget.settings.proofOfLifeFallbackChannels,
         ),
         trigger: IntentTriggerModel(
           mode: "inactivity",
@@ -173,6 +176,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           deliveryChannel: "email",
           destinationRef: widget.profile.backupEmail,
           role: "owner",
+          registeredLegalName: "Owner",
+          verificationHint: "",
+          fallbackChannels: const ["email"],
         ),
         trigger: IntentTriggerModel(
           mode: "inactivity",
@@ -213,6 +219,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         defaultRemindersDaysBefore: widget.settings.reminderOffsetsDays,
         requireMultisignalBeforeRelease: true,
         requireGuardianApprovalForLegacy: false,
+        proofOfLifeCheckMode: widget.settings.proofOfLifeCheckMode,
+        proofOfLifeFallbackChannels: widget.settings.proofOfLifeFallbackChannels,
+        serverHeartbeatFallbackEnabled: widget.settings.serverHeartbeatFallbackEnabled,
+        iosBackgroundRiskAcknowledged: widget.settings.iosBackgroundRiskAcknowledged,
       ),
     );
   }
@@ -612,6 +622,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       document: _document,
       legalAccepted: widget.settings.legalDisclaimerAccepted,
       privateFirstMode: widget.settings.privateFirstMode,
+      proofOfLifeCheckMode: widget.settings.proofOfLifeCheckMode,
+      proofOfLifeFallbackChannels: widget.settings.proofOfLifeFallbackChannels,
+      serverHeartbeatFallbackEnabled: widget.settings.serverHeartbeatFallbackEnabled,
+      iosBackgroundRiskAcknowledged: widget.settings.iosBackgroundRiskAcknowledged,
     );
     final ptnPreview = buildDraftIntentPtnPreview(_document);
     final draftSignature = buildIntentDocumentSignature(_document);
@@ -1206,6 +1220,16 @@ class _IntentEntryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text("Recipient channel: ${entry.recipient.deliveryChannel}"),
             const SizedBox(height: 4),
+            if (entry.recipient.registeredLegalName.trim().isNotEmpty) ...[
+              Text("Registered beneficiary: ${entry.recipient.registeredLegalName}"),
+              const SizedBox(height: 4),
+            ],
+            if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
+              Text("Verification hint: ${entry.recipient.verificationHint}"),
+              const SizedBox(height: 4),
+            ],
+            Text("Fallback channels: ${entry.recipient.fallbackChannels.join(", ")}"),
+            const SizedBox(height: 4),
             Text("Trigger: ${entry.trigger.mode} / ${entry.trigger.inactivityDays} inactivity days + ${entry.trigger.graceDays} grace days"),
             const SizedBox(height: 4),
             Text(
@@ -1262,6 +1286,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late final TextEditingController _displayNameController;
   late final TextEditingController _payloadRefController;
   late final TextEditingController _recipientController;
+  late final TextEditingController _recipientNameController;
+  late final TextEditingController _verificationHintController;
   late final TextEditingController _triggerDaysController;
   late final TextEditingController _graceDaysController;
   late String _kind;
@@ -1277,6 +1303,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late bool _requireMultisignal;
   late bool _oneTimeAccess;
   late bool _requireAliveConfirmation;
+  late bool _fallbackEmail;
+  late bool _fallbackSms;
 
   @override
   void initState() {
@@ -1284,6 +1312,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _displayNameController = TextEditingController(text: widget.entry.asset.displayName);
     _payloadRefController = TextEditingController(text: widget.entry.asset.payloadRef);
     _recipientController = TextEditingController(text: widget.entry.recipient.destinationRef);
+    _recipientNameController = TextEditingController(text: widget.entry.recipient.registeredLegalName);
+    _verificationHintController = TextEditingController(text: widget.entry.recipient.verificationHint);
     _triggerDaysController = TextEditingController(text: widget.entry.trigger.inactivityDays.toString());
     _graceDaysController = TextEditingController(text: widget.entry.trigger.graceDays.toString());
     _kind = widget.entry.kind;
@@ -1299,6 +1329,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _requireMultisignal = widget.entry.safeguards.requireMultisignal;
     _oneTimeAccess = widget.entry.delivery.oneTimeAccess;
     _requireAliveConfirmation = widget.entry.trigger.requireUnconfirmedAliveStatus;
+    final fallbackChannels = widget.entry.recipient.fallbackChannels.toSet();
+    _fallbackEmail = fallbackChannels.contains("email");
+    _fallbackSms = fallbackChannels.contains("sms");
   }
 
   @override
@@ -1306,6 +1339,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _displayNameController.dispose();
     _payloadRefController.dispose();
     _recipientController.dispose();
+    _recipientNameController.dispose();
+    _verificationHintController.dispose();
     _triggerDaysController.dispose();
     _graceDaysController.dispose();
     super.dispose();
@@ -1378,6 +1413,16 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               decoration: const InputDecoration(labelText: "Recipient destination"),
             ),
             const SizedBox(height: 8),
+            TextField(
+              controller: _recipientNameController,
+              decoration: const InputDecoration(labelText: "Registered beneficiary name"),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _verificationHintController,
+              decoration: const InputDecoration(labelText: "Verification hint"),
+            ),
+            const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _recipientChannel,
               decoration: const InputDecoration(labelText: "Recipient channel"),
@@ -1391,6 +1436,22 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   setState(() => _recipientChannel = value);
                 }
               },
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                FilterChip(
+                  selected: _fallbackEmail,
+                  label: const Text("Email fallback"),
+                  onSelected: (value) => setState(() => _fallbackEmail = value),
+                ),
+                FilterChip(
+                  selected: _fallbackSms,
+                  label: const Text("SMS fallback"),
+                  onSelected: (value) => setState(() => _fallbackSms = value),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
@@ -1528,6 +1589,17 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   deliveryChannel: _recipientChannel,
                   destinationRef: _recipientController.text.trim(),
                   role: _kind == "self_recovery" ? "owner" : widget.entry.recipient.role,
+                  registeredLegalName: _kind == "self_recovery"
+                      ? "Owner"
+                      : _recipientNameController.text.trim(),
+                  verificationHint: _kind == "self_recovery"
+                      ? ""
+                      : _verificationHintController.text.trim(),
+                  fallbackChannels: [
+                    if (_fallbackEmail) "email",
+                    if (_fallbackSms) "sms",
+                    if (!_fallbackEmail && !_fallbackSms) _recipientChannel,
+                  ],
                 ),
                 trigger: IntentTriggerModel(
                   mode: _triggerMode,

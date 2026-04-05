@@ -14,13 +14,18 @@ class SafetySettingsScreen extends ConsumerStatefulWidget {
 class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   bool _remindersEnabled = true;
   bool _legalAccepted = false;
-  int _graceDays = 3;
+  int _graceDays = 7;
   bool _pause7Days = false;
   bool _offset14 = true;
   bool _offset7 = true;
   bool _offset1 = true;
   bool _requireTotpUnlock = false;
   bool _privateFirstMode = true;
+  String _proofOfLifeCheckMode = "biometric_tap";
+  bool _fallbackEmail = true;
+  bool _fallbackSms = true;
+  bool _serverHeartbeatFallbackEnabled = true;
+  bool _iosBackgroundRiskAcknowledged = false;
   String _selectedPresetId = "minimal";
   bool _seeded = false;
 
@@ -55,6 +60,12 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
             _remindersEnabled = settings.remindersEnabled;
             _legalAccepted = settings.legalDisclaimerAccepted;
             _graceDays = settings.gracePeriodDays;
+            _proofOfLifeCheckMode = settings.proofOfLifeCheckMode;
+            final fallbackChannels = settings.proofOfLifeFallbackChannels.toSet();
+            _fallbackEmail = fallbackChannels.contains("email");
+            _fallbackSms = fallbackChannels.contains("sms");
+            _serverHeartbeatFallbackEnabled = settings.serverHeartbeatFallbackEnabled;
+            _iosBackgroundRiskAcknowledged = settings.iosBackgroundRiskAcknowledged;
             _pause7Days = settings.emergencyPauseUntil != null && settings.emergencyPauseUntil!.isAfter(DateTime.now());
             final offsets = settings.reminderOffsetsDays.toSet();
             _offset14 = offsets.contains(14);
@@ -128,14 +139,63 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
+                      const Text("Proof-of-life confirmation"),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _proofOfLifeCheckMode,
+                        decoration: const InputDecoration(labelText: "Check-in method"),
+                        items: const [
+                          DropdownMenuItem(value: "biometric_tap", child: Text("Biometric tap")),
+                          DropdownMenuItem(value: "single_tap", child: Text("Single tap fallback")),
+                          DropdownMenuItem(value: "verification_code", child: Text("Verification code")),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _proofOfLifeCheckMode = value);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      const Text("Proof-of-life fallback channels"),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          FilterChip(
+                            selected: _fallbackEmail,
+                            label: const Text("Email"),
+                            onSelected: (v) => setState(() => _fallbackEmail = v),
+                          ),
+                          FilterChip(
+                            selected: _fallbackSms,
+                            label: const Text("SMS"),
+                            onSelected: (v) => setState(() => _fallbackSms = v),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       const Text("Final release grace period (days)"),
                       Slider(
                         value: _graceDays.toDouble(),
-                        min: 1,
-                        max: 14,
-                        divisions: 13,
+                        min: 7,
+                        max: 21,
+                        divisions: 14,
                         label: "$_graceDays",
                         onChanged: (v) => setState(() => _graceDays = v.round()),
+                      ),
+                      SwitchListTile(
+                        value: _serverHeartbeatFallbackEnabled,
+                        onChanged: (v) => setState(() => _serverHeartbeatFallbackEnabled = v),
+                        title: const Text("Enable server heartbeat fallback"),
+                        subtitle: const Text("Recommended for iOS and long background gaps where app-only proof-of-life can drift."),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      CheckboxListTile(
+                        value: _iosBackgroundRiskAcknowledged,
+                        onChanged: (v) => setState(() => _iosBackgroundRiskAcknowledged = v ?? false),
+                        title: const Text("Acknowledge iOS/background limits"),
+                        subtitle: const Text("Dead-man style timers on mobile may need fallback heartbeat to avoid false triggers."),
+                        contentPadding: EdgeInsets.zero,
                       ),
                       SwitchListTile(
                         value: _pause7Days,
@@ -255,12 +315,20 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                   if (_offset7) offsets.add(7);
                   if (_offset1) offsets.add(1);
                   if (offsets.isEmpty) offsets.add(1);
+                  final fallbackChannels = <String>[];
+                  if (_fallbackEmail) fallbackChannels.add("email");
+                  if (_fallbackSms) fallbackChannels.add("sms");
+                  if (fallbackChannels.isEmpty) fallbackChannels.add("email");
 
                   final messenger = ScaffoldMessenger.of(context);
                   await ref.read(safetySettingsProvider.notifier).save(
                         remindersEnabled: _remindersEnabled,
                         reminderOffsetsDays: offsets,
                         gracePeriodDays: _graceDays,
+                        proofOfLifeCheckMode: _proofOfLifeCheckMode,
+                        proofOfLifeFallbackChannels: fallbackChannels,
+                        serverHeartbeatFallbackEnabled: _serverHeartbeatFallbackEnabled,
+                        iosBackgroundRiskAcknowledged: _iosBackgroundRiskAcknowledged,
                         legalDisclaimerAccepted: _legalAccepted,
                         emergencyPauseUntil: _pause7Days ? DateTime.now().add(const Duration(days: 7)) : null,
                         requireTotpUnlock: _requireTotpUnlock,

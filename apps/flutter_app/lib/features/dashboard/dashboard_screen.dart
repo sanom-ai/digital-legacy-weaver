@@ -59,6 +59,9 @@ class DashboardScreen extends ConsumerWidget {
                     data: (settings) {
                       final setupComplete =
                           (profile.beneficiaryEmail?.trim().isNotEmpty ?? false) &&
+                          profile.hasBeneficiaryIdentityKit &&
+                          settings.serverHeartbeatFallbackEnabled &&
+                          settings.iosBackgroundRiskAcknowledged &&
                           settings.legalDisclaimerAccepted;
                       if (setupComplete) {
                         return const SizedBox.shrink();
@@ -69,7 +72,7 @@ class DashboardScreen extends ConsumerWidget {
                           leading: const Icon(Icons.auto_fix_high_rounded),
                           title: const Text("Complete setup for beta"),
                           subtitle: const Text(
-                            "Add beneficiary + consent + private-first defaults. This product is a technical companion, not a legal will.",
+                            "Add beneficiary identity, fallback posture, consent, and private-first defaults. This product is a technical companion, not a legal will.",
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () async {
@@ -117,6 +120,9 @@ class DashboardScreen extends ConsumerWidget {
                 final readinessAsync = ref.watch(intentRuntimeReadinessProvider(profile.id));
                 final setupComplete =
                     (profile.beneficiaryEmail?.trim().isNotEmpty ?? false) &&
+                    profile.hasBeneficiaryIdentityKit &&
+                    settings.serverHeartbeatFallbackEnabled &&
+                    settings.iosBackgroundRiskAcknowledged &&
                     settings.legalDisclaimerAccepted;
                 return Column(
                   children: [
@@ -405,8 +411,8 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Card(
             child: ListTile(
-              title: const Text("Unlock Delivery"),
-              subtitle: const Text("Access link + verification code flow"),
+              title: const Text("Beneficiary Receipt"),
+              subtitle: const Text("Secure link, receipt code, and pre-registered identity flow"),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(

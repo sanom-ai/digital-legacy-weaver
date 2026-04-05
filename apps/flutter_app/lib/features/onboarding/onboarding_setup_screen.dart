@@ -30,6 +30,10 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
 
   late final TextEditingController _backupEmailController;
   late final TextEditingController _beneficiaryEmailController;
+  late final TextEditingController _beneficiaryNameController;
+  late final TextEditingController _beneficiaryPhoneController;
+  late final TextEditingController _beneficiaryVerificationHintController;
+  late final TextEditingController _beneficiaryVerificationPhraseController;
   late final TextEditingController _legacyDaysController;
   late final TextEditingController _selfRecoveryDaysController;
   late final TextEditingController _graceDaysController;
@@ -37,6 +41,11 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   late bool _remindersEnabled;
   late bool _legalAccepted;
   late bool _privateFirstMode;
+  late String _proofOfLifeCheckMode;
+  late bool _fallbackEmail;
+  late bool _fallbackSms;
+  late bool _serverHeartbeatFallbackEnabled;
+  bool _iosBackgroundRiskAcknowledged = false;
   late String _selectedPresetId;
   bool _warningAcknowledged = false;
 
@@ -45,12 +54,22 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     super.initState();
     _backupEmailController = TextEditingController(text: widget.initialProfile.backupEmail);
     _beneficiaryEmailController = TextEditingController(text: widget.initialProfile.beneficiaryEmail ?? "");
+    _beneficiaryNameController = TextEditingController(text: widget.initialProfile.beneficiaryName ?? "");
+    _beneficiaryPhoneController = TextEditingController(text: widget.initialProfile.beneficiaryPhone ?? "");
+    _beneficiaryVerificationHintController = TextEditingController(text: widget.initialProfile.beneficiaryVerificationHint ?? "");
+    _beneficiaryVerificationPhraseController = TextEditingController();
     _legacyDaysController = TextEditingController(text: widget.initialProfile.legacyInactivityDays.toString());
     _selfRecoveryDaysController = TextEditingController(text: widget.initialProfile.selfRecoveryInactivityDays.toString());
     _graceDaysController = TextEditingController(text: widget.initialSettings.gracePeriodDays.toString());
     _remindersEnabled = widget.initialSettings.remindersEnabled;
     _legalAccepted = widget.initialSettings.legalDisclaimerAccepted;
     _privateFirstMode = widget.initialSettings.privateFirstMode;
+    _proofOfLifeCheckMode = widget.initialSettings.proofOfLifeCheckMode;
+    final fallbackChannels = widget.initialSettings.proofOfLifeFallbackChannels.toSet();
+    _fallbackEmail = fallbackChannels.contains("email");
+    _fallbackSms = fallbackChannels.contains("sms");
+    _serverHeartbeatFallbackEnabled = widget.initialSettings.serverHeartbeatFallbackEnabled;
+    _iosBackgroundRiskAcknowledged = widget.initialSettings.iosBackgroundRiskAcknowledged;
     _selectedPresetId = widget.initialSettings.tracePrivacyProfile;
   }
 
@@ -58,6 +77,10 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   void dispose() {
     _backupEmailController.dispose();
     _beneficiaryEmailController.dispose();
+    _beneficiaryNameController.dispose();
+    _beneficiaryPhoneController.dispose();
+    _beneficiaryVerificationHintController.dispose();
+    _beneficiaryVerificationPhraseController.dispose();
     _legacyDaysController.dispose();
     _selfRecoveryDaysController.dispose();
     _graceDaysController.dispose();
@@ -78,6 +101,27 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     final parsed = int.tryParse(text);
     if (parsed == null) return "Must be a number";
     if (parsed < min || parsed > max) return "Must be between $min and $max";
+    return null;
+  }
+
+  String? _requiredText(String? value, {int minLength = 1}) {
+    final text = (value ?? "").trim();
+    if (text.length < minLength) {
+      return minLength <= 1 ? "Required" : "Must be at least $minLength characters";
+    }
+    return null;
+  }
+
+  String? _verificationPhraseValidator(String? value) {
+    final text = (value ?? "").trim();
+    if (widget.initialProfile.beneficiaryVerificationPhraseHash?.trim().isNotEmpty ?? false) {
+      if (text.isEmpty) {
+        return null;
+      }
+    }
+    if (text.length < 8) {
+      return "Must be at least 8 characters";
+    }
     return null;
   }
 
@@ -102,6 +146,19 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       recipientRef: 'beneficiary_primary',
       destinationRef: _beneficiaryEmailController.text.trim(),
     ).copyWith(
+      recipient: IntentRecipientModel(
+        recipientId: 'beneficiary_primary',
+        relationship: 'beneficiary',
+        deliveryChannel: 'email',
+        destinationRef: _beneficiaryEmailController.text.trim(),
+        role: 'beneficiary',
+        registeredLegalName: _beneficiaryNameController.text.trim(),
+        verificationHint: _beneficiaryVerificationHintController.text.trim(),
+        fallbackChannels: [
+          if (_fallbackEmail) 'email',
+          if (_fallbackSms) 'sms',
+        ],
+      ),
       trigger: IntentTriggerModel(
         mode: 'inactivity',
         inactivityDays: legacyDays,
@@ -127,6 +184,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
         defaultRemindersDaysBefore: reminders,
         requireMultisignalBeforeRelease: true,
         requireGuardianApprovalForLegacy: false,
+        proofOfLifeCheckMode: _proofOfLifeCheckMode,
+        proofOfLifeFallbackChannels: [
+          if (_fallbackEmail) 'email',
+          if (_fallbackSms) 'sms',
+        ],
+        serverHeartbeatFallbackEnabled: _serverHeartbeatFallbackEnabled,
+        iosBackgroundRiskAcknowledged: _iosBackgroundRiskAcknowledged,
       ),
     );
   }
@@ -140,6 +204,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       document: draftDocument,
       legalAccepted: _legalAccepted,
       privateFirstMode: _privateFirstMode,
+      proofOfLifeCheckMode: _proofOfLifeCheckMode,
+      proofOfLifeFallbackChannels: [
+        if (_fallbackEmail) 'email',
+        if (_fallbackSms) 'sms',
+      ],
+      serverHeartbeatFallbackEnabled: _serverHeartbeatFallbackEnabled,
+      iosBackgroundRiskAcknowledged: _iosBackgroundRiskAcknowledged,
     );
     if (draftReport.errorCount > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -164,13 +235,28 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       await ref.read(profileRepositoryProvider).updateProfile(
             backupEmail: _backupEmailController.text,
             beneficiaryEmail: _beneficiaryEmailController.text,
+            beneficiaryName: _beneficiaryNameController.text,
+            beneficiaryPhone: _beneficiaryPhoneController.text,
+            beneficiaryVerificationHint: _beneficiaryVerificationHintController.text,
+            beneficiaryVerificationPhrase: _beneficiaryVerificationPhraseController.text,
             legacyInactivityDays: int.parse(_legacyDaysController.text),
             selfRecoveryInactivityDays: int.parse(_selfRecoveryDaysController.text),
           );
+      final fallbackChannels = <String>[
+        if (_fallbackEmail) 'email',
+        if (_fallbackSms) 'sms',
+      ];
+      if (fallbackChannels.isEmpty) {
+        fallbackChannels.add('email');
+      }
       await ref.read(safetySettingsProvider.notifier).save(
             remindersEnabled: _remindersEnabled,
             reminderOffsetsDays: const [14, 7, 1],
             gracePeriodDays: int.parse(_graceDaysController.text),
+            proofOfLifeCheckMode: _proofOfLifeCheckMode,
+            proofOfLifeFallbackChannels: fallbackChannels,
+            serverHeartbeatFallbackEnabled: _serverHeartbeatFallbackEnabled,
+            iosBackgroundRiskAcknowledged: _iosBackgroundRiskAcknowledged,
             legalDisclaimerAccepted: _legalAccepted,
             emergencyPauseUntil: null,
             requireTotpUnlock: widget.initialSettings.requireTotpUnlock,
@@ -203,6 +289,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       document: draftDocument,
       legalAccepted: _legalAccepted,
       privateFirstMode: _privateFirstMode,
+      proofOfLifeCheckMode: _proofOfLifeCheckMode,
+      proofOfLifeFallbackChannels: [
+        if (_fallbackEmail) 'email',
+        if (_fallbackSms) 'sms',
+      ],
+      serverHeartbeatFallbackEnabled: _serverHeartbeatFallbackEnabled,
+      iosBackgroundRiskAcknowledged: _iosBackgroundRiskAcknowledged,
     );
     final canFinalize = draftReport.errorCount == 0 &&
         (draftReport.warningCount == 0 || _warningAcknowledged);
@@ -259,6 +352,30 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     decoration: const InputDecoration(labelText: "Beneficiary email"),
                     validator: (v) => _requiredEmail(v),
                   ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _beneficiaryNameController,
+                    decoration: const InputDecoration(labelText: "Beneficiary legal name"),
+                    validator: (v) => _requiredText(v, minLength: 3),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _beneficiaryPhoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(labelText: "Beneficiary fallback phone (optional)"),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _beneficiaryVerificationHintController,
+                    decoration: const InputDecoration(labelText: "Beneficiary verification hint"),
+                    validator: (v) => _requiredText(v, minLength: 4),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _beneficiaryVerificationPhraseController,
+                    decoration: const InputDecoration(labelText: "Beneficiary verification phrase"),
+                    validator: _verificationPhraseValidator,
+                  ),
                 ],
               ),
             ),
@@ -285,7 +402,38 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     controller: _graceDaysController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: "Final grace period (days)"),
-                    validator: (v) => _requiredIntInRange(v, 1, 30),
+                    validator: (v) => _requiredIntInRange(v, 7, 30),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _proofOfLifeCheckMode,
+                    decoration: const InputDecoration(labelText: "Proof-of-life confirmation"),
+                    items: const [
+                      DropdownMenuItem(value: 'biometric_tap', child: Text("Biometric tap")),
+                      DropdownMenuItem(value: 'single_tap', child: Text("Single tap fallback")),
+                      DropdownMenuItem(value: 'verification_code', child: Text("Verification code")),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _proofOfLifeCheckMode = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      FilterChip(
+                        selected: _fallbackEmail,
+                        label: const Text("Email fallback"),
+                        onSelected: (value) => setState(() => _fallbackEmail = value),
+                      ),
+                      FilterChip(
+                        selected: _fallbackSms,
+                        label: const Text("SMS fallback"),
+                        onSelected: (value) => setState(() => _fallbackSms = value),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -318,6 +466,20 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     onChanged: (v) => setState(() => _privateFirstMode = v),
                     title: const Text("Keep private-first mode enabled"),
                     subtitle: const Text("Prefer the stricter privacy posture between your app settings and active PTN policy."),
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    value: _serverHeartbeatFallbackEnabled,
+                    onChanged: (v) => setState(() => _serverHeartbeatFallbackEnabled = v),
+                    title: const Text("Enable server heartbeat fallback"),
+                    subtitle: const Text("Recommended for iOS and long background gaps so false triggers stay less likely."),
+                  ),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _iosBackgroundRiskAcknowledged,
+                    onChanged: (v) => setState(() => _iosBackgroundRiskAcknowledged = v ?? false),
+                    title: const Text("I understand iOS/background delivery limits"),
+                    subtitle: const Text("Mobile platforms may pause background execution, so fallback heartbeat is strongly recommended."),
                   ),
                   const SizedBox(height: 12),
                   const Text("Privacy preset", style: TextStyle(fontWeight: FontWeight.w600)),

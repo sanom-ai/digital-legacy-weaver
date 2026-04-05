@@ -24,6 +24,10 @@ class DemoScenario {
       id: ownerRef,
       backupEmail: baseProfile.backupEmail,
       beneficiaryEmail: baseProfile.beneficiaryEmail,
+      beneficiaryName: baseProfile.beneficiaryName,
+      beneficiaryPhone: baseProfile.beneficiaryPhone,
+      beneficiaryVerificationHint: baseProfile.beneficiaryVerificationHint,
+      beneficiaryVerificationPhraseHash: baseProfile.beneficiaryVerificationPhraseHash,
       legacyInactivityDays: baseProfile.legacyInactivityDays,
       selfRecoveryInactivityDays: baseProfile.selfRecoveryInactivityDays,
       lastActiveAt: baseProfile.lastActiveAt,
@@ -113,6 +117,10 @@ class DemoScenario {
         defaultRemindersDaysBefore: settings.reminderOffsetsDays,
         requireMultisignalBeforeRelease: false,
         requireGuardianApprovalForLegacy: false,
+        proofOfLifeCheckMode: settings.proofOfLifeCheckMode,
+        proofOfLifeFallbackChannels: settings.proofOfLifeFallbackChannels,
+        serverHeartbeatFallbackEnabled: settings.serverHeartbeatFallbackEnabled,
+        iosBackgroundRiskAcknowledged: settings.iosBackgroundRiskAcknowledged,
       ),
       metadata: const {
         'source': 'demo_scenario',
@@ -141,6 +149,16 @@ class DemoScenario {
           destinationRef: profile.beneficiaryEmail ?? 'beneficiary@example.com',
         ).copyWith(
           status: 'active',
+          recipient: IntentRecipientModel(
+            recipientId: 'beneficiary_primary',
+            relationship: 'beneficiary',
+            deliveryChannel: 'email',
+            destinationRef: profile.beneficiaryEmail ?? 'beneficiary@example.com',
+            role: 'beneficiary',
+            registeredLegalName: profile.beneficiaryName ?? 'Demo Beneficiary',
+            verificationHint: profile.beneficiaryVerificationHint ?? 'Shared family phrase',
+            fallbackChannels: settings.proofOfLifeFallbackChannels,
+          ),
           asset: const IntentAssetModel(
             assetId: 'asset_family_handoff_primary',
             assetType: 'vault_item',
@@ -180,6 +198,10 @@ class DemoScenario {
         defaultRemindersDaysBefore: settings.reminderOffsetsDays,
         requireMultisignalBeforeRelease: true,
         requireGuardianApprovalForLegacy: false,
+        proofOfLifeCheckMode: settings.proofOfLifeCheckMode,
+        proofOfLifeFallbackChannels: settings.proofOfLifeFallbackChannels,
+        serverHeartbeatFallbackEnabled: settings.serverHeartbeatFallbackEnabled,
+        iosBackgroundRiskAcknowledged: settings.iosBackgroundRiskAcknowledged,
       ),
       metadata: const {
         'source': 'demo_scenario',
@@ -208,6 +230,16 @@ class DemoScenario {
           destinationRef: profile.beneficiaryEmail ?? 'beneficiary@example.com',
         ).copyWith(
           status: 'active',
+          recipient: IntentRecipientModel(
+            recipientId: 'beneficiary_archive',
+            relationship: 'beneficiary',
+            deliveryChannel: 'email',
+            destinationRef: profile.beneficiaryEmail ?? 'beneficiary@example.com',
+            role: 'beneficiary',
+            registeredLegalName: profile.beneficiaryName ?? 'Demo Beneficiary',
+            verificationHint: profile.beneficiaryVerificationHint ?? 'Archive phrase',
+            fallbackChannels: settings.proofOfLifeFallbackChannels,
+          ),
           asset: const IntentAssetModel(
             assetId: 'asset_private_archive',
             assetType: 'document_notice',
@@ -253,6 +285,10 @@ class DemoScenario {
         defaultRemindersDaysBefore: const [21, 7, 1],
         requireMultisignalBeforeRelease: true,
         requireGuardianApprovalForLegacy: false,
+        proofOfLifeCheckMode: settings.proofOfLifeCheckMode,
+        proofOfLifeFallbackChannels: settings.proofOfLifeFallbackChannels,
+        serverHeartbeatFallbackEnabled: settings.serverHeartbeatFallbackEnabled,
+        iosBackgroundRiskAcknowledged: settings.iosBackgroundRiskAcknowledged,
       ),
       metadata: const {
         'source': 'demo_scenario',

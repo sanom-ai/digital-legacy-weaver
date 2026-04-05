@@ -67,6 +67,9 @@ def test_dispatch_runtime_supports_compiler_emitted_requirement_controls() -> No
     assert 'requirement === "guardian_approval"' in src
     assert 'requirement === "verification_code"' in src
     assert 'requirement === "totp_factor"' in src
+    assert 'requirement === "beneficiary_identity_match"' in src
+    assert 'requirement === "fallback_channels_ready"' in src
+    assert 'requirement === "server_heartbeat_fallback"' in src
 
 
 def test_unlock_accepts_request_code_and_unlock_actions() -> None:
@@ -112,6 +115,10 @@ def test_unlock_supports_totp_code_contract() -> None:
     src = _read(UNLOCK_FN)
     assert "totp_code" in src
     assert "require_totp_unlock" in src
+    assert "beneficiary_name" in src
+    assert "verification_phrase" in src
+    assert "verifyLegacyBeneficiaryIdentity" in src
+    assert "pre-registered name" in src or "pre-registered identity" in src
 
 
 def test_totp_management_actions_present() -> None:

@@ -63,6 +63,18 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
       ),
     );
   }
+  if (document.globalSafeguards.serverHeartbeatFallbackEnabled) {
+    lines.add(
+      _requireLine(
+        'server_heartbeat_fallback',
+        'trigger_legacy_delivery',
+        'medium',
+        'advisory',
+        'global_server_heartbeat_fallback',
+        'runtime-core',
+      ),
+    );
+  }
   lines.add('}');
   lines.add('');
 
@@ -150,6 +162,30 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
           'safety-core',
         ),
       );
+    }
+    if (entry.kind == 'legacy_delivery') {
+      constraintLines.add(
+        _requireLine(
+          'beneficiary_identity_match',
+          action,
+          'high',
+          'strict',
+          'entry:${_slug(entry.entryId)}:beneficiary_identity',
+          'delivery-core',
+        ),
+      );
+      if (entry.recipient.fallbackChannels.toSet().length >= 2) {
+        constraintLines.add(
+          _requireLine(
+            'fallback_channels_ready',
+            action,
+            'medium',
+            'advisory',
+            'entry:${_slug(entry.entryId)}:recipient_fallbacks',
+            'delivery-core',
+          ),
+        );
+      }
     }
   }
 

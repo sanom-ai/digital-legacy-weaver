@@ -133,6 +133,9 @@ class IntentEntryModel {
         deliveryChannel: "email",
         destinationRef: destinationRef,
         role: "beneficiary",
+        registeredLegalName: "",
+        verificationHint: "",
+        fallbackChannels: const ["email", "sms"],
       ),
       trigger: const IntentTriggerModel(
         mode: "inactivity",
@@ -184,6 +187,9 @@ class IntentEntryModel {
         deliveryChannel: "email",
         destinationRef: destinationRef,
         role: "owner",
+        registeredLegalName: "Owner",
+        verificationHint: "",
+        fallbackChannels: const ["email"],
       ),
       trigger: const IntentTriggerModel(
         mode: "inactivity",
@@ -333,6 +339,9 @@ class IntentRecipientModel {
     required this.deliveryChannel,
     required this.destinationRef,
     required this.role,
+    required this.registeredLegalName,
+    required this.verificationHint,
+    required this.fallbackChannels,
   });
 
   final String recipientId;
@@ -340,6 +349,9 @@ class IntentRecipientModel {
   final String deliveryChannel;
   final String destinationRef;
   final String role;
+  final String registeredLegalName;
+  final String verificationHint;
+  final List<String> fallbackChannels;
 
   Map<String, dynamic> toMap() {
     return {
@@ -348,6 +360,9 @@ class IntentRecipientModel {
       "delivery_channel": deliveryChannel,
       "destination_ref": destinationRef,
       "role": role,
+      "registered_legal_name": registeredLegalName,
+      "verification_hint": verificationHint,
+      "fallback_channels": fallbackChannels,
     };
   }
 
@@ -358,6 +373,11 @@ class IntentRecipientModel {
       deliveryChannel: map["delivery_channel"] as String? ?? "email",
       destinationRef: map["destination_ref"] as String? ?? "",
       role: map["role"] as String? ?? "beneficiary",
+      registeredLegalName: map["registered_legal_name"] as String? ?? "",
+      verificationHint: map["verification_hint"] as String? ?? "",
+      fallbackChannels: (map["fallback_channels"] as List<dynamic>? ?? const ["email"])
+          .whereType<String>()
+          .toList(),
     );
   }
 }
@@ -525,10 +545,14 @@ class IntentPartnerPathModel {
 class IntentGlobalSafeguardsModel {
   const IntentGlobalSafeguardsModel({
     this.emergencyPauseEnabled = true,
-    this.defaultGraceDays = 3,
+    this.defaultGraceDays = 7,
     this.defaultRemindersDaysBefore = const [14, 7, 1],
     this.requireMultisignalBeforeRelease = true,
     this.requireGuardianApprovalForLegacy = false,
+    this.proofOfLifeCheckMode = "biometric_tap",
+    this.proofOfLifeFallbackChannels = const ["email", "sms"],
+    this.serverHeartbeatFallbackEnabled = true,
+    this.iosBackgroundRiskAcknowledged = false,
   });
 
   final bool emergencyPauseEnabled;
@@ -536,6 +560,10 @@ class IntentGlobalSafeguardsModel {
   final List<int> defaultRemindersDaysBefore;
   final bool requireMultisignalBeforeRelease;
   final bool requireGuardianApprovalForLegacy;
+  final String proofOfLifeCheckMode;
+  final List<String> proofOfLifeFallbackChannels;
+  final bool serverHeartbeatFallbackEnabled;
+  final bool iosBackgroundRiskAcknowledged;
 
   Map<String, dynamic> toMap() {
     return {
@@ -544,6 +572,10 @@ class IntentGlobalSafeguardsModel {
       "default_reminders_days_before": defaultRemindersDaysBefore,
       "require_multisignal_before_release": requireMultisignalBeforeRelease,
       "require_guardian_approval_for_legacy": requireGuardianApprovalForLegacy,
+      "proof_of_life_check_mode": proofOfLifeCheckMode,
+      "proof_of_life_fallback_channels": proofOfLifeFallbackChannels,
+      "server_heartbeat_fallback_enabled": serverHeartbeatFallbackEnabled,
+      "ios_background_risk_acknowledged": iosBackgroundRiskAcknowledged,
     };
   }
 
@@ -556,6 +588,12 @@ class IntentGlobalSafeguardsModel {
           .toList(),
       requireMultisignalBeforeRelease: map["require_multisignal_before_release"] as bool? ?? true,
       requireGuardianApprovalForLegacy: map["require_guardian_approval_for_legacy"] as bool? ?? false,
+      proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
+      proofOfLifeFallbackChannels: (map["proof_of_life_fallback_channels"] as List<dynamic>? ?? const ["email", "sms"])
+          .whereType<String>()
+          .toList(),
+      serverHeartbeatFallbackEnabled: map["server_heartbeat_fallback_enabled"] as bool? ?? true,
+      iosBackgroundRiskAcknowledged: map["ios_background_risk_acknowledged"] as bool? ?? false,
     );
   }
 }

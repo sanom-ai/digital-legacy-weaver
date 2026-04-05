@@ -70,6 +70,10 @@ def test_intent_builder_screen_assets_exist() -> None:
     config_landing_src = _read(config_landing)
     demo_scenarios_src = _read(demo_scenarios)
     pubspec_src = _read(pubspec)
+    settings_src = _read(ROOT / "apps" / "flutter_app" / "lib" / "features" / "settings" / "safety_settings_screen.dart")
+    profile_model_src = _read(ROOT / "apps" / "flutter_app" / "lib" / "features" / "profile" / "profile_model.dart")
+    unlock_src = _read(ROOT / "apps" / "flutter_app" / "lib" / "features" / "unlock" / "unlock_delivery_screen.dart")
+    compiler_report_src = _read(ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_compiler_report_model.dart")
 
     assert "class IntentBuilderScreen" in screen_src
     assert "ConsumerStatefulWidget" in screen_src
@@ -250,6 +254,12 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Preset active:" in screen_src
     assert "Preset next step:" in screen_src
     assert "_applyScenarioPreset" in screen_src
+    assert "Registered beneficiary:" in screen_src
+    assert "Verification hint:" in screen_src
+    assert "Fallback channels:" in screen_src
+    assert "Registered beneficiary name" in screen_src
+    assert "Email fallback" in screen_src
+    assert "SMS fallback" in screen_src
     assert "class IntentArtifactReviewScreen" in artifact_review_src
     assert "class IntentArtifactCompareScreen" in artifact_compare_src
     assert "class IntentArtifactHistoryScreen" in artifact_history_src
@@ -313,3 +323,41 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "cryptography:" in pubspec_src
     assert "flutter_secure_storage:" in pubspec_src
     assert "shared_preferences:" in pubspec_src
+    assert "Proof-of-life confirmation" in settings_src
+    assert "Enable server heartbeat fallback" in settings_src
+    assert "Acknowledge iOS/background limits" in settings_src
+    assert "proofOfLifeCheckMode" in settings_src
+    assert "beneficiaryName" in profile_model_src
+    assert "beneficiaryVerificationPhraseHash" in profile_model_src
+    assert "hasBeneficiaryIdentityKit" in profile_model_src
+    assert "Registered beneficiary name" in unlock_src
+    assert "Verification phrase" in unlock_src
+    assert "beneficiary_name" in unlock_src
+    assert "verification_phrase" in unlock_src
+    assert "Beneficiary Receipt Flow" in unlock_src
+    assert "Confirm the access link" in unlock_src
+    assert "Confirm your beneficiary identity" in unlock_src
+    assert "Verify and unlock" in unlock_src
+    assert "Secure web-link default" in unlock_src
+    assert "App optional" in unlock_src
+    assert "What the beneficiary needs" in unlock_src
+    assert "Need help?" in unlock_src
+    assert "fallback path such as email plus SMS" in unlock_src
+    assert "One-time code sent through the active fallback channel." in unlock_src
+    assert "Must match the owner-prepared beneficiary record." in unlock_src
+    assert "The secure link remains the default path." in unlock_src
+    assert "Request Receipt Code" in unlock_src
+    assert "Open Delivery Bundle" in unlock_src
+    assert "Delivery Bundle Receipt" in unlock_src
+    assert "Safe next steps" in unlock_src
+    assert "Receipt status" in unlock_src
+    assert "Verification route:" in unlock_src
+    assert "Verify balances, legal status, or account details directly with the relevant partner, institution, or law office." in unlock_src
+    assert "Complete any legal or service-specific verification outside this technical receipt flow." in unlock_src
+    assert 'title: const Text("Beneficiary Receipt")' in dashboard_src
+    assert 'subtitle: const Text("Secure link, receipt code, and pre-registered identity flow")' in dashboard_src
+    assert "missing_beneficiary_identity" in compiler_report_src
+    assert "missing_beneficiary_verification_hint" in compiler_report_src
+    assert "missing_multi_channel_fallback" in compiler_report_src
+    assert "short_grace_period" in compiler_report_src
+    assert "server_heartbeat_fallback_disabled" in compiler_report_src

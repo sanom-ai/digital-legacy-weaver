@@ -72,6 +72,10 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
   required IntentDocumentModel document,
   required bool legalAccepted,
   required bool privateFirstMode,
+  String? proofOfLifeCheckMode,
+  List<String>? proofOfLifeFallbackChannels,
+  bool? serverHeartbeatFallbackEnabled,
+  bool? iosBackgroundRiskAcknowledged,
 }) {
   final issues = <Map<String, dynamic>>[];
 
@@ -163,6 +167,57 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
       continue;
     }
 
+    if (entry.kind == "legacy_delivery" &&
+        entry.recipient.registeredLegalName.trim().isEmpty) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "missing_beneficiary_identity",
+          message:
+              "${entry.entryId}: registered beneficiary identity is empty; configure a pre-registered recipient before delivery.",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.kind == "legacy_delivery" &&
+        entry.recipient.verificationHint.trim().isEmpty) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "missing_beneficiary_verification_hint",
+          message:
+              "${entry.entryId}: beneficiary verification hint is empty; recipient authentication will be weaker at unlock time.",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.kind == "legacy_delivery" &&
+        entry.recipient.fallbackChannels.toSet().length < 2) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "missing_multi_channel_fallback",
+          message:
+              "${entry.entryId}: beneficiary flow only has one fallback channel; add email plus SMS before treating proof-of-life as resilient.",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
+    if (entry.trigger.graceDays < 7) {
+      issues.add(
+        _issue(
+          severity: "warning",
+          code: "short_grace_period",
+          message:
+              "${entry.entryId}: grace_days is below 7; false triggers become harder to recover from.",
+          entryId: entry.entryId,
+        ),
+      );
+    }
+
     if (entry.asset.payloadRef.trim().isEmpty) {
       issues.add(
         _issue(
@@ -232,6 +287,60 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
         ),
       );
     }
+  }
+
+  final effectiveProofOfLifeMode =
+      proofOfLifeCheckMode ?? document.globalSafeguards.proofOfLifeCheckMode;
+  final effectiveFallbackChannels =
+      proofOfLifeFallbackChannels ?? document.globalSafeguards.proofOfLifeFallbackChannels;
+  final effectiveHeartbeatFallback = serverHeartbeatFallbackEnabled ??
+      document.globalSafeguards.serverHeartbeatFallbackEnabled;
+  final effectiveIosRiskAck = iosBackgroundRiskAcknowledged ??
+      document.globalSafeguards.iosBackgroundRiskAcknowledged;
+
+  if (effectiveProofOfLifeMode != "biometric_tap" &&
+      effectiveProofOfLifeMode != "single_tap") {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "heavy_proof_of_life_check",
+        message:
+            "Proof-of-life confirmation is heavier than a single tap flow; false-negative risk may increase.",
+      ),
+    );
+  }
+
+  if (effectiveFallbackChannels.toSet().length < 2) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "single_channel_proof_of_life_fallback",
+        message:
+            "Proof-of-life fallback relies on fewer than two channels; add both email and SMS to reduce missed check-ins.",
+      ),
+    );
+  }
+
+  if (!effectiveHeartbeatFallback) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "server_heartbeat_fallback_disabled",
+        message:
+            "Server heartbeat fallback is disabled; mobile background limits can increase false-trigger risk.",
+      ),
+    );
+  }
+
+  if (!effectiveIosRiskAck) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "ios_background_risk_unacknowledged",
+        message:
+            "iOS/background execution risk is not acknowledged yet; review fallback posture before treating this workspace as reliable.",
+      ),
+    );
   }
 
   final errorCount = issues.where((issue) => issue["severity"] == "error").length;
