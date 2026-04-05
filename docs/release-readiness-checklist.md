@@ -65,6 +65,8 @@ Command:
 1. Legal disclaimer/consent flow enabled in app
 2. Emergency pause and grace period settings tested
 3. Incident playbook reviewed by on-call owner
+4. Product messaging uses responsible language: assistive delivery workflow, no guaranteed outcome claim
+5. High-assurance architecture controls reviewed against `docs/high-assurance-architecture.md`
 
 ## 8) Release Decision
 

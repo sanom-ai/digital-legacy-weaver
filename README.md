@@ -26,8 +26,14 @@ Digital Legacy Weaver is a technical coordination layer that helps manage:
 1. Not a legal will replacement.
 2. Not a legal decision authority.
 3. Not a place to email plaintext secrets.
+4. Not a universal guarantee mechanism in every device/network condition.
 
 Legal entitlement must be verified directly with destination apps/providers and formal legal processes.
+
+Reliability statement:
+
+1. The platform is designed to assist secure coordination and delivery workflows.
+2. Operators should run safety controls, reminders, and incident drills before broad rollout.
 
 ## Who this is for
 
@@ -62,6 +68,10 @@ Stability and release criteria are tracked in:
 4. **Dispatch Layer**: scheduled dead-man-switch logic + reminder/release stages
 5. **Unlock Layer**: one-time secure link + verification code + optional TOTP
 6. **Ops Layer**: safety controls, heartbeat monitoring, cleanup, security triage
+
+High-assurance reference:
+
+1. `docs/high-assurance-architecture.md`
 
 ## Implemented capabilities (foundation scope)
 
@@ -172,6 +182,7 @@ Guide:
 - `docs/release-readiness-checklist.md`
 - `docs/closed-beta-checklist.md`
 - `docs/first-launch-execution.md`
+- `docs/high-assurance-architecture.md`
 - `docs/hosted-mode-operations.md`
 - `docs/beta-gate-ops.md`
 - `docs/beta-status-ops.md`

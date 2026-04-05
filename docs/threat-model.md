@@ -6,6 +6,7 @@
 2. One-time access credentials (`delivery_access_keys`)
 3. Verification challenges (`delivery_access_challenges`)
 4. Trigger execution integrity (`trigger_dispatch_events`, `trigger_logs`, `system_heartbeats`)
+5. Local-first encrypted device vault material (when zero-custody mode is enabled)
 
 ## Trust boundaries
 
@@ -13,6 +14,7 @@
 2. Edge functions (trusted execution)
 3. Database with RLS (trusted policy boundary)
 4. Email channel (partially trusted; can be intercepted)
+5. Client OS scheduler/runtime (partially trusted for long-delay timer reliability)
 
 ## Top threats and mitigations
 
@@ -47,6 +49,10 @@
 8. Low observability during active attacks
 - Threat: brute-force/abuse happens without clear event trail.
 - Mitigation: dedicated `security_events` stream for access denial, invalid code, rate limiting, and successful unlock.
+
+9. Local timer wake-up drift in long inactivity windows
+- Threat: client cannot wake exactly at target interval due to OS/background constraints.
+- Mitigation: staged reminders, grace windows, and fallback confirmation logic before final release.
 
 ## Residual risks
 
