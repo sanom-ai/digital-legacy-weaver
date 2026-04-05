@@ -66,6 +66,7 @@ Stability and release criteria are tracked in:
 1. `docs/testing-strategy.md`
 2. `docs/release-readiness-checklist.md`
 3. `docs/closed-beta-checklist.md`
+4. `docs/three-layer-architecture.md`
 
 ## Architecture
 
@@ -79,6 +80,7 @@ Stability and release criteria are tracked in:
 High-assurance reference:
 
 1. `docs/high-assurance-architecture.md`
+2. `docs/three-layer-architecture.md`
 
 ## Implemented capabilities (foundation scope)
 
