@@ -95,6 +95,49 @@ def validate_intent_document(intent: Dict[str, Any]) -> List[str]:
     return issues
 
 
+def collect_intent_warnings(intent: Dict[str, Any]) -> List[str]:
+    warnings: List[str] = []
+    default_profile = intent.get("default_privacy_profile", "minimal")
+    global_safeguards = intent.get("global_safeguards") or {}
+
+    for index, entry in enumerate(intent.get("entries", [])):
+        label = f"entry[{index}]"
+        entry_id = entry.get("entry_id") or label
+        if entry.get("status") != "active":
+            warnings.append(f"{entry_id}: entry is not active and will not compile into PTN output")
+            continue
+
+        asset = entry.get("asset") or {}
+        if not asset.get("payload_ref"):
+            warnings.append(f"{entry_id}: asset.payload_ref is empty; delivery may be incomplete")
+
+        partner_path = entry.get("partner_path")
+        if not partner_path:
+            warnings.append(f"{entry_id}: no partner_path defined; workflow will remain core-only")
+
+        privacy = entry.get("privacy") or {}
+        profile = privacy.get("profile", default_profile)
+        if profile == "audit-heavy" and privacy.get("minimize_trace_metadata", True):
+            warnings.append(
+                f"{entry_id}: audit-heavy profile with minimize_trace_metadata=true may reduce operational detail",
+            )
+
+        safeguards = entry.get("safeguards") or {}
+        delivery = entry.get("delivery") or {}
+        if delivery.get("method") == "notification_only" and safeguards.get("require_guardian_approval", False):
+            warnings.append(
+                f"{entry_id}: notification_only with guardian approval may need clearer operator messaging",
+            )
+
+        if not global_safeguards.get("require_multisignal_before_release", False) and not safeguards.get(
+            "require_multisignal",
+            False,
+        ):
+            warnings.append(f"{entry_id}: no multisignal safeguard configured for this active entry")
+
+    return warnings
+
+
 def compile_intent_document(intent: Dict[str, Any]) -> str:
     issues = validate_intent_document(intent)
     if issues:
@@ -309,6 +352,7 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
 
 def compile_intent_document_with_trace(intent: Dict[str, Any]) -> Dict[str, Any]:
     compiled = compile_intent_document(intent)
+    warnings = collect_intent_warnings(intent)
     active_entries = [entry for entry in intent["entries"] if entry.get("status") == "active"]
     entry_map = {
         entry["entry_id"]: {
@@ -330,4 +374,5 @@ def compile_intent_document_with_trace(intent: Dict[str, Any]) -> Dict[str, Any]
             "owner_ref": intent["owner_ref"],
             "entries": entry_map,
         },
+        "warnings": warnings,
     }

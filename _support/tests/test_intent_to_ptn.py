@@ -12,6 +12,7 @@ if str(TOOLS) not in sys.path:
 
 from intent_to_ptn import (  # noqa: E402
     IntentCompilerError,
+    collect_intent_warnings,
     compile_intent_document,
     compile_intent_document_with_trace,
     validate_intent_document,
@@ -77,5 +78,18 @@ def test_compiler_can_emit_trace_mapping() -> None:
     result = compile_intent_document_with_trace(intent)
     assert "ptn" in result
     assert "trace" in result
+    assert "warnings" in result
     assert result["trace"]["intent_id"] == "intent_primary"
     assert result["trace"]["entries"]["legacy_wallet_a"]["policy_block_id"] == "legacy_wallet_a_policy"
+
+
+def test_compiler_collects_soft_warnings_for_core_only_entry() -> None:
+    intent = json.loads((ROOT / "examples" / "intent-primary.json").read_text(encoding="utf-8"))
+    intent["entries"][0]["asset"]["payload_ref"] = ""
+    intent["entries"][0]["partner_path"] = None
+    intent["entries"][0]["safeguards"]["require_multisignal"] = False
+    intent["global_safeguards"]["require_multisignal_before_release"] = False
+    warnings = collect_intent_warnings(intent)
+    assert any("asset.payload_ref is empty" in warning for warning in warnings)
+    assert any("no partner_path defined" in warning for warning in warnings)
+    assert any("no multisignal safeguard configured" in warning for warning in warnings)

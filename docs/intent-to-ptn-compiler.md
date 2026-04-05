@@ -55,6 +55,20 @@ The compiler rejects:
 5. missing asset or recipient references
 6. invalid inactivity thresholds
 
+## Warning layer
+
+The compiler now separates:
+
+1. hard errors that must block compilation
+2. soft warnings that should be surfaced to operators or UI flows
+
+Current warning examples:
+
+1. active entry has no `payload_ref`
+2. active entry has no `partner_path`
+3. active entry has no multisignal safeguard
+4. privacy posture may conflict with trace-minimization expectations
+
 ## Current limitation
 
 This first compiler pass is deterministic and intentionally conservative.
@@ -64,12 +78,12 @@ It does not yet:
 1. optimize PTN block reuse
 2. infer advanced partner-path requirements automatically
 3. compile every runtime safety control in the platform
-4. emit human-facing warnings separate from hard errors
+4. classify warnings by severity for UX presentation
 
 ## Next step
 
 The next compiler improvements should add:
 
-1. warning channels for ambiguous intent
+1. severity-ranked warning channels for ambiguous intent
 2. richer mapping from safeguards to PTN requirement metadata
 3. runtime consumption of compiler trace output from `entry_id` to generated PTN block identifiers
