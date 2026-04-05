@@ -1,0 +1,24 @@
+<svg width="1600" height="480" viewBox="0 0 1600 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B1613"/>
+      <stop offset="1" stop-color="#5A4637"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="480" fill="url(#bg)"/>
+  <circle cx="1420" cy="88" r="116" fill="#F0DDC5" opacity="0.2"/>
+  <circle cx="154" cy="420" r="128" fill="#E7CCAA" opacity="0.18"/>
+
+  <text x="128" y="158" fill="#EFE3D4" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Digital Legacy Weaver</text>
+  <text x="128" y="236" fill="#FFF8F0" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="700">Private-first digital legacy coordination</text>
+  <text x="128" y="286" fill="#E2D1BF" font-family="Segoe UI, Arial, sans-serif" font-size="25">Policy-driven handoff, readable privacy presets, and a clear technical-companion boundary.</text>
+
+  <rect x="128" y="338" width="220" height="42" rx="21" fill="#D9E8FF"/>
+  <text x="164" y="366" fill="#2D4D79" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Highest privacy</text>
+  <rect x="366" y="338" width="262" height="42" rx="21" fill="#E5D7C5"/>
+  <text x="404" y="366" fill="#6A5138" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Recommended for beta</text>
+  <rect x="646" y="338" width="206" height="42" rx="21" fill="#FFE4C7"/>
+  <text x="682" y="366" fill="#8B5421" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Best for audits</text>
+
+  <text x="1120" y="364" fill="#FFF4E8" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Technical companion, not a legal will</text>
+</svg>

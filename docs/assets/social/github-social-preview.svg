@@ -1,0 +1,31 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#171311"/>
+      <stop offset="1" stop-color="#4A392E"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1030" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF9"/>
+      <stop offset="1" stop-color="#F5EEE4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <circle cx="1110" cy="116" r="120" fill="#EBD9C3" opacity="0.3"/>
+  <circle cx="124" cy="560" r="140" fill="#E3C59F" opacity="0.16"/>
+
+  <text x="102" y="130" fill="#E8DCCB" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Digital Legacy Weaver</text>
+
+  <rect x="96" y="168" width="1088" height="374" rx="28" fill="url(#card)"/>
+  <text x="152" y="256" fill="#1D1916" font-family="Segoe UI, Arial, sans-serif" font-size="62" font-weight="700">Private-first digital legacy coordination</text>
+  <text x="152" y="308" fill="#5A5046" font-family="Segoe UI, Arial, sans-serif" font-size="28">Privacy presets, policy-driven delivery, and a clear technical-companion posture.</text>
+
+  <rect x="152" y="364" width="218" height="46" rx="23" fill="#D9E8FF"/>
+  <text x="188" y="394" fill="#2D4D79" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Highest privacy</text>
+  <rect x="390" y="364" width="278" height="46" rx="23" fill="#E5D7C5"/>
+  <text x="428" y="394" fill="#6A5138" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Recommended for beta</text>
+  <rect x="688" y="364" width="206" height="46" rx="23" fill="#FFE4C7"/>
+  <text x="726" y="394" fill="#8B5421" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Best for audits</text>
+
+  <text x="152" y="458" fill="#1D1916" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">Technical companion, not a legal will</text>
+  <text x="152" y="502" fill="#6B5B4C" font-family="Segoe UI, Arial, sans-serif" font-size="24">Designed to coordinate secure delivery and recovery workflows while keeping legal verification with the destination provider.</text>
+</svg>
