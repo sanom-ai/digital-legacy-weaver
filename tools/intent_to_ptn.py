@@ -13,6 +13,22 @@ class IntentCompilerError(Exception):
     pass
 
 
+def _make_issue(
+    severity: str,
+    code: str,
+    message: str,
+    entry_id: str | None = None,
+) -> Dict[str, str]:
+    issue = {
+        "severity": severity,
+        "code": code,
+        "message": message,
+    }
+    if entry_id is not None:
+        issue["entry_id"] = entry_id
+    return issue
+
+
 def _slug(value: str) -> str:
     chars: List[str] = []
     for ch in value.lower():
@@ -136,6 +152,38 @@ def collect_intent_warnings(intent: Dict[str, Any]) -> List[str]:
             warnings.append(f"{entry_id}: no multisignal safeguard configured for this active entry")
 
     return warnings
+
+
+def build_intent_compiler_report(intent: Dict[str, Any]) -> Dict[str, Any]:
+    errors = validate_intent_document(intent)
+    warnings = collect_intent_warnings(intent)
+
+    issues: List[Dict[str, str]] = []
+    for error in errors:
+        entry_id = error.split(":", 1)[0] if ":" in error else None
+        issues.append(_make_issue("error", "intent_validation_error", error, entry_id))
+
+    for warning in warnings:
+        entry_id = warning.split(":", 1)[0] if ":" in warning else None
+        code = "intent_warning"
+        if "payload_ref is empty" in warning:
+            code = "missing_payload_ref"
+        elif "no partner_path defined" in warning:
+            code = "missing_partner_path"
+        elif "no multisignal safeguard configured" in warning:
+            code = "missing_multisignal_safeguard"
+        elif "audit-heavy profile" in warning:
+            code = "privacy_trace_tension"
+        elif "not active and will not compile" in warning:
+            code = "inactive_entry_skipped"
+        issues.append(_make_issue("warning", code, warning, entry_id))
+
+    return {
+        "ok": len(errors) == 0,
+        "error_count": len(errors),
+        "warning_count": len(warnings),
+        "issues": issues,
+    }
 
 
 def compile_intent_document(intent: Dict[str, Any]) -> str:
@@ -353,6 +401,7 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
 def compile_intent_document_with_trace(intent: Dict[str, Any]) -> Dict[str, Any]:
     compiled = compile_intent_document(intent)
     warnings = collect_intent_warnings(intent)
+    report = build_intent_compiler_report(intent)
     active_entries = [entry for entry in intent["entries"] if entry.get("status") == "active"]
     entry_map = {
         entry["entry_id"]: {
@@ -374,5 +423,6 @@ def compile_intent_document_with_trace(intent: Dict[str, Any]) -> Dict[str, Any]
             "owner_ref": intent["owner_ref"],
             "entries": entry_map,
         },
+        "report": report,
         "warnings": warnings,
     }

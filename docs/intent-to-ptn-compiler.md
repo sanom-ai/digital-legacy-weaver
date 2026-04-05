@@ -16,6 +16,7 @@ Current compiler foundation:
 
 1. `tools/intent_to_ptn.py`
 2. `compile_intent_document_with_trace(...)` for compiler-side trace mapping
+3. `build_intent_compiler_report(...)` for UI-facing validation and warning output
 
 ## Input
 
@@ -62,6 +63,20 @@ The compiler now separates:
 1. hard errors that must block compilation
 2. soft warnings that should be surfaced to operators or UI flows
 
+Report shape:
+
+1. `ok`
+2. `error_count`
+3. `warning_count`
+4. `issues[]`
+
+Each issue contains:
+
+1. `severity`
+2. `code`
+3. `message`
+4. optional `entry_id`
+
 Current warning examples:
 
 1. active entry has no `payload_ref`
@@ -78,7 +93,7 @@ It does not yet:
 1. optimize PTN block reuse
 2. infer advanced partner-path requirements automatically
 3. compile every runtime safety control in the platform
-4. classify warnings by severity for UX presentation
+4. classify warnings beyond the current error/warning split for UX presentation
 
 ## Next step
 
