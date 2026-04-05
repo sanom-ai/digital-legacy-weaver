@@ -12,7 +12,7 @@ class ConnectorsScreen extends ConsumerWidget {
     final assetsAsync = ref.watch(connectorAssetRefsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Partner Connectors")),
+      appBar: AppBar(title: const Text("Partner-ready Paths")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -22,7 +22,11 @@ class ConnectorsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Connectors", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                  const Text("Destination Paths", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Track the services, routes, and handoff references that may be used when a protected workflow is activated.",
+                  ),
                   const SizedBox(height: 10),
                   FilledButton.tonal(
                     onPressed: () async {
@@ -39,12 +43,12 @@ class ConnectorsScreen extends ConsumerWidget {
                             supportedSecondFactors: draft.secondFactors,
                           );
                     },
-                    child: const Text("Add Connector"),
+                    child: const Text("Add Path"),
                   ),
                   const SizedBox(height: 10),
                   connectorsAsync.when(
                     data: (items) {
-                      if (items.isEmpty) return const Text("No connectors yet.");
+                      if (items.isEmpty) return const Text("No destination paths yet.");
                       return Column(
                         children: items
                             .map(
@@ -58,7 +62,7 @@ class ConnectorsScreen extends ConsumerWidget {
                       );
                     },
                     loading: () => const CircularProgressIndicator(),
-                    error: (e, _) => Text("Connector load error: $e"),
+                    error: (e, _) => Text("Destination path load error: $e"),
                   ),
                 ],
               ),
@@ -72,13 +76,17 @@ class ConnectorsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text("Legacy Asset References", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Map private asset references to a destination path without exposing the underlying payload.",
+                  ),
                   const SizedBox(height: 10),
                   FilledButton.tonal(
                     onPressed: () async {
                       final connectors = connectorsAsync.value ?? const <PartnerConnectorModel>[];
                       if (connectors.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Add connector first.")),
+                          const SnackBar(content: Text("Add a destination path first.")),
                         );
                         return;
                       }
@@ -169,12 +177,12 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Add Connector"),
+      title: const Text("Add Path"),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _connectorId, decoration: const InputDecoration(labelText: "Connector ID")),
+            TextField(controller: _connectorId, decoration: const InputDecoration(labelText: "Path ID")),
             const SizedBox(height: 8),
             TextField(controller: _name, decoration: const InputDecoration(labelText: "Name")),
             const SizedBox(height: 8),
@@ -292,7 +300,7 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
               onChanged: (v) {
                 if (v != null) setState(() => _connectorRefId = v);
               },
-              decoration: const InputDecoration(labelText: "Connector"),
+              decoration: const InputDecoration(labelText: "Destination Path"),
             ),
             const SizedBox(height: 8),
             TextField(controller: _assetId, decoration: const InputDecoration(labelText: "Asset ID")),
