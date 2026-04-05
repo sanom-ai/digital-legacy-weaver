@@ -4,292 +4,163 @@
 
 Private-first digital legacy coordination for secure self-recovery, beneficiary delivery, and partner-ready continuity workflows.
 
-## Why this exists
+## Overview
 
-Most people now store critical value in digital systems: cloud files, crypto wallets, account recovery codes, and private instructions.
+Digital Legacy Weaver is a technical companion for user-defined digital continuity.
 
-When something goes wrong, two failures happen repeatedly:
+It helps teams and users coordinate:
 
-1. Owners lose access to their own accounts and recovery data.
-2. Families and beneficiaries cannot find or access important digital legacy information.
+1. `Self-recovery` for the owner.
+2. `Legacy delivery` for intended recipients.
+3. `Policy-driven` controls through PTN.
+4. `Private-first` local workflows before broader runtime handoff.
 
-Digital Legacy Weaver is built to reduce both risks with policy-driven automation and strong operational safety controls.
+## Boundary
 
-## What this project is
+This project is:
 
-Digital Legacy Weaver is a technical coordination layer that helps manage:
+1. A technical coordination layer.
+2. A private-first runtime and policy foundation.
+3. A partner-ready workflow core.
 
-1. `Self-Recovery` flow for owners.
-2. `Legacy Delivery` flow for beneficiaries.
-3. Partner-ready destination workflows without changing the private-first core.
+This project is not:
 
-## What this project is not
+1. A legal will replacement.
+2. A legal decision authority.
+3. A plaintext secret-sharing tool.
+4. A guarantee of success under every device or network condition.
 
-1. Not a legal will replacement.
-2. Not a legal decision authority.
-3. Not a place to email plaintext secrets.
-4. Not a universal guarantee mechanism in every device/network condition.
+See [docs/legal-companion-mode.md](docs/legal-companion-mode.md), [docs/legal-evidence-gate.md](docs/legal-evidence-gate.md), and [docs/provider-handoff-template.md](docs/provider-handoff-template.md) for the legal boundary and handoff posture.
 
-Legal entitlement must be handled within the destination service or legal process designated by the owner.
+## Start Here
 
-Reliability statement:
+1. See [`docs/three-layer-architecture.md`](docs/three-layer-architecture.md) for the core system model.
+2. See [`docs/high-assurance-architecture.md`](docs/high-assurance-architecture.md) for the runtime architecture.
+3. See [`docs/pr-roadmap.md`](docs/pr-roadmap.md) for the current build sequence.
+4. See [`docs/testing-strategy.md`](docs/testing-strategy.md) for validation coverage.
+5. See [`docs/release-readiness-checklist.md`](docs/release-readiness-checklist.md) for stable-release gates.
 
-1. The platform is designed to assist secure coordination and delivery workflows.
-2. Operators should run safety controls, reminders, and incident drills before broad rollout.
+## Product Direction
 
-## Who this is for
+1. See [`docs/ecosystem-strategy.md`](docs/ecosystem-strategy.md) for the long-term ecosystem model.
+2. See [`docs/ecosystem-execution-roadmap.md`](docs/ecosystem-execution-roadmap.md) for phased execution.
+3. See [`docs/positioning-audience-guide.md`](docs/positioning-audience-guide.md) for audience language.
+4. See [`docs/first-launch-execution.md`](docs/first-launch-execution.md) for launch sequencing.
+5. See [`docs/closed-beta-checklist.md`](docs/closed-beta-checklist.md) for beta discipline.
 
-1. Security-focused users who need safer digital continuity.
-2. Developers building digital legacy features in apps/wallets/platforms.
-3. Operations teams that need auditable, policy-based release workflows.
-4. Teams that need a partner-ready coordination layer for family, legal, or custodial workflows.
+## PTN And Intent System
 
-## Product principles
-
-1. Private-first by default.
-2. Safety before convenience.
-3. Policy-as-code (`.ptn`) over hardcoded logic.
-4. Observable, testable operations with incident readiness.
-5. Clear legal boundary in every critical flow.
-
-## Current maturity
-
-Current line is `v0.1.x`: strong foundation/prototype, not full production-stable yet.
-
-Closed-beta communication rule:
-
-1. Always present the product as a technical companion.
-2. Never present the product as a legal will or legal adjudication service.
-
-Stability and release criteria are tracked in:
-
-1. `docs/testing-strategy.md`
-2. `docs/release-readiness-checklist.md`
-3. `docs/closed-beta-checklist.md`
-4. `docs/three-layer-architecture.md`
+1. See [`specs/ptn-format.md`](specs/ptn-format.md) for the baseline PTN format.
+2. See [`specs/ptn-v2.md`](specs/ptn-v2.md) for PTN v2 semantics.
+3. See [`specs/intent-compiler-contract.md`](specs/intent-compiler-contract.md) for the shared compiler contract.
+4. See [`docs/ptn-intent-schema.md`](docs/ptn-intent-schema.md) for the intent schema before compilation.
+5. See [`docs/intent-builder-model.md`](docs/intent-builder-model.md) for the app-facing intent model.
+6. See [`docs/intent-to-ptn-compiler.md`](docs/intent-to-ptn-compiler.md) for compiler rules.
+7. See [`docs/pdpa-policy-mapping.md`](docs/pdpa-policy-mapping.md) for PDPA mappings.
+8. See [`docs/ptn-licensing-boundary.md`](docs/ptn-licensing-boundary.md) for PTN open/proprietary boundaries.
 
 ## Architecture
 
-1. **Client**: Flutter app scaffold (`apps/flutter_app`)
-2. **Backend**: Supabase (Postgres, Auth, Edge Functions)
-3. **Policy Layer**: PTN parser/evaluator + active policy documents
-4. **Dispatch Layer**: scheduled dead-man-switch logic + reminder/release stages
-5. **Unlock Layer**: one-time secure link + verification code + optional TOTP
-6. **Ops Layer**: safety controls, heartbeat monitoring, cleanup, security triage
+The working architecture has three main layers:
 
-High-assurance reference:
+1. `User layer`: UX/UI captures intent in normal language.
+2. `PTN core layer`: PTN governs policy, security, runtime, and controls.
+3. `Output layer`: approved results are delivered to configured recipients or routes.
 
-1. `docs/high-assurance-architecture.md`
-2. `docs/three-layer-architecture.md`
+See [`docs/three-layer-architecture.md`](docs/three-layer-architecture.md) for the full layer map.
 
-## Implemented capabilities (foundation scope)
+## Current Status
 
-1. PTN policy model and validation tooling.
-2. Supabase schema with RLS and safety-critical migrations.
-3. Dispatcher with:
-- inactivity thresholds
-- reminder stages
-- grace windows
-- emergency pause handling
-4. Secure unlock flow with:
-- one-time access keys
-- verification challenge
-- consume-on-success behavior
-5. Abuse protections:
-- rate limits
-- security event logging
-- global dispatch/unlock kill switch
-6. Additional risk controls:
-- optional multi-signal proof-of-life gate
-- optional guardian approval gate
-- optional TOTP unlock requirement
-7. Partner-ready handoff notice runtime with audit trail.
-8. Reviewer/admin key management endpoints for controlled workflows.
-9. Runtime E2E/adversarial CI checks with evidence artifacts.
-10. In-app setup wizard for new users (beneficiary, trigger defaults, legal companion consent).
-11. In-app beta feedback intake (UX/bug/security/reliability categories).
+Current line is `v0.1.x`.
 
-## Quick start (local quality gate)
+That means:
+
+1. The foundation is strong enough for controlled beta testing.
+2. The app, PTN compiler flow, artifact history, and runtime-readiness flow are real.
+3. The project should still be described as a technical companion, not a full production-stable legal or custodial platform.
+
+## Current App Surface
+
+The Flutter app currently covers:
+
+1. Onboarding and safety settings.
+2. Intent Builder with local encrypted draft persistence.
+3. Canonical PTN artifact export.
+4. Artifact review, compare, promote, and history flows.
+5. Runtime readiness summary and detail views.
+6. Demo / setup-backend landing for builds without live Supabase configuration.
+
+## Operations And Security
+
+1. See [`docs/production-deploy-runbook.md`](docs/production-deploy-runbook.md) for deployment operations.
+2. See [`docs/incident-response.md`](docs/incident-response.md) for incident handling.
+3. See [`docs/threat-model.md`](docs/threat-model.md) for threat assumptions.
+4. See [`docs/e2e-test-pack.md`](docs/e2e-test-pack.md) for runtime checks.
+5. See [`docs/github-test-secrets-setup.md`](docs/github-test-secrets-setup.md) for CI secret setup.
+6. See [`docs/beta-gate-ops.md`](docs/beta-gate-ops.md), [`docs/beta-status-ops.md`](docs/beta-status-ops.md), and [`docs/beta-feedback-ops.md`](docs/beta-feedback-ops.md) for beta operations.
+7. See [SECURITY.md](SECURITY.md) for the security policy.
+
+## Release And Delivery
+
+1. See [`docs/app-release-pack.md`](docs/app-release-pack.md) for release packaging.
+2. See [`docs/releases/v0.1.0-release-notes-template.md`](docs/releases/v0.1.0-release-notes-template.md) for the release-note template.
+3. See [`docs/releases/v0.1.0.md`](docs/releases/v0.1.0.md) for the baseline release notes.
+4. See [`docs/releases/v0.1.0-beta.4.md`](docs/releases/v0.1.0-beta.4.md) for the current beta note.
+5. The app release workflow lives at [`.github/workflows/app-release.yml`](.github/workflows/app-release.yml).
+
+## Local Development
+
+Local quality gate:
 
 ```powershell
 python -m pip install -r requirements-dev.txt
 .\scripts\run_local_quality_gate.ps1
 ```
 
-## Deploy backend
+Backend deploy:
 
 ```powershell
 .\scripts\deploy_production.ps1 -ProjectRef <your_project_ref>
-```
-
-Post-deploy:
-
-```powershell
 .\scripts\post_deploy_smoke.ps1 -ProjectRef <your_project_ref>
 .\scripts\security_gate_preflight.ps1
 ```
 
-## Runtime reliability checks
-
-Manual:
+Runtime checks:
 
 ```powershell
 .\scripts\run_integration_unlock_flow.ps1 -ProjectRef <project_ref>
 .\scripts\run_adversarial_unlock_checks.ps1 -ProjectRef <project_ref>
 ```
 
-Automated:
+## Repository Guide
 
-1. `.github/workflows/e2e-runtime.yml`
-2. Scheduled every 6 hours
-3. Uploads runtime evidence artifacts
+Main implementation areas:
 
-Setup guide:
+1. App: [`apps/flutter_app`](apps/flutter_app)
+2. PTN and contracts: [`specs`](specs)
+3. Architecture and runbooks: [`docs`](docs)
+4. Backend schema and functions: [`supabase/migrations`](supabase/migrations) and [`supabase/functions`](supabase/functions)
+5. Release and operations scripts: [`scripts`](scripts)
+6. Beta SQL packs: [`ops/sql`](ops/sql)
 
-1. `docs/e2e-test-pack.md`
-2. `docs/github-test-secrets-setup.md`
+Useful file groups:
 
-## App release pack (downloadable binaries)
+1. Intent Builder: [`apps/flutter_app/lib/features/intent_builder`](apps/flutter_app/lib/features/intent_builder)
+2. Dispatch runtime: [`supabase/functions/dispatch-trigger`](supabase/functions/dispatch-trigger)
+3. Partner API surface: [`specs/partner-api.openapi.yaml`](specs/partner-api.openapi.yaml)
+4. Proprietary PTN legacy boundary: [`ptn/legacy`](ptn/legacy)
 
-Automated release workflow:
+## Contributing And Licensing
 
-1. `.github/workflows/app-release.yml`
-2. Builds Android APK + Windows ZIP
-3. Publishes GitHub Release assets
+1. See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance.
+2. See [`.github/CODEOWNERS`](.github/CODEOWNERS) for ownership rules.
+3. Open-core repository code and public examples are under [LICENSE](LICENSE).
+4. PTN legacy proprietary modules and premium policy assets are governed by [LICENSE-PTN](LICENSE-PTN).
 
-Guide:
-
-1. `docs/app-release-pack.md`
-2. `docs/releases/v0.1.0-release-notes-template.md`
-
-## Repository map
-
-1. App:
-- `apps/flutter_app`
-- `apps/flutter_app/lib/features/intent_builder`
-- `apps/flutter_app/lib/features/intent_builder/intent_draft_repository.dart`
-- `apps/flutter_app/lib/features/intent_builder/intent_canonical_artifact_repository.dart`
-
-2. Supabase:
-- `supabase/migrations`
-- `supabase/functions/dispatch-trigger`
-- `supabase/functions/open-delivery-link`
-- `supabase/functions/manage-totp-factor`
-- `supabase/functions/handoff-notice`
-- `supabase/functions/review-legal-evidence` (optional legacy module, disabled by default in technical-layer mode)
-- `supabase/functions/manage-reviewer-keys`
-
-3. Specs and policy:
-- `specs/partner-api.openapi.yaml`
-- `specs/ptn-format.md`
-- `specs/ptn-v2.md`
-- `specs/intent-compiler-contract.md`
-- `docs/ptn-intent-schema.md`
-- `docs/intent-builder-model.md`
-- `docs/intent-to-ptn-compiler.md`
-- `examples/default-policy.ptn`
-- `examples/intent-primary.json`
-- `examples/pdpa-policy-pack.ptn`
-- `examples/high-assurance-v2-policy.ptn`
-- `examples/privacy-profile-confidential.ptn`
-- `examples/privacy-profile-minimal.ptn`
-- `examples/privacy-profile-audit-heavy.ptn`
-- `ptn/legacy` (reserved boundary for proprietary PTN legacy modules)
-
-4. Operations and runbooks:
-- `docs/production-deploy-runbook.md`
-- `docs/incident-response.md`
-- `docs/threat-model.md`
-- `docs/testing-strategy.md`
-- `docs/release-readiness-checklist.md`
-- `docs/closed-beta-checklist.md`
-- `docs/first-launch-execution.md`
-- `docs/high-assurance-architecture.md`
-- `docs/ecosystem-strategy.md`
-- `docs/ecosystem-execution-roadmap.md`
-- `docs/pr-roadmap.md`
-- `docs/hosted-mode-operations.md`
-- `docs/beta-gate-ops.md`
-- `docs/beta-status-ops.md`
-- `docs/beta-feedback-ops.md`
-- `docs/ptn-licensing-boundary.md`
-
-5. Scripts:
-- `scripts/deploy_production.ps1`
-- `scripts/post_deploy_smoke.ps1`
-- `scripts/security_triage_report.ps1`
-- `scripts/safety_control_drill.ps1`
-- `scripts/run_integration_unlock_flow.ps1`
-- `scripts/run_adversarial_unlock_checks.ps1`
-
-6. Beta SQL packs:
-- `ops/sql/beta_dashboard_pack.sql`
-- `ops/sql/beta_gate_pack.sql`
-
-## CI/CD workflows
-
-1. `quality.yml`
-2. `flutter-quality.yml`
-3. `security-gate.yml`
-4. `maintenance-cleanup.yml`
-5. `safety-drill.yml`
-6. `e2e-runtime.yml`
-7. `beta-gate.yml`
-8. `beta-status.yml`
-9. `app-release.yml`
-
-## Security and legal posture
-
-1. No plaintext secret release in email.
-2. One-time, expiring access links.
-3. Second-factor challenge before unlock.
-4. Centralized emergency controls for incident response.
-5. Auditable logs for security and release workflows.
-6. Explicit legal boundary: technical layer only.
-
-See:
-
-1. `SECURITY.md`
-2. `docs/legal-companion-mode.md`
-3. `docs/legal-evidence-gate.md`
-4. `docs/provider-handoff-template.md`
-
-## Positioning
-
-This project is best presented as:
-
-1. A **developer-first infrastructure layer** for digital legacy safety.
-2. A **partner-ready coordination core** for future destination workflows.
-3. A **responsible technical companion** that respects legal boundaries.
-
-This keeps the narrative strong without over-claiming legal or production status.
-
-Audience messaging guide:
-
-1. `docs/positioning-audience-guide.md`
-
-## Contributing
-
-1. `CONTRIBUTING.md`
-2. `.github/CODEOWNERS`
-
-## Licensing Model
-
-1. Open-core repository code and public examples:
-- MIT License (`LICENSE`)
-
-2. PTN legacy proprietary modules and related premium policy assets:
-- Proprietary (`LICENSE-PTN`)
-- Copying all/substantial proprietary PTN assets is not allowed without prior written permission.
-
-3. Boundary path for proprietary PTN legacy:
-- `ptn/legacy/private` is reserved and enforced by CI boundary checks.
-
-## Private-first runtime posture
+## Private-First Runtime Posture
 
 1. Sensitive payload is intended to remain on user-controlled devices.
 2. Intent drafts can be cached locally with device-side encryption before PTN activation.
 3. Canonical PTN artifacts can be exported into encrypted local history instead of overwriting a single latest draft.
-4. Runtime traces are minimized to policy-control metadata only.
-5. Trace metadata is retained for a shorter window than general operational logs.
-6. CI blocks known secret-bearing logging patterns before merge.
+4. Runtime traces are minimized to policy-control metadata.
+5. CI blocks known secret-bearing logging patterns before merge.
