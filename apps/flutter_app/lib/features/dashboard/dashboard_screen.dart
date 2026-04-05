@@ -5,6 +5,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_re
 import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_provider.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_model.dart';
+import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_screen.dart';
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
@@ -135,6 +136,15 @@ class DashboardScreen extends ConsumerWidget {
                     readinessAsync.when(
                       data: (readiness) => _RuntimeReadinessCard(
                         readiness: readiness,
+                        onOpenReadiness: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => IntentRuntimeReadinessScreen(
+                                readiness: readiness,
+                              ),
+                            ),
+                          );
+                        },
                         onOpenBuilder: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -382,10 +392,12 @@ class _DeliveryModeCard extends StatelessWidget {
 class _RuntimeReadinessCard extends StatelessWidget {
   const _RuntimeReadinessCard({
     required this.readiness,
+    required this.onOpenReadiness,
     required this.onOpenBuilder,
   });
 
   final IntentRuntimeReadinessModel readiness;
+  final VoidCallback onOpenReadiness;
   final VoidCallback onOpenBuilder;
 
   @override
@@ -445,12 +457,19 @@ class _RuntimeReadinessCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(readiness.nextStep),
             const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton(
-                onPressed: onOpenBuilder,
-                child: const Text("Open Intent Builder"),
-              ),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: onOpenReadiness,
+                  child: const Text("Readiness details"),
+                ),
+                OutlinedButton(
+                  onPressed: onOpenBuilder,
+                  child: const Text("Open Intent Builder"),
+                ),
+              ],
             ),
           ],
         ),
