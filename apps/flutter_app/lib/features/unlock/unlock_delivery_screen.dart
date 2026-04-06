@@ -317,6 +317,32 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
   }
 
+  String _phaseLabel(String visibility) {
+    switch (visibility) {
+      case "existence_only":
+        return "Phase 1: Existence confirmation";
+      case "route_and_instructions":
+        return "Phase 3: Route + instructions";
+      default:
+        return "Phase 2: Route verification";
+    }
+  }
+
+  String _phaseActionCue(String visibility) {
+    switch (visibility) {
+      case "existence_only":
+        return "Next: verify identity and wait for partner/operator confirmation.";
+      case "route_and_instructions":
+        return "Next: follow the instruction summary and verify with the destination partner.";
+      default:
+        return "Next: follow verification route with institution or legal partner.";
+    }
+  }
+
+  int _countByVisibility(String visibility) {
+    return _items.where((item) => (item["visibility_policy"] ?? "route_only").toString() == visibility).length;
+  }
+
   Widget _buildReceiptMetric(String label, String value) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -365,6 +391,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           Text("Post-trigger visibility: ${_visibilityLabel(visibility)}"),
           const SizedBox(height: 6),
           Text(
+            _phaseLabel(visibility),
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Text(
             "Value disclosure: ${valueDisclosure == "hidden" ? "Hidden in receipt" : "Institution verified only"}",
           ),
           const SizedBox(height: 6),
@@ -380,6 +411,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             const SizedBox(height: 6),
             Text("Instruction summary: $instructionSummary"),
           ],
+          const SizedBox(height: 6),
+          Text(_phaseActionCue(visibility)),
         ],
       ),
     );
@@ -642,8 +675,33 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: _buildReceiptMetric(
-                            "Items",
+                            "Total items",
                             _items.length.toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildReceiptMetric(
+                            "Phase 1",
+                            _countByVisibility("existence_only").toString(),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildReceiptMetric(
+                            "Phase 2",
+                            _countByVisibility("route_only").toString(),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildReceiptMetric(
+                            "Phase 3",
+                            _countByVisibility("route_and_instructions").toString(),
                           ),
                         ),
                       ],
