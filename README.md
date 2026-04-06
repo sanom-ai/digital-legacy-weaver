@@ -121,6 +121,34 @@ The Flutter app currently covers:
 
 ## Local Development
 
+Environment setup (PowerShell, current session):
+
+```powershell
+$env:SUPABASE_URL="https://<your-project-ref>.supabase.co"
+$env:SUPABASE_ANON_KEY="<sb_publishable_key>"
+$env:SUPABASE_SERVICE_ROLE_KEY="<sb_secret_key>"
+$env:SUPABASE_ACCESS_TOKEN="<sbp_personal_access_token>"
+```
+
+Where each value comes from:
+
+1. `SUPABASE_URL`: Supabase Dashboard -> Project Settings -> Data API -> Project URL.
+2. `SUPABASE_ANON_KEY`: Supabase Dashboard -> Project Settings -> API Keys -> Publishable key.
+3. `SUPABASE_SERVICE_ROLE_KEY`: Supabase Dashboard -> Project Settings -> API Keys -> Secret keys.
+4. `SUPABASE_ACCESS_TOKEN`: Supabase Dashboard -> Account Settings -> Access Tokens.
+
+Important:
+
+1. Never put `SUPABASE_SERVICE_ROLE_KEY` in Flutter `--dart-define`.
+2. Client app should only use `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+3. Keep real values out of git. Use [`.env.example`](.env.example) as the template.
+
+Flutter run with live backend:
+
+```powershell
+flutter run --dart-define=SUPABASE_URL=$env:SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$env:SUPABASE_ANON_KEY
+```
+
 Local quality gate:
 
 ```powershell
