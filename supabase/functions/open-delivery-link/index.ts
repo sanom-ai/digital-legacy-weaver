@@ -90,6 +90,10 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function addMinutesIso(minutes: number): string {
+  return new Date(Date.now() + minutes * 60 * 1000).toISOString();
+}
+
 function routeForKind(kind: string): string {
   const normalized = kind.trim().toLowerCase();
   if (normalized === "self_recovery") {
@@ -154,6 +158,18 @@ function buildReceiptItems(items: Array<Record<string, unknown>>): DeliveryRecei
 
 function normalizeIdentityText(value: string): string {
   return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function metadataRecord(input: unknown): Record<string, unknown> {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return {};
+  }
+  return input as Record<string, unknown>;
+}
+
+function readTemporaryLockUntil(metadata: unknown): string | null {
+  const value = metadataRecord(metadata)["temporary_lock_until"];
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
@@ -336,6 +352,23 @@ async function getValidAccessKey(accessId: string, accessKey: string) {
       details: { reason: "access_key_blocked", blockedReason: data.blocked_reason ?? null },
     });
     throw new Error("This access key is temporarily blocked pending recipient verification.");
+  }
+  const temporaryLockUntil = readTemporaryLockUntil(data.metadata);
+  if (temporaryLockUntil) {
+    const lockedUntilMs = new Date(temporaryLockUntil).getTime();
+    if (!Number.isNaN(lockedUntilMs) && lockedUntilMs > Date.now()) {
+      await logSecurityEvent({
+        eventType: "access_denied",
+        severity: "warn",
+        actorScope: "access_id",
+        actorRaw: accessId,
+        accessId,
+        ownerId: data.owner_id,
+        mode: data.mode,
+        details: { reason: "access_key_temporarily_locked", temporaryLockUntil },
+      });
+      throw new Error("This receipt is temporarily locked. Please retry later.");
+    }
   }
   if (new Date(data.expires_at).getTime() < Date.now()) {
     await logSecurityEvent({
@@ -554,8 +587,116 @@ async function verifyLegacyBeneficiaryIdentity(
   }
 }
 
+async function getActiveChallenge(accessKeyId: string) {
+  const { data, error } = await supabase
+    .from("delivery_access_challenges")
+    .select("id, code_hash, expires_at, consumed_at, attempts, max_attempts, created_at")
+    .eq("access_key_id", accessKeyId)
+    .is("consumed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data as
+    | {
+        id: string;
+        code_hash: string;
+        expires_at: string;
+        consumed_at: string | null;
+        attempts: number;
+        max_attempts: number;
+        created_at: string;
+      }
+    | null;
+}
+
+async function registerChallengeFailure(
+  challenge: { id: string; attempts: number; max_attempts: number },
+  valid: { id: string; owner_id: string; mode: "legacy" | "self_recovery"; metadata?: Record<string, unknown> | null },
+  accessId: string,
+  reason: string,
+) {
+  const attemptsAfter = challenge.attempts + 1;
+  await supabase
+    .from("delivery_access_challenges")
+    .update({ attempts: attemptsAfter })
+    .eq("id", challenge.id);
+
+  await logSecurityEvent({
+    eventType: "invalid_code",
+    severity: "warn",
+    actorScope: "access_id",
+    actorRaw: accessId,
+    accessId,
+    ownerId: valid.owner_id,
+    mode: valid.mode,
+    details: { attemptsAfter, maxAttempts: challenge.max_attempts, reason },
+  });
+
+  if (reason.startsWith("totp_")) {
+    await logSecurityEvent({
+      eventType: "invalid_totp",
+      severity: "warn",
+      actorScope: "access_id",
+      actorRaw: accessId,
+      accessId,
+      ownerId: valid.owner_id,
+      mode: valid.mode,
+      details: { attemptsAfter, maxAttempts: challenge.max_attempts, reason },
+    });
+  }
+
+  if (attemptsAfter < challenge.max_attempts) {
+    return;
+  }
+
+  const temporaryLockUntil = addMinutesIso(10);
+  const metadata = metadataRecord(valid.metadata);
+  const { error: lockError } = await supabase
+    .from("delivery_access_keys")
+    .update({
+      metadata: {
+        ...metadata,
+        temporary_lock_until: temporaryLockUntil,
+        temporary_lock_reason: reason,
+      },
+    })
+    .eq("id", valid.id);
+  if (lockError) {
+    throw new Error(`failed to apply temporary lock: ${lockError.message}`);
+  }
+
+  await logSecurityEvent({
+    eventType: "unlock_temporary_lock",
+    severity: "warn",
+    actorScope: "access_id",
+    actorRaw: accessId,
+    accessId,
+    ownerId: valid.owner_id,
+    mode: valid.mode,
+    details: { temporaryLockUntil, reason, attemptsAfter },
+  });
+}
+
 async function requestCode(accessId: string, accessKey: string) {
   const valid = await getValidAccessKey(accessId, accessKey);
+  const activeChallenge = await getActiveChallenge(valid.id);
+  if (activeChallenge && new Date(activeChallenge.expires_at).getTime() > Date.now()) {
+    await logSecurityEvent({
+      eventType: "challenge_reuse_guard",
+      severity: "info",
+      actorScope: "access_id",
+      actorRaw: accessId,
+      accessId,
+      ownerId: valid.owner_id,
+      mode: valid.mode,
+      details: { reason: "active_challenge_exists", challengeId: activeChallenge.id },
+    });
+    return {
+      ok: true,
+      message: "A verification code is already active for this receipt. Please use it or wait for expiration before requesting another code.",
+    };
+  }
   const code = String(Math.floor(100000 + Math.random() * 900000));
   const codeHash = await sha256Hex(code);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
@@ -587,16 +728,7 @@ async function unlock(
 ) {
   const valid = await getValidAccessKey(accessId, accessKey);
   const now = Date.now();
-
-  const { data: challenge, error: challengeError } = await supabase
-    .from("delivery_access_challenges")
-    .select("id, code_hash, expires_at, consumed_at, attempts, max_attempts")
-    .eq("access_key_id", valid.id)
-    .is("consumed_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (challengeError) throw new Error(challengeError.message);
+  const challenge = await getActiveChallenge(valid.id);
   if (!challenge) throw new Error("No active verification challenge. Request code first.");
   if (challenge.consumed_at) throw new Error("Challenge already used.");
   if (new Date(challenge.expires_at).getTime() < now) throw new Error("Verification code expired.");
@@ -604,25 +736,22 @@ async function unlock(
 
   const providedHash = await sha256Hex(code);
   if (providedHash !== challenge.code_hash) {
-    await supabase
-      .from("delivery_access_challenges")
-      .update({ attempts: challenge.attempts + 1 })
-      .eq("id", challenge.id);
-    await logSecurityEvent({
-      eventType: "invalid_code",
-      severity: "warn",
-      actorScope: "access_id",
-      actorRaw: accessId,
-      accessId,
-      ownerId: valid.owner_id,
-      mode: valid.mode,
-      details: { attemptsAfter: challenge.attempts + 1, maxAttempts: challenge.max_attempts },
-    });
+    await registerChallengeFailure(challenge, valid, accessId, "invalid_verification_code");
     throw new Error("Invalid verification code.");
   }
 
   if (valid.mode === "legacy") {
-    await verifyLegacyBeneficiaryIdentity(valid.owner_id, beneficiaryName, verificationPhrase);
+    try {
+      await verifyLegacyBeneficiaryIdentity(valid.owner_id, beneficiaryName, verificationPhrase);
+    } catch (_) {
+      await registerChallengeFailure(
+        challenge,
+        valid,
+        accessId,
+        "beneficiary_identity_mismatch",
+      );
+      throw new Error("Beneficiary identity did not match the pre-registered identity.");
+    }
   }
 
   const totpPolicy = await getTotpPolicy(valid.owner_id);
@@ -631,16 +760,7 @@ async function unlock(
       throw new Error("TOTP is required but not configured for this release profile.");
     }
     if (!totpCode || !/^\d{6,8}$/.test(totpCode)) {
-      await logSecurityEvent({
-        eventType: "invalid_totp",
-        severity: "warn",
-        actorScope: "access_id",
-        actorRaw: accessId,
-        accessId,
-        ownerId: valid.owner_id,
-        mode: valid.mode,
-        details: { reason: "missing_or_bad_format" },
-      });
+      await registerChallengeFailure(challenge, valid, accessId, "totp_missing_or_bad_format");
       throw new Error("Missing or invalid TOTP code.");
     }
     const ok = await verifyTotpCode(
@@ -650,16 +770,7 @@ async function unlock(
       totpCode,
     );
     if (!ok) {
-      await logSecurityEvent({
-        eventType: "invalid_totp",
-        severity: "warn",
-        actorScope: "access_id",
-        actorRaw: accessId,
-        accessId,
-        ownerId: valid.owner_id,
-        mode: valid.mode,
-        details: { reason: "mismatch" },
-      });
+      await registerChallengeFailure(challenge, valid, accessId, "totp_mismatch");
       throw new Error("Invalid TOTP code.");
     }
   }
