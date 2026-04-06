@@ -213,6 +213,10 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Runtime blockers" in dashboard_src
     assert "Runtime readiness" in dashboard_src
     assert "Control room" in dashboard_src
+    assert "Most Concrete Product Status" in dashboard_src
+    assert "Available now" in dashboard_src
+    assert "Next milestone" in dashboard_src
+    assert "KPI snapshot" in dashboard_src
     assert "Scenario focus:" in dashboard_src
     assert "Primary action:" in dashboard_src
     assert "Action plan" in dashboard_src

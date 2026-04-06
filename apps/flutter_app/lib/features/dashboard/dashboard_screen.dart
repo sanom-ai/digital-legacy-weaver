@@ -9,6 +9,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_scr
 import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_screen.dart';
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
+import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
@@ -56,6 +57,21 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   safetyAsync.when(
+                    data: (settings) => _OwnerJourneyStatusCard(
+                      beneficiaryIdentityReady: profile.hasBeneficiaryIdentityKit,
+                      proofOfLifeFallbackReady: settings.serverHeartbeatFallbackEnabled,
+                      legalConsentReady: settings.legalDisclaimerAccepted,
+                    ),
+                    loading: () => const _InlineStateCard(
+                      message: "Loading owner journey status...",
+                    ),
+                    error: (_, __) => const _InlineStateCard(
+                      message: "Could not load owner journey status right now.",
+                      isError: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  safetyAsync.when(
                     data: (settings) {
                       final setupComplete =
                           (profile.beneficiaryEmail?.trim().isNotEmpty ?? false) &&
@@ -92,22 +108,25 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
+                    loading: () => const _InlineStateCard(
+                      message: "Checking setup completion...",
+                    ),
+                    error: (_, __) => const _InlineStateCard(
+                      message: "Could not verify setup completion right now.",
+                      isError: true,
+                    ),
                   ),
                 ],
               );
             },
-            loading: () => const Card(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              ),
+            loading: () => const _InlineStateCard(
+              message: "Loading your profile and current policy state...",
+              showSpinner: true,
             ),
             error: (error, _) => Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text("Profile load error: $error"),
+                child: Text("Profile load error: $error. Please refresh and try again."),
               ),
             ),
           ),
@@ -231,20 +250,59 @@ class DashboardScreen extends ConsumerWidget {
                           openBuilder();
                         }
 
-                        return _ControlRoomCard(
-                          readiness: readiness,
-                          setupComplete: setupComplete,
-                          primaryActionLabel: readiness.primaryActionLabel,
-                          onPrimaryAction: openPrimaryAction,
-                          onOpenBuilder: openBuilder,
-                          onOpenReadiness: openReadiness,
-                          onOpenSetup: openSetup,
-                          onOpenArtifactReview: openReviewArtifact,
-                          onOpenArtifactHistory: openHistory,
+                        return Column(
+                          children: [
+                            _UserOutcomeCard(
+                              setupComplete: setupComplete,
+                              readiness: readiness,
+                              onOpenSetup: () {
+                                openSetup();
+                              },
+                              onOpenBuilder: openBuilder,
+                              onOpenReceipt: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const UnlockDeliveryScreen()),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            _ControlRoomCard(
+                              readiness: readiness,
+                              setupComplete: setupComplete,
+                              primaryActionLabel: readiness.primaryActionLabel,
+                              onPrimaryAction: openPrimaryAction,
+                              onOpenBuilder: openBuilder,
+                              onOpenReadiness: openReadiness,
+                              onOpenSetup: openSetup,
+                              onOpenArtifactReview: openReviewArtifact,
+                              onOpenArtifactHistory: openHistory,
+                            ),
+                          ],
                         );
                       },
+                      loading: () => const _InlineStateCard(
+                        message: "Loading control room status...",
+                      ),
+                      error: (_, __) => const _InlineStateCard(
+                        message: "Control room status is temporarily unavailable.",
+                        isError: true,
+                      ),
+                    ),
+                    readinessAsync.when(
+                      data: (readiness) => Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _ProductConcretenessCard(
+                          profile: profile,
+                          settings: settings,
+                          readiness: readiness,
+                          setupComplete: setupComplete,
+                        ),
+                      ),
                       loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      error: (_, __) => const _InlineStateCard(
+                        message: "Could not load product status details.",
+                        isError: true,
+                      ),
                     ),
                     if (readinessAsync.hasValue) const SizedBox(height: 12),
                     Card(
@@ -288,8 +346,13 @@ class DashboardScreen extends ConsumerWidget {
                           );
                         },
                       ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      loading: () => const _InlineStateCard(
+                        message: "Loading runtime readiness summary...",
+                      ),
+                      error: (_, __) => const _InlineStateCard(
+                        message: "Runtime readiness summary is unavailable.",
+                        isError: true,
+                      ),
                     ),
                     artifactAsync.when(
                       data: (artifact) => artifactHistoryAsync.when(
@@ -359,28 +422,53 @@ class DashboardScreen extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, __) => const SizedBox.shrink(),
+                        loading: () => const _InlineStateCard(
+                          message: "Loading artifact history...",
+                        ),
+                        error: (_, __) => const _InlineStateCard(
+                          message: "Could not load artifact history.",
+                          isError: true,
+                        ),
                       ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      loading: () => const _InlineStateCard(
+                        message: "Loading canonical artifact status...",
+                      ),
+                      error: (_, __) => const _InlineStateCard(
+                        message: "Could not load canonical artifact status.",
+                        isError: true,
+                      ),
                     ),
                   ],
                 );
               },
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
+              loading: () => const _InlineStateCard(
+                message: "Loading safety settings...",
+              ),
+              error: (_, __) => const _InlineStateCard(
+                message: "Could not load safety settings for this workspace.",
+                isError: true,
+              ),
             ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            loading: () => const _InlineStateCard(
+              message: "Preparing workspace...",
+            ),
+            error: (_, __) => const _InlineStateCard(
+              message: "Workspace data is temporarily unavailable.",
+              isError: true,
+            ),
           ),
           const SizedBox(height: 16),
           const RecoveryVaultSection(),
           const SizedBox(height: 16),
           safetyAsync.when(
             data: (settings) => _PolicySelectorCard(settings: settings),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            loading: () => const _InlineStateCard(
+              message: "Loading privacy preset...",
+            ),
+            error: (_, __) => const _InlineStateCard(
+              message: "Could not load privacy preset.",
+              isError: true,
+            ),
           ),
           const SizedBox(height: 16),
           Card(
@@ -492,6 +580,51 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
+class _OwnerJourneyStatusCard extends StatelessWidget {
+  const _OwnerJourneyStatusCard({
+    required this.beneficiaryIdentityReady,
+    required this.proofOfLifeFallbackReady,
+    required this.legalConsentReady,
+  });
+
+  final bool beneficiaryIdentityReady;
+  final bool proofOfLifeFallbackReady;
+  final bool legalConsentReady;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: const Color(0xFFF7F1E8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Owner journey status",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "This workspace is built for real user outcomes: secure self-recovery while alive, and secure beneficiary delivery only when policy conditions are met.",
+            ),
+            const SizedBox(height: 10),
+            Text(beneficiaryIdentityReady
+                ? "1. Beneficiary identity kit: ready"
+                : "1. Beneficiary identity kit: still missing"),
+            Text(proofOfLifeFallbackReady
+                ? "2. Proof-of-life fallback: ready"
+                : "2. Proof-of-life fallback: still missing"),
+            Text(legalConsentReady
+                ? "3. Safety/legal consent: ready"
+                : "3. Safety/legal consent: still missing"),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _DeliveryModeCard extends StatelessWidget {
   const _DeliveryModeCard();
 
@@ -513,6 +646,167 @@ class _DeliveryModeCard extends StatelessWidget {
             Text('2) Self-recovery delivery to backup email for password recovery'),
             SizedBox(height: 10),
             Text('Technical companion only: beneficiaries complete any required legal verification in the appropriate legal or service context.'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserOutcomeCard extends StatelessWidget {
+  const _UserOutcomeCard({
+    required this.setupComplete,
+    required this.readiness,
+    required this.onOpenSetup,
+    required this.onOpenBuilder,
+    required this.onOpenReceipt,
+  });
+
+  final bool setupComplete;
+  final IntentRuntimeReadinessModel readiness;
+  final VoidCallback onOpenSetup;
+  final VoidCallback onOpenBuilder;
+  final VoidCallback onOpenReceipt;
+
+  @override
+  Widget build(BuildContext context) {
+    final canDeliver = readiness.readyForRuntime && setupComplete;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "User outcome focus",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Use this app like a product, not a config panel: set up once, verify readiness, then keep your recovery and delivery path healthy.",
+            ),
+            const SizedBox(height: 10),
+            Text(setupComplete
+                ? "1. Setup baseline is complete."
+                : "1. Setup baseline is incomplete."),
+            Text(readiness.readyForRuntime
+                ? "2. Delivery policy is runtime-ready."
+                : "2. Delivery policy still needs action."),
+            Text(canDeliver
+                ? "3. Beneficiary receipt path can be exercised safely."
+                : "3. Beneficiary receipt path should wait until setup and readiness are complete."),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              children: [
+                if (!setupComplete)
+                  FilledButton(
+                    onPressed: onOpenSetup,
+                    child: const Text("Finish setup first"),
+                  ),
+                OutlinedButton(
+                  onPressed: onOpenBuilder,
+                  child: const Text("Open plan workspace"),
+                ),
+                OutlinedButton(
+                  onPressed: onOpenReceipt,
+                  child: const Text("Open beneficiary receipt"),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductConcretenessCard extends StatelessWidget {
+  const _ProductConcretenessCard({
+    required this.profile,
+    required this.settings,
+    required this.readiness,
+    required this.setupComplete,
+  });
+
+  final ProfileModel profile;
+  final SafetySettingsModel settings;
+  final IntentRuntimeReadinessModel readiness;
+  final bool setupComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    final artifact = readiness.currentArtifact;
+    final hasActiveRoute = (artifact?.activeEntryCount ?? 0) > 0;
+    final secureLinkReceiptReady = settings.serverHeartbeatFallbackEnabled &&
+        profile.hasBeneficiaryIdentityKit;
+
+    return Card(
+      color: const Color(0xFFEFE4D6),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Most Concrete Product Status",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "An owner can define a private digital legacy plan, keep it controlled while alive, and let the right recipient move through a secure, humane handoff when the time comes.",
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Available now",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            Text(setupComplete ? "1. Owner setup baseline is complete." : "1. Owner setup baseline is still incomplete."),
+            Text(readiness.hasArtifact
+                ? "2. Canonical artifact export and history are active."
+                : "2. Canonical artifact export is not started yet."),
+            Text(hasActiveRoute
+                ? "3. At least one active delivery route exists."
+                : "3. No active delivery route yet."),
+            Text(secureLinkReceiptReady
+                ? "4. Beneficiary secure-link receipt flow is ready."
+                : "4. Beneficiary secure-link receipt flow still needs identity/fallback setup."),
+            const SizedBox(height: 10),
+            const Text(
+              "Next milestone",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              readiness.readyForRuntime
+                  ? "1. Run beta release pass (toolchain + smoke + controlled handoff drill)."
+                  : "1. Drive current artifact to ready state without blockers.",
+            ),
+            const Text(
+              "2. Harden proof-of-life cross-device recovery and keep false triggers low.",
+            ),
+            const Text(
+              "3. Continue wrong-recipient protection and partner verification route polish.",
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "KPI snapshot",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _MetricChip(label: setupComplete ? "Setup complete: Yes" : "Setup complete: No"),
+                _MetricChip(label: "Readiness: ${readiness.readinessLabel}"),
+                _MetricChip(label: "Artifact versions: ${readiness.historyCount}"),
+                _MetricChip(label: "Active routes: ${artifact?.activeEntryCount ?? 0}"),
+                _MetricChip(label: secureLinkReceiptReady ? "Receipt path: Ready" : "Receipt path: Pending"),
+              ],
+            ),
           ],
         ),
       ),
@@ -868,6 +1162,45 @@ class _RuntimeReadinessCard extends StatelessWidget {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InlineStateCard extends StatelessWidget {
+  const _InlineStateCard({
+    required this.message,
+    this.isError = false,
+    this.showSpinner = false,
+  });
+
+  final String message;
+  final bool isError;
+  final bool showSpinner;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: isError ? const Color(0xFFFFF1F1) : const Color(0xFFF7F1E8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            if (showSpinner)
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Icon(
+                isError ? Icons.warning_amber_rounded : Icons.info_outline,
+                size: 20,
+              ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
           ],
         ),
       ),

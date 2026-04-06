@@ -54,7 +54,11 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Submit failed: $error")),
+        const SnackBar(
+          content: Text(
+            "Could not submit feedback right now. Please check your connection and try again.",
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);

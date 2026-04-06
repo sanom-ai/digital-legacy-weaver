@@ -48,7 +48,13 @@ class ConnectorsScreen extends ConsumerWidget {
                   const SizedBox(height: 10),
                   connectorsAsync.when(
                     data: (items) {
-                      if (items.isEmpty) return const Text("No destination paths yet.");
+                      if (items.isEmpty) {
+                        return const _StatePanel(
+                          message:
+                              "No destination paths yet. Add at least one path before mapping legacy asset references.",
+                          highlighted: true,
+                        );
+                      }
                       return Column(
                         children: items
                             .map(
@@ -61,8 +67,16 @@ class ConnectorsScreen extends ConsumerWidget {
                             .toList(),
                       );
                     },
-                    loading: () => const CircularProgressIndicator(),
-                    error: (e, _) => Text("Destination path load error: $e"),
+                    loading: () => const _StatePanel(
+                      message: "Loading destination paths...",
+                      showSpinner: true,
+                    ),
+                    error: (e, _) => _StatePanel(
+                      message: "Destination path load error: $e",
+                      isError: true,
+                      actionLabel: "Retry",
+                      onAction: () => ref.invalidate(connectorsProvider),
+                    ),
                   ),
                 ],
               ),
@@ -109,7 +123,13 @@ class ConnectorsScreen extends ConsumerWidget {
                   const SizedBox(height: 10),
                   assetsAsync.when(
                     data: (items) {
-                      if (items.isEmpty) return const Text("No asset references yet.");
+                      if (items.isEmpty) {
+                        return const _StatePanel(
+                          message:
+                              "No asset references yet. Add references so each destination path has a concrete, encrypted handoff target.",
+                          highlighted: true,
+                        );
+                      }
                       return Column(
                         children: items
                             .map(
@@ -122,13 +142,85 @@ class ConnectorsScreen extends ConsumerWidget {
                             .toList(),
                       );
                     },
-                    loading: () => const CircularProgressIndicator(),
-                    error: (e, _) => Text("Asset refs load error: $e"),
+                    loading: () => const _StatePanel(
+                      message: "Loading asset references...",
+                      showSpinner: true,
+                    ),
+                    error: (e, _) => _StatePanel(
+                      message: "Asset refs load error: $e",
+                      isError: true,
+                      actionLabel: "Retry",
+                      onAction: () => ref.invalidate(connectorAssetRefsProvider),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatePanel extends StatelessWidget {
+  const _StatePanel({
+    required this.message,
+    this.isError = false,
+    this.highlighted = false,
+    this.showSpinner = false,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String message;
+  final bool isError;
+  final bool highlighted;
+  final bool showSpinner;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isError
+        ? const Color(0xFFFFF1F1)
+        : highlighted
+            ? const Color(0xFFFFF7ED)
+            : const Color(0xFFF7F1E8);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (showSpinner)
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Icon(
+                  isError ? Icons.warning_amber_rounded : Icons.info_outline,
+                  size: 20,
+                ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: onAction,
+              child: Text(actionLabel!),
+            ),
+          ],
         ],
       ),
     );

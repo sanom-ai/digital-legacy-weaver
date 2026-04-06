@@ -359,7 +359,12 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
               isActive: _stepIndex >= 0,
               title: const Text("Contacts"),
               content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    "Step 1 of 3: confirm who should receive secure access when legacy delivery is triggered.",
+                  ),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: _backupEmailController,
                     decoration: const InputDecoration(labelText: "Backup email"),
@@ -402,7 +407,12 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
               isActive: _stepIndex >= 1,
               title: const Text("Triggers"),
               content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    "Step 2 of 3: choose when self-recovery and beneficiary delivery may run.",
+                  ),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: _legacyDaysController,
                     keyboardType: TextInputType.number,
@@ -463,6 +473,18 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F1E8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      "Final step: lock in safety defaults so delivery remains private-first and false-trigger resistant.",
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     value: _remindersEnabled,

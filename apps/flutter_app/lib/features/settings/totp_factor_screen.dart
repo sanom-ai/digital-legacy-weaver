@@ -20,6 +20,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
   TotpFactorStatus? _status;
   TotpSetupBundle? _setupBundle;
   String? _message;
+  bool _messageIsError = false;
 
   @override
   void initState() {
@@ -44,7 +45,10 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       setState(() => _status = status);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Failed to load TOTP status: $e");
+      setState(() {
+        _message = "Could not load TOTP status right now. Please retry.";
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -62,10 +66,14 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       setState(() {
         _setupBundle = bundle;
         _message = "Scan OTP URI in authenticator app, then confirm with 6-digit code.";
+        _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Begin setup failed: $e");
+      setState(() {
+        _message = "Could not start TOTP setup right now. Please retry.";
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -74,7 +82,10 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
   Future<void> _confirmSetup() async {
     final code = _codeController.text.trim();
     if (code.length < 6) {
-      setState(() => _message = "Enter a valid 6-digit code.");
+      setState(() {
+        _message = "Enter a valid 6-digit code.";
+        _messageIsError = true;
+      });
       return;
     }
     setState(() {
@@ -92,10 +103,14 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
         _setupBundle = null;
         _codeController.clear();
         _message = "TOTP enabled successfully.";
+        _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Confirm setup failed: $e");
+      setState(() {
+        _message = "Could not confirm setup. Verify your 6-digit code and try again.";
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -113,13 +128,32 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       setState(() {
         _status = status;
         _message = "TOTP disabled.";
+        _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Disable failed: $e");
+      setState(() {
+        _message = "Could not disable TOTP right now. Please retry.";
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Widget _messageBanner() {
+    if (_message == null) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _messageIsError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(_message!),
+    );
   }
 
   @override
@@ -215,7 +249,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
           ],
           if (_message != null) ...[
             const SizedBox(height: 12),
-            Text(_message!),
+            _messageBanner(),
           ],
         ],
       ),

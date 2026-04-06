@@ -46,7 +46,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       setState(() => _queue = queue);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Failed to load queue: $e");
+      setState(() => _message = "Could not load reviewer queue right now. Please refresh.");
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -76,7 +76,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       await _reload();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Review action failed: $e");
+      setState(() => _message = "Review action could not be completed. Please retry.");
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -131,7 +131,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Failed to load timeline: $e");
+      setState(() => _message = "Could not load review timeline right now.");
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -187,7 +187,15 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
           ),
           if (_message != null) ...[
             const SizedBox(height: 10),
-            Text(_message!),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F1E8),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(_message!),
+            ),
           ],
           const SizedBox(height: 12),
           Card(

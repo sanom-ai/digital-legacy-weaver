@@ -60,16 +60,24 @@ class _SignInScreenState extends State<SignInScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Welcome Back",
+                      "Welcome to Digital Legacy Weaver",
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
-                    const Text("Private-first access to your recovery vault."),
+                    const Text(
+                      "Sign in to manage self-recovery and beneficiary handoff in one place.",
+                    ),
+                    const SizedBox(height: 10),
+                    const Text("What this app helps you do right now"),
+                    const SizedBox(height: 6),
+                    const Text("1. Keep critical access information private-first"),
+                    const Text("2. Prevent accidental loss of access while alive"),
+                    const Text("3. Prepare secure delivery for the right beneficiary"),
                     const SizedBox(height: 18),
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        labelText: "Email",
+                        labelText: "Email address",
                         hintText: "you@example.com",
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -79,7 +87,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: _sending ? null : _sendMagicLink,
-                        child: Text(_sending ? "Sending..." : "Send Magic Link"),
+                        child: Text(_sending ? "Sending..." : "Send secure sign-in link"),
                       ),
                     ),
                     if (_message != null) ...[
