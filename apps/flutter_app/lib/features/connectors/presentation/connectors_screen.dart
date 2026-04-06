@@ -3,11 +3,139 @@ import 'package:digital_legacy_weaver/features/connectors/data/connectors_provid
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ConnectorsScreen extends ConsumerWidget {
+class ConnectorsScreen extends ConsumerStatefulWidget {
   const ConnectorsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConnectorsScreen> createState() => _ConnectorsScreenState();
+}
+
+class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
+  bool _addingPath = false;
+  bool _addingAssetRef = false;
+  bool _isMessageError = false;
+  String? _message;
+
+  void _setMessage(String message, {bool isError = false}) {
+    if (!mounted) return;
+    setState(() {
+      _message = message;
+      _isMessageError = isError;
+    });
+  }
+
+  String _friendlyActionError(String action, Object error) {
+    final lower = error.toString().toLowerCase();
+    if (lower.contains("socketexception") ||
+        lower.contains("failed host lookup") ||
+        lower.contains("network") ||
+        lower.contains("timed out")) {
+      return "Could not finish $action because the connection looks unstable. Please try again once you are back online.";
+    }
+    if (lower.contains("no authenticated user") ||
+        lower.contains("unauthorized") ||
+        lower.contains("forbidden")) {
+      return "Your session may have expired. Please sign in again, then retry $action.";
+    }
+    return "We could not finish $action right now. Please retry in a moment.";
+  }
+
+  String _friendlyLoadError(String scope, Object error) {
+    final lower = error.toString().toLowerCase();
+    if (lower.contains("socketexception") ||
+        lower.contains("failed host lookup") ||
+        lower.contains("network") ||
+        lower.contains("timed out")) {
+      return "Cannot load $scope while you are offline. Please reconnect and retry.";
+    }
+    if (lower.contains("no authenticated user") ||
+        lower.contains("unauthorized") ||
+        lower.contains("forbidden")) {
+      return "Cannot load $scope because your sign-in session is not valid. Please sign in again.";
+    }
+    return "We could not load $scope right now. Please retry.";
+  }
+
+  Future<void> _handleAddPath(AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
+    if (_addingPath) return;
+    final draft = await showDialog<_ConnectorDraft>(
+      context: context,
+      builder: (_) => const _ConnectorFormDialog(),
+    );
+    if (draft == null) return;
+
+    setState(() => _addingPath = true);
+    try {
+      await ref.read(connectorsProvider.notifier).addConnector(
+            connectorId: draft.connectorId,
+            name: draft.name,
+            supportedAssetTypes: draft.assetTypes,
+            supportsWebhooks: draft.supportsWebhooks,
+            supportedSecondFactors: draft.secondFactors,
+          );
+      _setMessage("Destination path saved.");
+    } catch (error) {
+      _setMessage(_friendlyActionError("saving this path", error), isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _addingPath = false);
+      }
+    }
+  }
+
+  Future<void> _handleAddAssetRef(AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
+    if (_addingAssetRef) return;
+    if (connectorsAsync.isLoading) {
+      _setMessage(
+        "Please wait for destination paths to finish loading before adding an asset reference.",
+        isError: true,
+      );
+      return;
+    }
+    if (connectorsAsync.hasError) {
+      _setMessage(
+        "Please fix destination path loading first, then add asset references.",
+        isError: true,
+      );
+      return;
+    }
+    final connectors = connectorsAsync.value ?? const <PartnerConnectorModel>[];
+    if (connectors.isEmpty) {
+      _setMessage("Add at least one destination path before adding asset references.", isError: true);
+      return;
+    }
+
+    final draft = await showDialog<_AssetRefDraft>(
+      context: context,
+      builder: (_) => _AssetRefFormDialog(connectors: connectors),
+    );
+    if (draft == null) return;
+
+    setState(() => _addingAssetRef = true);
+    try {
+      await ref.read(connectorAssetRefsProvider.notifier).addAssetRef(
+            connectorRefId: draft.connectorRefId,
+            assetId: draft.assetId,
+            assetType: draft.assetType,
+            displayName: draft.displayName,
+            encryptedPayloadRef: draft.encryptedPayloadRef,
+            integrityHash: draft.integrityHash,
+          );
+      _setMessage("Asset reference saved.");
+    } catch (error) {
+      _setMessage(
+        _friendlyActionError("saving this asset reference", error),
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _addingAssetRef = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final connectorsAsync = ref.watch(connectorsProvider);
     final assetsAsync = ref.watch(connectorAssetRefsProvider);
 
@@ -30,23 +158,17 @@ class ConnectorsScreen extends ConsumerWidget {
                   const Text(
                     "Track the services, routes, and handoff references that may be used when a protected workflow is activated.",
                   ),
+                  if (_message != null) ...[
+                    const SizedBox(height: 10),
+                    _StatePanel(
+                      message: _message!,
+                      isError: _isMessageError,
+                    ),
+                  ],
                   const SizedBox(height: 10),
                   FilledButton.tonal(
-                    onPressed: () async {
-                      final draft = await showDialog<_ConnectorDraft>(
-                        context: context,
-                        builder: (_) => const _ConnectorFormDialog(),
-                      );
-                      if (draft == null) return;
-                      await ref.read(connectorsProvider.notifier).addConnector(
-                            connectorId: draft.connectorId,
-                            name: draft.name,
-                            supportedAssetTypes: draft.assetTypes,
-                            supportsWebhooks: draft.supportsWebhooks,
-                            supportedSecondFactors: draft.secondFactors,
-                          );
-                    },
-                    child: const Text("Add Path"),
+                    onPressed: _addingPath ? null : () => _handleAddPath(connectorsAsync),
+                    child: Text(_addingPath ? "Saving path..." : "Add Path"),
                   ),
                   const SizedBox(height: 10),
                   connectorsAsync.when(
@@ -76,9 +198,8 @@ class ConnectorsScreen extends ConsumerWidget {
                       message: "Loading destination paths...",
                       showSpinner: true,
                     ),
-                    error: (_, __) => _StatePanel(
-                      message:
-                          "We could not load destination paths right now. Please retry.",
+                    error: (error, __) => _StatePanel(
+                      message: _friendlyLoadError("destination paths", error),
                       isError: true,
                       actionLabel: "Retry",
                       onAction: () => ref.invalidate(connectorsProvider),
@@ -105,35 +226,9 @@ class ConnectorsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 10),
                   FilledButton.tonal(
-                    onPressed: () async {
-                      final connectors = connectorsAsync.value ??
-                          const <PartnerConnectorModel>[];
-                      if (connectors.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Add a destination path first."),
-                          ),
-                        );
-                        return;
-                      }
-                      final draft = await showDialog<_AssetRefDraft>(
-                        context: context,
-                        builder: (_) =>
-                            _AssetRefFormDialog(connectors: connectors),
-                      );
-                      if (draft == null) return;
-                      await ref
-                          .read(connectorAssetRefsProvider.notifier)
-                          .addAssetRef(
-                            connectorRefId: draft.connectorRefId,
-                            assetId: draft.assetId,
-                            assetType: draft.assetType,
-                            displayName: draft.displayName,
-                            encryptedPayloadRef: draft.encryptedPayloadRef,
-                            integrityHash: draft.integrityHash,
-                          );
-                    },
-                    child: const Text("Add Asset Ref"),
+                    onPressed:
+                        _addingAssetRef ? null : () => _handleAddAssetRef(connectorsAsync),
+                    child: Text(_addingAssetRef ? "Saving asset ref..." : "Add Asset Ref"),
                   ),
                   const SizedBox(height: 10),
                   assetsAsync.when(
@@ -163,9 +258,8 @@ class ConnectorsScreen extends ConsumerWidget {
                       message: "Loading asset references...",
                       showSpinner: true,
                     ),
-                    error: (_, __) => _StatePanel(
-                      message:
-                          "We could not load asset references right now. Please retry.",
+                    error: (error, __) => _StatePanel(
+                      message: _friendlyLoadError("asset references", error),
                       isError: true,
                       actionLabel: "Retry",
                       onAction: () =>
