@@ -26,6 +26,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   bool _busy = false;
   bool _obscureAccessKey = true;
   String? _message;
+  bool _messageIsError = false;
   List<Map<String, dynamic>> _items = const [];
 
   bool get _hasAccessLink =>
@@ -89,9 +90,15 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         },
       );
       final data = response.data as Map<String, dynamic>?;
-      setState(() => _message = (data?["message"] ?? "Receipt code requested.").toString());
+      setState(() {
+        _message = (data?["message"] ?? "Receipt code requested.").toString();
+        _messageIsError = false;
+      });
     } catch (e) {
-      setState(() => _message = "Receipt code request failed: $e");
+      setState(() {
+        _message = _friendlyActionError("requesting a receipt code", e);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -124,10 +131,14 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       final rawItems = (data?["items"] as List<dynamic>? ?? const []);
       setState(() {
         _message = "Delivery bundle opened successfully.";
+        _messageIsError = false;
         _items = rawItems.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       });
     } catch (e) {
-      setState(() => _message = "Delivery receipt could not be opened: $e");
+      setState(() {
+        _message = _friendlyActionError("opening the delivery bundle", e);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -194,13 +205,17 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         _message = (data?["message"] ??
                 "Receipt reported as wrong recipient. Access is paused pending re-verification.")
             .toString();
+        _messageIsError = false;
         _codeController.clear();
         _totpController.clear();
         _beneficiaryNameController.clear();
         _verificationPhraseController.clear();
       });
     } catch (e) {
-      setState(() => _message = "Wrong-recipient report failed: $e");
+      setState(() {
+        _message = _friendlyActionError("reporting wrong recipient", e);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) {
         setState(() => _busy = false);
@@ -265,6 +280,78 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(label),
+    );
+  }
+
+  String _friendlyActionError(String action, Object error) {
+    final lower = error.toString().toLowerCase();
+    if (lower.contains("socketexception") ||
+        lower.contains("failed host lookup") ||
+        lower.contains("network") ||
+        lower.contains("timed out")) {
+      return "We had trouble $action because the network looks unstable. Please check your connection and try again.";
+    }
+    if (lower.contains("invalid") || lower.contains("unauthorized") || lower.contains("forbidden")) {
+      return "We could not continue $action. Please verify Access ID, Access Key, and beneficiary details, then try again.";
+    }
+    return "We could not continue $action right now. Please try again in a moment.";
+  }
+
+  Widget _buildStatusCard() {
+    final completedSteps = <bool>[
+      _hasAccessLink,
+      _hasIdentityKit,
+      _hasVerificationCode,
+    ].where((step) => step).length;
+    final statusLabel = _busy
+        ? "Working on your request..."
+        : _items.isNotEmpty
+            ? "Receipt opened"
+            : "Setup in progress";
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFE4D6),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Current status",
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Text("Progress: $completedSteps/3 steps complete"),
+          const SizedBox(height: 6),
+          Text("Status: $statusLabel"),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: completedSteps / 3,
+            minHeight: 8,
+            borderRadius: BorderRadius.circular(999),
+            backgroundColor: const Color(0xFFF7F1E8),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBanner() {
+    if (_message == null) {
+      return const SizedBox.shrink();
+    }
+    final color = _messageIsError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(_message!),
     );
   }
 
@@ -528,6 +615,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         ? "Verification code is ready for unlock."
                         : "Best next move: request the verification code after the access link is ready.",
                   ),
+                  const SizedBox(height: 2),
+                  _buildStatusCard(),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _accessIdController,
@@ -613,7 +702,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   ),
                   if (_message != null) ...[
                     const SizedBox(height: 10),
-                    Text(_message!),
+                    _buildMessageBanner(),
                   ],
                   const SizedBox(height: 14),
                   Container(

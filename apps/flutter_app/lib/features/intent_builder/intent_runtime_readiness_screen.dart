@@ -22,6 +22,15 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    "What this means for users",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Readiness is the checkpoint between a draft plan and a safe, real handoff path. Treat this screen as your go/no-go decision before relying on delivery.",
+                  ),
+                  const SizedBox(height: 12),
                   Text(
                     readiness.readinessLabel,
                     style: Theme.of(context).textTheme.headlineSmall,
@@ -109,7 +118,7 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                     ...readiness.blockers.map(
                       (blocker) => Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: Text("• $blocker"),
+                        child: Text("- $blocker"),
                       ),
                     ),
                 ],

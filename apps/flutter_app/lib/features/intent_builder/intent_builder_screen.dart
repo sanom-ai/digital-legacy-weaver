@@ -668,13 +668,58 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     return filtered;
   }
 
+  Widget _buildStatusBanner({
+    required String message,
+    required bool isError,
+    VoidCallback? onRetry,
+  }) {
+    final background = isError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
+    final icon = isError ? Icons.warning_amber_rounded : Icons.check_circle_outline;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message)),
+          if (isError && onRetry != null)
+            TextButton(
+              onPressed: onRetry,
+              child: const Text("Retry"),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenTitle = widget.screenTitle ?? "Intent Builder";
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: Text(screenTitle)),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 12),
+                Text(
+                  "Loading your local encrypted draft and recent artifact history...",
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -733,6 +778,30 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(screenSubtitle),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F1E8),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "What to do now",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        SizedBox(height: 6),
+                        Text("1. Keep at least one active entry for a real route."),
+                        SizedBox(height: 4),
+                        Text("2. Export canonical PTN and review warnings immediately."),
+                        SizedBox(height: 4),
+                        Text("3. Keep draft and exported artifact in sync before release drills."),
+                      ],
+                    ),
+                  ),
                   if (demoScenarioTitle != null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -774,24 +843,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                   if (_saveMessage != null) ...[
                     const SizedBox(height: 12),
-                    Text(
-                      _saveMessage!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF5A4632),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    _buildStatusBanner(
+                      message: _saveMessage!,
+                      isError: false,
                     ),
                   ],
                   if (_loadError != null) ...[
                     const SizedBox(height: 12),
-                    Text(
-                      _loadError!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    _buildStatusBanner(
+                      message: _loadError!,
+                      isError: true,
+                      onRetry: _restoreDraft,
                     ),
                   ],
                 ],
@@ -1238,21 +1300,47 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          ..._document.entries.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _IntentEntryCard(
-                  entry: entry,
-                  onEdit: () {
-                    _editEntry(entry);
-                  },
-                  onToggleStatus: () {
-                    _toggleEntryStatus(entry);
-                  },
-                  onRemove: () {
-                    _removeEntry(entry);
-                  },
+          if (_document.entries.isEmpty)
+            Card(
+              color: const Color(0xFFFFF7ED),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "No draft entries yet",
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Add at least one intent entry so this workspace can protect self-recovery or beneficiary delivery in a real scenario.",
+                    ),
+                    const SizedBox(height: 10),
+                    FilledButton.tonal(
+                      onPressed: _addDraftEntry,
+                      child: const Text("Add first entry"),
+                    ),
+                  ],
                 ),
-              )),
+              ),
+            )
+          else
+            ..._document.entries.map((entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _IntentEntryCard(
+                    entry: entry,
+                    onEdit: () {
+                      _editEntry(entry);
+                    },
+                    onToggleStatus: () {
+                      _toggleEntryStatus(entry);
+                    },
+                    onRemove: () {
+                      _removeEntry(entry);
+                    },
+                  ),
+                )),
           IntentReviewCard(report: report),
           const SizedBox(height: 12),
           Card(
@@ -1765,6 +1853,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Use plain-language fields first. Advanced controls can stay conservative unless you have a specific release need.",
+              ),
+            ),
+            const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _kind,
               decoration: const InputDecoration(labelText: "Intent kind"),
