@@ -78,17 +78,17 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   String _cooldownRemainingLabel() {
     final until = _lockedUntil;
     if (until == null) {
-      return "a few minutes";
+      return "ไม่กี่นาที";
     }
     final remaining = until.difference(DateTime.now());
     if (remaining.inSeconds <= 0) {
-      return "a few minutes";
+      return "ไม่กี่นาที";
     }
     final minutes = remaining.inMinutes;
     if (minutes <= 1) {
-      return "under 1 minute";
+      return "น้อยกว่า 1 นาที";
     }
-    return "$minutes minutes";
+    return "$minutes นาที";
   }
 
   void _maybeClearCooldown() {
@@ -103,7 +103,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     _lockedUntil = DateTime.now().add(_cooldownDuration);
     _messageIsError = true;
     _message =
-        "For your security, this receipt is temporarily locked for ${_cooldownDuration.inMinutes} minutes ($reason). Please pause and retry later.";
+        "เพื่อความปลอดภัย ระบบล็อกชั่วคราว ${_cooldownDuration.inMinutes} นาที ($reason) กรุณาพักก่อนแล้วค่อยลองใหม่";
   }
 
   void _recordRiskyFailure(String action) {
@@ -130,7 +130,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (initAccessKey.isNotEmpty) {
       _accessKeyController.text = initAccessKey;
-      _message = "Access link detected. Request the receipt code to continue.";
+      _message = "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
     }
 
     final params = Uri.base.queryParameters;
@@ -141,7 +141,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (accessKey.isNotEmpty && _accessKeyController.text.isEmpty) {
       _accessKeyController.text = accessKey;
-      _message = "Access link detected. Request the receipt code to continue.";
+      _message = "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
     }
   }
 
@@ -175,7 +175,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     if (raw.isEmpty) {
       setState(() {
         _messageIsError = true;
-        _message = "Paste the handoff packet first.";
+        _message = "วางชุดข้อมูลรับมอบก่อน | Paste the handoff packet first.";
       });
       return;
     }
@@ -189,7 +189,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _messageIsError = true;
         _message =
-            "Could not read Access ID + Access Key from this packet. Ask your family or guardian to resend the official handoff details.";
+            "อ่าน Access ID + Access Key ไม่ได้ | Could not read Access ID + Access Key. ขอให้ญาติหรือพยานส่งข้อมูลทางการอีกครั้ง";
       });
       return;
     }
@@ -199,7 +199,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _accessKeyController.text = accessKey!;
       _messageIsError = false;
       _message =
-          "Handoff packet verified. Access ID and Access Key were filled for you.";
+          "ยืนยันชุดข้อมูลรับมอบแล้ว | Access ID และ Access Key ถูกกรอกให้อัตโนมัติ";
     });
   }
 
@@ -209,7 +209,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _messageIsError = true;
         _message =
-            "This receipt is temporarily locked. Please wait ${_cooldownRemainingLabel()} before requesting a new code.";
+            "ชุดรับมอบนี้ถูกล็อกชั่วคราว กรุณารอ ${_cooldownRemainingLabel()} ก่อนขอรหัสใหม่";
       });
       return;
     }
@@ -217,7 +217,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _messageIsError = true;
         _message =
-            "This receipt has already been opened. Request a fresh handoff from the owner or operator if you need access again.";
+            "ชุดรับมอบนี้ถูกเปิดแล้ว หากต้องการเข้าถึงอีกครั้ง กรุณาขอรอบรับมอบใหม่จากเจ้าของหรือผู้ดูแล";
       });
       return;
     }
@@ -238,7 +238,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       );
       final data = response.data as Map<String, dynamic>?;
       setState(() {
-        _message = (data?["message"] ?? "Receipt code requested.").toString();
+        _message = (data?["message"] ?? "ส่งคำขอรหัสยืนยันแล้ว").toString();
         _messageIsError = false;
         _codeRequestAttempts = 0;
         _requestedCode = true;
@@ -266,7 +266,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _messageIsError = true;
         _message =
-            "This receipt is temporarily locked. Please wait ${_cooldownRemainingLabel()} before trying again.";
+            "ชุดรับมอบนี้ถูกล็อกชั่วคราว กรุณารอ ${_cooldownRemainingLabel()} ก่อนลองใหม่";
       });
       return;
     }
@@ -274,7 +274,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _messageIsError = true;
         _message =
-            "This receipt was already opened. For safety, request a new handoff session from the owner or operator.";
+            "ชุดรับมอบนี้เคยถูกเปิดแล้ว เพื่อความปลอดภัย กรุณาขอรอบรับมอบใหม่จากเจ้าของหรือผู้ดูแล";
       });
       return;
     }
@@ -309,7 +309,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       final data = response.data as Map<String, dynamic>?;
       final rawItems = (data?["items"] as List<dynamic>? ?? const []);
       setState(() {
-        _message = "Delivery bundle opened successfully.";
+        _message = "เปิดชุดรับมอบสำเร็จแล้ว";
         _messageIsError = false;
         _items =
             rawItems.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -498,7 +498,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  "Safety check before you continue",
+                  "เช็กความปลอดภัยก่อนทำต่อ",
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
@@ -506,7 +506,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            "We never call to ask for passwords, verification phrases, or money transfer fees.",
+            "ระบบจะไม่โทรหรือส่งข้อความเพื่อขอรหัสผ่าน วลียืนยัน หรือขอให้โอนเงิน",
           ),
           const SizedBox(height: 8),
           CheckboxListTile(
@@ -518,7 +518,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
               });
             },
             title: const Text(
-              "I understand this is a no-transfer, no-phone-password process.",
+              "ฉันเข้าใจว่า flow นี้ไม่มีการโอนเงิน และไม่มีการขอรหัสผ่านทางโทรศัพท์",
             ),
           ),
           CheckboxListTile(
@@ -530,12 +530,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
               });
             },
             title: const Text(
-              "I have confirmed this handoff with a family member or guardian.",
+              "ฉันได้ยืนยันกับญาติหรือพยานแล้วว่าการรับมอบนี้ถูกต้อง",
             ),
           ),
           if (!_antiScamChecklistAccepted || !_guardianConfirmed)
             const Text(
-              "Complete both checks to enable code request and unlock.",
+              "ต้องติ๊กครบทั้ง 2 ข้อก่อน จึงจะขอรหัสและปลดล็อกได้",
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
         ],
@@ -555,12 +555,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "No-click option (recommended)",
+            "ทางเลือกปลอดภัยแบบไม่ต้องกดลิงก์ (แนะนำ)",
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           const Text(
-            "Paste the handoff message or code packet from your family. This app will read Access ID and Access Key for you without opening unknown links.",
+            "วางข้อความหรือชุดข้อมูลรับมอบจากครอบครัว แล้วแอปจะอ่าน Access ID / Access Key ให้อัตโนมัติ โดยไม่ต้องเปิดลิงก์ที่ไม่แน่ใจ",
           ),
           const SizedBox(height: 10),
           TextField(
@@ -570,7 +570,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             decoration: const InputDecoration(
               labelText: "Handoff packet / message",
               helperText:
-                  "Supports access_id=... and access_key=... format from official handoff message.",
+                  "รองรับรูปแบบ access_id=... และ access_key=... จากข้อความทางการ",
             ),
           ),
           const SizedBox(height: 10),
@@ -579,7 +579,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             child: OutlinedButton.icon(
               onPressed: _busy ? null : _applyHandoffPacket,
               icon: const Icon(Icons.key_outlined),
-              label: const Text("Use this packet"),
+              label: const Text("ใช้ชุดข้อมูลนี้"),
             ),
           ),
         ],
@@ -598,23 +598,23 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   String _friendlyActionError(String action, Object error) {
     final lower = error.toString().toLowerCase();
     if (lower.contains("temporarily locked")) {
-      return "This receipt is temporarily locked for safety after repeated invalid attempts. Please wait and try again later.";
+      return "ระบบล็อกชั่วคราวเพื่อความปลอดภัย หลังกรอกผิดหลายครั้ง กรุณารอสักครู่แล้วลองใหม่";
     }
     if (lower.contains("already active for this receipt")) {
-      return "A verification code is already active for this receipt. Please use that code or wait for it to expire before requesting another one.";
+      return "มีรหัสยืนยันที่ยังใช้งานอยู่แล้ว ใช้รหัสเดิมหรือรอหมดอายุก่อนขอใหม่";
     }
     if (lower.contains("already been used")) {
-      return "This one-time receipt has already been used. Please request a new handoff session from the owner or operator.";
+      return "ชุดรับมอบแบบครั้งเดียวนี้ถูกใช้ไปแล้ว กรุณาขอรอบรับมอบใหม่จากเจ้าของหรือผู้ดูแล";
     }
     if (_looksLikeNetworkError(error.toString())) {
-      return "We had trouble $action because the network looks unstable. Please check your connection and try again.";
+      return "เครือข่ายไม่เสถียร จึงทำรายการไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่";
     }
     if (lower.contains("invalid") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
-      return "We could not continue $action. Please verify Access ID, Access Key, and beneficiary details, then try again.";
+      return "ทำรายการต่อไม่ได้ กรุณาตรวจสอบ Access ID, Access Key และข้อมูลผู้รับ แล้วลองใหม่";
     }
-    return "We could not continue $action right now. Please try again in a moment.";
+    return "ทำรายการไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   Widget _buildStatusCard() {
@@ -624,14 +624,14 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _hasVerificationCode,
     ].where((step) => step).length;
     final statusLabel = _busy
-        ? "Working on your request..."
+        ? "กำลังดำเนินการ"
         : _isTemporarilyLocked
-            ? "Temporarily locked"
+            ? "ล็อกชั่วคราวเพื่อความปลอดภัย"
             : _items.isNotEmpty
-            ? "Receipt opened"
+            ? "เปิดชุดรับมอบแล้ว"
             : _networkIssue
-                ? "Offline or unstable connection"
-            : "Setup in progress";
+                ? "ออฟไลน์หรือสัญญาณไม่เสถียร"
+            : "กำลังเตรียมข้อมูล";
 
     return Container(
       width: double.infinity,
@@ -644,22 +644,22 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Current status",
+            "สถานะปัจจุบัน | Current status",
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
-          Text("Progress: $completedSteps/3 steps complete"),
+          Text("ความคืบหน้า: $completedSteps/3 ขั้นตอน"),
           const SizedBox(height: 6),
-          Text("Status: $statusLabel"),
+          Text("สถานะ: $statusLabel"),
           const SizedBox(height: 6),
           Text(
             _lastAction == "none"
-                ? "Last action: no request sent yet"
-                : "Last action: ${_lastAction.replaceAll("_", " ")}",
+                ? "การทำงานล่าสุด: ยังไม่มีคำขอ"
+                : "การทำงานล่าสุด: ${_lastAction.replaceAll("_", " ")}",
           ),
           if (_isTemporarilyLocked) ...[
             const SizedBox(height: 6),
-            Text("Retry window: ${_cooldownRemainingLabel()}"),
+            Text("เวลารอก่อนลองใหม่: ${_cooldownRemainingLabel()}"),
           ],
           const SizedBox(height: 8),
           LinearProgressIndicator(
@@ -704,7 +704,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         await _unlock();
                       }
                     },
-              child: const Text("Retry last action"),
+              child: const Text("ลองใหม่อีกครั้ง"),
             ),
           ],
         ],
@@ -873,7 +873,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Beneficiary Receipt")),
+      appBar: AppBar(title: const Text("หน้ารับมอบผู้รับผลประโยชน์ | Beneficiary Receipt")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -884,22 +884,22 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Beneficiary Receipt Flow",
+                    "ขั้นตอนรับมอบสำหรับผู้รับผลประโยชน์",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Open the secure delivery bundle from a handoff link. The beneficiary does not need to install the app first, but does need the owner-prepared identity details.",
+                    "คุณไม่ต้องรีบและไม่ต้องกดลิงก์ทันที เปิดแอปเองแล้วใช้ข้อมูลที่เจ้าของเตรียมไว้ล่วงหน้าเพื่อยืนยันตัวตนอย่างปลอดภัย",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _buildPill("Secure web-link default"),
-                      _buildPill("App optional"),
-                      _buildPill("Pre-registered identity"),
-                      _buildPill("Retry lock protection"),
+                      _buildPill("เปิดแอปเองก่อน"),
+                      _buildPill("ไม่ขอเงิน/ไม่ขอรหัสผ่าน"),
+                      _buildPill("ยืนยันตัวตนที่ลงทะเบียนไว้"),
+                      _buildPill("ล็อกชั่วคราวเมื่อเสี่ยง"),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -916,18 +916,18 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "What the beneficiary needs",
+                          "สิ่งที่ผู้รับควรเตรียม | What you need",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
                         Text(
-                            "1. The secure handoff link from the owner or operator."),
+                            "1. ชุดข้อมูลรับมอบ (access_id / access_key) จากเจ้าของหรือผู้ดูแล"),
                         SizedBox(height: 4),
                         Text(
-                            "2. A one-time receipt code from the registered fallback channel."),
+                            "2. รหัสยืนยันครั้งเดียวจากช่องทางที่ลงทะเบียนไว้"),
                         SizedBox(height: 4),
                         Text(
-                            "3. The registered beneficiary name and private verification phrase."),
+                            "3. ชื่อผู้รับที่ลงทะเบียนไว้ และวลียืนยันตัวตน"),
                       ],
                     ),
                   ),
@@ -945,59 +945,59 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Not the intended recipient?",
+                          "ถ้าไม่ใช่ของคุณ | Not the intended recipient?",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 6),
                         const Text(
-                          "Do not try to guess missing details or keep retrying. Stop here and re-verify the recipient path with the owner, guardian, operator, or designated partner first.",
+                          "อย่าลองเดาหรือกดซ้ำหลายครั้ง ให้หยุดทันที แล้วตรวจสอบกับเจ้าของ/พยาน/ผู้ดูแลก่อนดำเนินการต่อ",
                         ),
                         const SizedBox(height: 10),
                         OutlinedButton(
                           onPressed: _showWrongRecipientDialog,
-                          child: const Text("This receipt is not mine"),
+                          child: const Text("ไม่ใช่ของฉัน | This receipt is not mine"),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                   _buildJourneyStep(
-                    title: "1. Confirm the access link",
+                    title: "1) ยืนยันข้อมูลรับมอบ",
                     body:
-                        "Use the no-click packet first, or paste Access ID and Access Key from an owner-approved handoff message before requesting a verification code.",
+                        "ใช้ชุดข้อมูลแบบไม่ต้องกดลิงก์ก่อน หรือวาง Access ID และ Access Key จากข้อความที่เจ้าของยืนยันแล้ว",
                     complete: _hasAccessLink,
                     cue: _hasAccessLink
-                        ? "Access link detected. You can request a code now."
-                        : "Best next move: use the handoff packet or add both Access ID and Access Key.",
+                        ? "พบข้อมูลรับมอบแล้ว ขอรหัสยืนยันได้ทันที"
+                        : "ขั้นตอนถัดไป: วาง handoff packet หรือกรอก Access ID/Access Key ให้ครบ",
                   ),
                   _buildJourneyStep(
-                    title: "2. Confirm your beneficiary identity",
+                    title: "2) ยืนยันตัวตนผู้รับ",
                     body:
-                        "Enter the same registered beneficiary name and verification phrase that were prepared during owner setup.",
+                        "กรอกชื่อผู้รับและวลียืนยันตัวตนที่เจ้าของตั้งไว้ล่วงหน้าให้ตรงกัน",
                     complete: _hasIdentityKit,
                     cue: _hasIdentityKit
-                        ? "Identity kit looks complete."
-                        : "Best next move: add the registered beneficiary name and verification phrase.",
+                        ? "ข้อมูลยืนยันตัวตนครบแล้ว"
+                        : "ขั้นตอนถัดไป: กรอกชื่อผู้รับและวลียืนยันให้ครบ",
                   ),
                   _buildJourneyStep(
-                    title: "3. Verify and unlock",
+                    title: "3) ขอรหัสและปลดล็อก",
                     body:
-                        "Request the one-time code, then unlock. Add the TOTP code only if the bundle requires it.",
+                        "ขอรหัสครั้งเดียวก่อน แล้วค่อยปลดล็อก หากระบบถาม TOTP ค่อยกรอกเพิ่ม",
                     complete: _hasVerificationCode || _items.isNotEmpty,
                     cue: _hasVerificationCode
-                        ? "Verification code is ready for unlock."
-                        : "Best next move: request the verification code after the access link is ready.",
+                        ? "พร้อมปลดล็อกแล้ว"
+                        : "ขั้นตอนถัดไป: ขอรหัสยืนยันหลังจากข้อมูลรับมอบครบ",
                   ),
                   _buildJourneyStep(
-                    title: "4. Confirm receipt result",
+                    title: "4) ตรวจผลการรับมอบ",
                     body:
-                        "After unlock, verify the released phase and follow the destination verification route before acting.",
+                        "หลังปลดล็อก ให้ตรวจเฟสการเปิดเผยข้อมูล และทำตามเส้นทางยืนยันกับปลายทางก่อนตัดสินใจ",
                     complete: _items.isNotEmpty,
                     cue: _items.isNotEmpty
-                        ? "Receipt opened. Review phase details below."
+                        ? "เปิดชุดรับมอบแล้ว ตรวจรายละเอียดด้านล่างได้เลย"
                         : _unlockAttempted
-                            ? "Unlock attempted. Review response and retry if needed."
-                            : "Best next move: open the bundle after code verification.",
+                            ? "มีการลองปลดล็อกแล้ว ตรวจข้อความตอบกลับก่อนลองใหม่"
+                            : "ขั้นตอนถัดไป: ปลดล็อกหลังยืนยันรหัส",
                   ),
                   const SizedBox(height: 2),
                   _buildStatusCard(),
@@ -1006,9 +1006,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     controller: _accessIdController,
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
-                      labelText: "Access ID",
+                      labelText: "Access ID (รหัสอ้างอิง)",
                       helperText:
-                          "Delivery link identifier from the owner handoff.",
+                          "รหัสอ้างอิงจากข้อมูลรับมอบของเจ้าของ",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1017,9 +1017,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     onChanged: (_) => setState(() {}),
                     obscureText: _obscureAccessKey,
                     decoration: InputDecoration(
-                      labelText: "Access Key",
+                      labelText: "Access Key (กุญแจรับมอบ)",
                       helperText:
-                          "Keep this private. Treat it like a secure handoff token.",
+                          "เก็บเป็นความลับ ห้ามส่งต่อเหมือนโทเค็นปลอดภัย",
                       suffixIcon: IconButton(
                         onPressed: () => setState(
                             () => _obscureAccessKey = !_obscureAccessKey),
@@ -1035,7 +1035,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _canRequestCode ? _requestCode : null,
-                          child: const Text("Request Receipt Code"),
+                          child: const Text("ขอรหัสยืนยัน | Request code"),
                         ),
                       ),
                     ],
@@ -1043,7 +1043,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   if (!_antiScamChecklistAccepted || !_guardianConfirmed) ...[
                     const SizedBox(height: 8),
                     const Text(
-                      "Complete safety check + guardian confirmation above to enable this step.",
+                      "กรุณาเช็กความปลอดภัยและยืนยันกับพยานให้ครบก่อนจึงจะทำขั้นตอนนี้ได้",
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ],
@@ -1057,7 +1057,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
-                        "Code requested. Check your registered fallback channel now, then return to unlock.",
+                        "ส่งรหัสแล้ว ตรวจช่องทางที่ลงทะเบียนไว้ แล้วกลับมาปลดล็อกต่อได้เลย",
                       ),
                     ),
                   ],
@@ -1066,9 +1066,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     controller: _codeController,
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
-                      labelText: "Verification Code",
+                      labelText: "รหัสยืนยัน | Verification code",
                       helperText:
-                          "One-time code sent through the active fallback channel.",
+                          "รหัสครั้งเดียวจากช่องทางสำรองที่เปิดใช้งาน",
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -1078,9 +1078,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     onChanged: (_) => setState(() {}),
                     autofillHints: const [AutofillHints.name],
                     decoration: const InputDecoration(
-                      labelText: "Registered beneficiary name",
+                      labelText: "ชื่อผู้รับที่ลงทะเบียนไว้",
                       helperText:
-                          "Must match the owner-prepared beneficiary record.",
+                          "ต้องตรงกับข้อมูลที่เจ้าของตั้งไว้",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1088,9 +1088,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     controller: _verificationPhraseController,
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
-                      labelText: "Verification phrase",
+                      labelText: "วลียืนยันตัวตน",
                       helperText:
-                          "Shared phrase from setup. It is checked before the bundle can open.",
+                          "วลีที่แชร์กันไว้ตอนตั้งค่า ใช้ตรวจสอบก่อนเปิดข้อมูล",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1098,9 +1098,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     controller: _totpController,
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
-                      labelText: "TOTP Code (if required)",
+                      labelText: "รหัส TOTP (ถ้าระบบร้องขอ)",
                       helperText:
-                          "Only enter this if the bundle asks for an extra authenticator step.",
+                          "กรอกเฉพาะเมื่อระบบแจ้งว่าต้องมีขั้นยืนยันเพิ่ม",
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -1110,7 +1110,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     child: FilledButton(
                       onPressed: _canUnlock ? _unlock : null,
                       child:
-                          Text(_busy ? "Working..." : "Open Delivery Bundle"),
+                          Text(_busy ? "กำลังดำเนินการ..." : "เปิดชุดรับมอบ | Open bundle"),
                     ),
                   ),
                   if (_message != null) ...[
@@ -1129,32 +1129,32 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Need help?",
+                          "ต้องการความช่วยเหลือ?",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "Legacy handoff now expects a pre-registered beneficiary name and verification phrase from owner setup before the bundle can open.",
+                          "การรับมอบต้องใช้ชื่อผู้รับและวลียืนยันที่ลงทะเบียนไว้ล่วงหน้าก่อนจึงจะเปิดข้อมูลได้",
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "Safer pattern: open the app yourself and paste the handoff packet. Do not continue from unknown clickable links.",
+                          "วิธีที่ปลอดภัยกว่า: เปิดแอปเองแล้ววางชุดข้อมูลรับมอบ หลีกเลี่ยงลิงก์ที่ไม่แน่ใจ",
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "If the first code does not arrive, use the owner-prepared fallback path such as email plus SMS and wait for the grace-period handoff instructions instead of retrying blindly.",
+                          "ถ้ายังไม่ได้รหัส ให้ใช้ช่องทางสำรองที่เจ้าของตั้งไว้ (เช่น Email + SMS) และรอคำแนะนำ อย่ากดซ้ำแบบเดาสุ่ม",
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "If you already use the app, this same receipt can later be upgraded into an app-guided experience. The secure link remains the default path.",
+                          "ถ้าคุณใช้แอปอยู่แล้ว สามารถทำ flow แบบแนะนำในแอปต่อได้ทันที",
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "If you are offline, pause and retry once your connection stabilizes. Repeated retries with bad signal can lock the flow temporarily.",
+                          "หากเน็ตไม่เสถียร ให้หยุดก่อนและลองใหม่เมื่อสัญญาณดีขึ้น การกดซ้ำตอนเน็ตไม่ดีอาจถูกล็อกชั่วคราว",
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "After multiple invalid attempts, this receipt enters a temporary lock window to protect the owner and beneficiary route.",
+                          "หากกรอกผิดหลายครั้ง ระบบจะล็อกชั่วคราวเพื่อปกป้องทั้งเจ้าของและผู้รับ",
                         ),
                       ],
                     ),
