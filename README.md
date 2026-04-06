@@ -49,6 +49,7 @@ See [docs/legal-companion-mode.md](docs/legal-companion-mode.md), [docs/legal-ev
 3. See [`docs/pr-roadmap.md`](docs/pr-roadmap.md) for the current build sequence.
 4. See [`docs/testing-strategy.md`](docs/testing-strategy.md) for validation coverage.
 5. See [`docs/release-readiness-checklist.md`](docs/release-readiness-checklist.md) for stable-release gates.
+6. Run `python tools/release_gate_preflight.py --max-age-days 30` before creating a release tag.
 
 ## Product Direction
 
