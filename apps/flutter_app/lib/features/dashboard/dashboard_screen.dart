@@ -288,6 +288,16 @@ class DashboardScreen extends ConsumerWidget {
 
                         return Column(
                           children: [
+                            _LegacyLedgerDashboardCard(
+                              profile: profile,
+                              readiness: readiness,
+                              onAddPlan: openBuilder,
+                              onHeartbeatCheck: () async {
+                                await ref.read(profileRepositoryProvider).markAlive();
+                                ref.invalidate(profileProvider);
+                              },
+                            ),
+                            const SizedBox(height: 12),
                             _UserOutcomeCard(
                               setupComplete: setupComplete,
                               readiness: readiness,
@@ -916,6 +926,231 @@ class _ProductConcretenessCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _LegacyLedgerDashboardCard extends StatelessWidget {
+  const _LegacyLedgerDashboardCard({
+    required this.profile,
+    required this.readiness,
+    required this.onAddPlan,
+    required this.onHeartbeatCheck,
+  });
+
+  final ProfileModel profile;
+  final IntentRuntimeReadinessModel readiness;
+  final VoidCallback onAddPlan;
+  final Future<void> Function() onHeartbeatCheck;
+
+  String _relative(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 60) {
+      return "${diff.inMinutes.clamp(1, 59)} นาทีที่แล้ว";
+    }
+    if (diff.inHours < 24) {
+      return "${diff.inHours} ชม. ที่แล้ว";
+    }
+    return "${diff.inDays} วันที่แล้ว";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = readiness.currentArtifact?.sealedReleaseCandidate.entries ??
+        const <SealedReleaseEntryModel>[];
+    final heartbeatOk = DateTime.now().difference(profile.lastActiveAt).inDays <= 1;
+    final statusText = heartbeatOk ? "ปลอดภัย" : "ต้องตรวจสอบ";
+    final statusColor = heartbeatOk ? const Color(0xFFE9F6EF) : const Color(0xFFFFF7ED);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      color: const Color(0xFF18212D),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "สมุดบัญชีมรดก",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: statusColor,
+                        ),
+                        child: Text(
+                          "สถานะ: $statusText (อัปเดตล่าสุดเมื่อ ${_relative(profile.lastActiveAt)})",
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: onAddPlan,
+                  icon: const Icon(Icons.add),
+                  label: const Text("เพิ่มแผนมรดกใหม่"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFF243246),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "สัญญาณชีพดิจิทัล (Heartbeat)",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: heartbeatOk ? 1 : 0.4,
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(999),
+                    backgroundColor: Colors.white24,
+                    color: heartbeatOk ? const Color(0xFF6FD6B0) : const Color(0xFFF5C07A),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          heartbeatOk
+                              ? "ระบบยังตรวจพบการใช้งานปกติ"
+                              : "ยังไม่พบการใช้งานล่าสุด กรุณาตรวจสอบ",
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: onHeartbeatCheck,
+                        child: const Text("เช็กตอนนี้"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (entries.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                ),
+                child: const Text(
+                  "ยังไม่มีผู้รับมรดกในแผนนี้ เริ่มเพิ่มแผนแรกได้เลย",
+                ),
+              )
+            else
+              ...entries.take(3).toList().asMap().entries.map(
+                (entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final fallbackName = profile.beneficiaryName?.trim().isNotEmpty == true
+                      ? profile.beneficiaryName!.trim()
+                      : "ผู้รับมรดก";
+                  final displayName = item.kind == "self_recovery"
+                      ? "เจ้าของบัญชี (คุณ)"
+                      : (index == 0 ? fallbackName : "ผู้รับมรดก ${index + 1}");
+                  final status = item.kind == "self_recovery"
+                      ? "กู้คืนได้เมื่อยืนยันตัวตน"
+                      : "รอการยืนยันตัวตน ${profile.legacyInactivityDays} วัน";
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: _LegacyRecipientCard(
+                      displayName: displayName,
+                      deliveryLabel: item.assetLabel,
+                      statusLabel: status,
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LegacyRecipientCard extends StatelessWidget {
+  const _LegacyRecipientCard({
+    required this.displayName,
+    required this.deliveryLabel,
+    required this.statusLabel,
+  });
+
+  final String displayName;
+  final String deliveryLabel;
+  final String statusLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = displayName.isEmpty ? "?" : displayName[0].toUpperCase();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: const Color(0xFFEFF6F5),
+            child: Text(initial),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text("ข้อมูลที่ส่งมอบ: $deliveryLabel"),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: const Color(0xFFEFF6F5),
+              ),
+              child: Text(
+                statusLabel,
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

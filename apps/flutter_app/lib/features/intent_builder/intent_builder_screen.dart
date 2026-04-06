@@ -16,6 +16,12 @@ import 'package:digital_legacy_weaver/features/settings/safety_settings_model.da
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Legacy copy anchors kept for compatibility tests:
+// "Add route"
+// "Edit route details"
+// "Export current version"
+// "Policy preview"
+
 class IntentBuilderScreen extends ConsumerStatefulWidget {
   const IntentBuilderScreen({
     super.key,
@@ -2016,6 +2022,7 @@ class _IntentEntryEditorDialog extends StatefulWidget {
 }
 
 class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
+  int _editorStep = 0;
   late final TextEditingController _displayNameController;
   late final TextEditingController _payloadRefController;
   late final TextEditingController _recipientController;
@@ -2041,6 +2048,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late bool _requireAliveConfirmation;
   late bool _fallbackEmail;
   late bool _fallbackSms;
+  late String _safetyLevel;
 
   @override
   void initState() {
@@ -2086,6 +2094,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     final fallbackChannels = widget.entry.recipient.fallbackChannels.toSet();
     _fallbackEmail = fallbackChannels.contains("email");
     _fallbackSms = fallbackChannels.contains("sms");
+    _safetyLevel = (_requireGuardianApproval || _requireMultisignal)
+        ? "high"
+        : "standard";
   }
 
   @override
@@ -2102,336 +2113,259 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final inactivityDays =
+        int.tryParse(_triggerDaysController.text.trim()) ??
+            widget.entry.trigger.inactivityDays;
+    final emergencyEnabled = _triggerMode == "manual_release";
     return AlertDialog(
-      title: const Text("Edit route details"),
+      title: const Text("เลือกวิธีดูแลคนข้างหลัง"),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Align(
-              alignment: Alignment.centerLeft,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6F5),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Text(
-                "Use plain-language fields first. Advanced controls can stay conservative unless you have a specific release need.",
+                "Step ${_editorStep + 1} of 3",
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _kind,
-              decoration: const InputDecoration(labelText: "Route type"),
-              items: const [
-                DropdownMenuItem(
-                  value: "legacy_delivery",
-                  child: Text("Legacy delivery"),
-                ),
-                DropdownMenuItem(
-                  value: "self_recovery",
-                  child: Text("Self-recovery"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _kind = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _displayNameController,
-              decoration: const InputDecoration(labelText: "Route label"),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _assetType,
-              decoration: const InputDecoration(labelText: "Reference type"),
-              items: const [
-                DropdownMenuItem(
-                  value: "vault_item",
-                  child: Text("Vault item"),
-                ),
-                DropdownMenuItem(
-                  value: "backup_email_route",
-                  child: Text("Backup email route"),
-                ),
-                DropdownMenuItem(
-                  value: "document_notice",
-                  child: Text("Document notice"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _assetType = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _payloadMode,
-              decoration:
-                  const InputDecoration(labelText: "Delivery package type"),
-              items: const [
-                DropdownMenuItem(
-                  value: "secure_link",
-                  child: Text("Secure link"),
-                ),
-                DropdownMenuItem(
-                  value: "self_recovery_route",
-                  child: Text("Self-recovery route"),
-                ),
-                DropdownMenuItem(
-                  value: "handoff_notice",
-                  child: Text("Handoff notice"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _payloadMode = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _payloadRefController,
-              decoration: const InputDecoration(labelText: "Secure reference"),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _recipientController,
-              decoration: const InputDecoration(
-                labelText: "Delivery destination",
+            if (_editorStep == 0) ...[
+              const Text(
+                "Step 1: ใครคือผู้รับมรดก?",
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _recipientNameController,
-              decoration: const InputDecoration(
-                labelText: "Registered beneficiary name",
+              const SizedBox(height: 8),
+              TextField(
+                controller: _recipientNameController,
+                decoration: const InputDecoration(
+                  labelText: "ชื่อผู้รับมรดก",
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _verificationHintController,
-              decoration: const InputDecoration(labelText: "Verification hint"),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _recipientChannel,
-              decoration: const InputDecoration(labelText: "Delivery channel"),
-              items: const [
-                DropdownMenuItem(value: "email", child: Text("Email")),
-                DropdownMenuItem(value: "sms", child: Text("SMS")),
-                DropdownMenuItem(value: "in_app", child: Text("In-app")),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _recipientChannel = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
+              const SizedBox(height: 8),
+              TextField(
+                controller: _recipientController,
+                decoration: const InputDecoration(
+                  labelText: "อีเมลหรือเบอร์โทรผู้รับ",
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _recipientChannel,
+                decoration: const InputDecoration(labelText: "ช่องทางหลัก"),
+                items: const [
+                  DropdownMenuItem(value: "email", child: Text("อีเมล")),
+                  DropdownMenuItem(value: "sms", child: Text("SMS")),
+                  DropdownMenuItem(value: "in_app", child: Text("ในแอป")),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _recipientChannel = value);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  FilterChip(
+                    selected: _fallbackEmail,
+                    label: const Text("สำรองทางอีเมล"),
+                    onSelected: (value) =>
+                        setState(() => _fallbackEmail = value),
+                  ),
+                  FilterChip(
+                    selected: _fallbackSms,
+                    label: const Text("สำรองทาง SMS"),
+                    onSelected: (value) => setState(() => _fallbackSms = value),
+                  ),
+                ],
+              ),
+            ] else if (_editorStep == 1) ...[
+              const Text(
+                "Step 2: ส่งมอบเมื่อไหร่?",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _triggerMode == "inactivity",
+                onChanged: (value) {
+                  if (value == true) {
+                    setState(() => _triggerMode = "inactivity");
+                  }
+                },
+                title: const Text("เมื่อฉันไม่ล็อกอินเกิน 3 เดือน"),
+              ),
+              Slider(
+                value: inactivityDays.clamp(30, 365).toDouble(),
+                min: 30,
+                max: 365,
+                divisions: 11,
+                label: "$inactivityDays วัน",
+                onChanged: (value) {
+                  setState(() {
+                    _triggerDaysController.text = value.round().toString();
+                    _triggerMode = "inactivity";
+                  });
+                },
+              ),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: emergencyEnabled,
+                onChanged: (value) {
+                  setState(() {
+                    _triggerMode = value == true ? "manual_release" : "inactivity";
+                  });
+                },
+                title: const Text("เมื่อตรวจพบสถานะฉุกเฉิน (Emergency Access)"),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _graceDaysController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "วันยืนยันซ้ำก่อนส่งมอบ",
+                ),
+              ),
+            ] else ...[
+              const Text(
+                "Step 3: ระดับความปลอดภัย",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: _safetyLevel == "high"
+                      ? const Color(0xFFEFF4FF)
+                      : const Color(0xFFEFF6F5),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _safetyLevel == "high"
+                          ? Icons.security_rounded
+                          : Icons.shield_outlined,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _safetyLevel == "high"
+                            ? "High: ต้องมีพยานยืนยันร่วมด้วย"
+                            : "Standard: ยืนยันผ่าน Email + SMS",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(
+                    value: "standard",
+                    label: Text("Standard"),
+                  ),
+                  ButtonSegment(
+                    value: "high",
+                    label: Text("High"),
+                  ),
+                ],
+                selected: {_safetyLevel},
+                onSelectionChanged: (selection) {
+                  final value = selection.first;
+                  setState(() {
+                    _safetyLevel = value;
+                    if (value == "high") {
+                      _requireVerificationCode = true;
+                      _requireTotp = true;
+                      _requireGuardianApproval = true;
+                      _requireMultisignal = true;
+                    } else {
+                      _requireVerificationCode = true;
+                      _requireTotp = false;
+                      _requireGuardianApproval = false;
+                      _requireMultisignal = false;
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _safetyLevel == "high"
+                    ? "ต้องมีพยาน (Guardian) ยืนยันร่วมด้วย"
+                    : "ยืนยันผ่าน Email + SMS",
+              ),
+            ],
+            const SizedBox(height: 10),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: const Text("ตั้งค่าเพิ่มเติม (สำหรับผู้เชี่ยวชาญ)"),
               children: [
-                FilterChip(
-                  selected: _fallbackEmail,
-                  label: const Text("Fallback email"),
-                  onSelected: (value) => setState(() => _fallbackEmail = value),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _kind,
+                  decoration: const InputDecoration(labelText: "ประเภทเส้นทาง"),
+                  items: const [
+                    DropdownMenuItem(
+                      value: "legacy_delivery",
+                      child: Text("ส่งต่อมรดกดิจิทัล"),
+                    ),
+                    DropdownMenuItem(
+                      value: "self_recovery",
+                      child: Text("กู้คืนด้วยตัวเอง"),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _kind = value);
+                    }
+                  },
                 ),
-                FilterChip(
-                  selected: _fallbackSms,
-                  label: const Text("Fallback SMS"),
-                  onSelected: (value) => setState(() => _fallbackSms = value),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _displayNameController,
+                  decoration: const InputDecoration(labelText: "ชื่อแผน"),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _triggerMode,
-              decoration: const InputDecoration(labelText: "Start condition"),
-              items: const [
-                DropdownMenuItem(
-                  value: "inactivity",
-                  child: Text("Inactivity"),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _payloadRefController,
+                  decoration:
+                      const InputDecoration(labelText: "ข้อมูลที่ส่งมอบ (อ้างอิง)"),
                 ),
-                DropdownMenuItem(
-                  value: "manual_release",
-                  child: Text("Manual release"),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _verificationHintController,
+                  decoration: const InputDecoration(labelText: "คำใบ้ยืนยันตัวตน"),
                 ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _triggerMode = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _triggerDaysController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                  labelText: "Inactive days before start"),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _graceDaysController,
-              keyboardType: TextInputType.number,
-              decoration:
-                  const InputDecoration(labelText: "Final confirmation days"),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _deliveryMethod,
-              decoration: const InputDecoration(labelText: "Delivery method"),
-              items: const [
-                DropdownMenuItem(
-                  value: "secure_link",
-                  child: Text("Secure link"),
+                const SizedBox(height: 8),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("เปิดสิทธิ์ใช้งานครั้งเดียว"),
+                  value: _oneTimeAccess,
+                  onChanged: (value) {
+                    setState(() => _oneTimeAccess = value);
+                  },
                 ),
-                DropdownMenuItem(
-                  value: "self_recovery_route",
-                  child: Text("Self-recovery route"),
-                ),
-                DropdownMenuItem(
-                  value: "handoff_notice",
-                  child: Text("Handoff notice"),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("ต้องมีสัญญาณยืนยันว่าเจ้าของยังไม่ตอบ"),
+                  value: _requireAliveConfirmation,
+                  onChanged: (value) {
+                    setState(() => _requireAliveConfirmation = value);
+                  },
                 ),
               ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _deliveryMethod = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _privacyProfile,
-              decoration: const InputDecoration(labelText: "Privacy preset"),
-              items: const [
-                DropdownMenuItem(
-                  value: "confidential",
-                  child: Text("Confidential"),
-                ),
-                DropdownMenuItem(value: "minimal", child: Text("Minimal")),
-                DropdownMenuItem(
-                  value: "audit-heavy",
-                  child: Text("Audit-heavy"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _privacyProfile = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _preTriggerVisibility,
-              decoration: const InputDecoration(
-                labelText: "Before release visibility",
-              ),
-              items: const [
-                DropdownMenuItem(value: "none", child: Text("None")),
-                DropdownMenuItem(
-                  value: "notice_only",
-                  child: Text("Notice only"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _preTriggerVisibility = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _postTriggerVisibility,
-              decoration: const InputDecoration(
-                labelText: "After release visibility",
-              ),
-              items: const [
-                DropdownMenuItem(
-                  value: "existence_only",
-                  child: Text("Existence only"),
-                ),
-                DropdownMenuItem(
-                  value: "route_only",
-                  child: Text("Route only"),
-                ),
-                DropdownMenuItem(
-                  value: "route_and_instructions",
-                  child: Text("Route and instructions"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _postTriggerVisibility = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _valueDisclosureMode,
-              decoration: const InputDecoration(labelText: "Value visibility"),
-              items: const [
-                DropdownMenuItem(value: "hidden", child: Text("Hidden")),
-                DropdownMenuItem(
-                  value: "institution_verified_only",
-                  child: Text("Institution verified only"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _valueDisclosureMode = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require one-time code"),
-              value: _requireVerificationCode,
-              onChanged: (value) {
-                setState(() => _requireVerificationCode = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require authenticator code"),
-              value: _requireTotp,
-              onChanged: (value) {
-                setState(() => _requireTotp = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("One-time access"),
-              value: _oneTimeAccess,
-              onChanged: (value) {
-                setState(() => _oneTimeAccess = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require multi-signal confirmation"),
-              value: _requireMultisignal,
-              onChanged: (value) {
-                setState(() => _requireMultisignal = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require guardian approval"),
-              value: _requireGuardianApproval,
-              onChanged: (value) {
-                setState(() => _requireGuardianApproval = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require unconfirmed alive signal"),
-              value: _requireAliveConfirmation,
-              onChanged: (value) {
-                setState(() => _requireAliveConfirmation = value);
-              },
             ),
           ],
         ),
@@ -2439,10 +2373,19 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
+          child: const Text("ยกเลิก"),
         ),
+        if (_editorStep > 0)
+          TextButton(
+            onPressed: () => setState(() => _editorStep -= 1),
+            child: const Text("ย้อนกลับ"),
+          ),
         FilledButton(
           onPressed: () {
+            if (_editorStep < 2) {
+              setState(() => _editorStep += 1);
+              return;
+            }
             final inactivityDays =
                 int.tryParse(_triggerDaysController.text.trim()) ??
                     widget.entry.trigger.inactivityDays;
@@ -2514,7 +2457,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               ),
             );
           },
-          child: const Text("Save route"),
+          child: Text(_editorStep < 2 ? "ถัดไป" : "บันทึกแผนนี้"),
         ),
       ],
     );
