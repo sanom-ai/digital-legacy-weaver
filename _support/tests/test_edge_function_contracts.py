@@ -96,6 +96,13 @@ def test_unlock_contains_rate_limit_scopes() -> None:
         assert scope in src
 
 
+def test_unlock_enforces_challenge_reuse_and_temporary_lock() -> None:
+    src = _read(UNLOCK_FN)
+    assert "challenge_reuse_guard" in src
+    assert "temporary_lock_until" in src
+    assert "unlock_temporary_lock" in src
+
+
 def test_unlock_logs_key_security_events() -> None:
     src = _read(UNLOCK_FN)
     required_events = [

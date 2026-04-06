@@ -39,7 +39,9 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
     try {
-      await ref.read(betaFeedbackRepositoryProvider).submit(
+      await ref
+          .read(betaFeedbackRepositoryProvider)
+          .submit(
             category: _category,
             severity: _severity,
             summary: _summaryController.text,
@@ -75,7 +77,7 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              "Help us improve stability and usability during beta.",
+              "Help us improve reliability and usability during beta.",
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
@@ -83,10 +85,13 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
               initialValue: _category,
               decoration: const InputDecoration(labelText: "Category"),
               items: const [
-                DropdownMenuItem(value: "ux", child: Text("UX")),
+                DropdownMenuItem(value: "ux", child: Text("User experience")),
                 DropdownMenuItem(value: "bug", child: Text("Bug")),
                 DropdownMenuItem(value: "security", child: Text("Security")),
-                DropdownMenuItem(value: "reliability", child: Text("Reliability")),
+                DropdownMenuItem(
+                  value: "reliability",
+                  child: Text("Reliability"),
+                ),
                 DropdownMenuItem(value: "other", child: Text("Other")),
               ],
               onChanged: (v) => setState(() => _category = v ?? "ux"),
@@ -108,7 +113,7 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
               controller: _summaryController,
               decoration: const InputDecoration(
                 labelText: "Summary",
-                hintText: "Short description of issue or feedback",
+                hintText: "Short summary of the issue or suggestion",
               ),
               validator: _required,
             ),
@@ -119,7 +124,7 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
               maxLines: 8,
               decoration: const InputDecoration(
                 labelText: "Details (optional)",
-                hintText: "Steps to reproduce, expected behavior, actual behavior",
+                hintText: "Steps, expected behavior, and what happened instead",
               ),
             ),
             const SizedBox(height: 12),

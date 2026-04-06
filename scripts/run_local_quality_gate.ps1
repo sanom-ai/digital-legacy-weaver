@@ -30,6 +30,7 @@ Run-Step "[4/8] PDPA control mapping check..." { python tools\pdpa_control_check
 Run-Step "[5/8] Naming cleanliness check..." { python tools\check_naming_clean.py }
 Run-Step "[6/8] Proprietary PTN boundary check..." { python tools\check_proprietary_ptn_boundary.py }
 Run-Step "[7/8] Private-first logging guard..." { python tools\check_private_first_logging.py }
-Run-Step "[8/8] Unit tests..." { python -m pytest _support/tests }
+Run-Step "[8/9] Repository hygiene check..." { python tools\check_repo_hygiene.py }
+Run-Step "[9/9] Unit tests..." { python -m pytest _support/tests }
 
 Write-Host "Local quality gate passed." -ForegroundColor Green

@@ -34,6 +34,9 @@ Command:
 2. `system_heartbeats` has fresh `ok` record (<26h)
 3. `health_checks.sql` reviewed and no blocking anomalies
 4. `e2e-runtime.yml` latest run on test project completed and artifact evidence is available
+5. Fresh PASS evidence exists for:
+   1. `ops/reports/backup-restore-smoke-*.md`
+   2. `ops/reports/safety-control-drill-*.md`
 
 ## 4) Delivery Safety Flow
 
@@ -81,3 +84,11 @@ Release decision rule:
 1. `GO` only when no `FAIL` remains
 2. `GO with WAIVER` allowed only with explicit owner sign-off
 3. `NO-GO` if any unresolved security/reliability critical issue exists
+
+## 9) Mandatory Preflight Command
+
+Run this command before tag/release workflow:
+
+```powershell
+python tools/release_gate_preflight.py --max-age-days 30
+```

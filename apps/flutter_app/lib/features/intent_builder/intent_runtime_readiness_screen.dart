@@ -2,17 +2,14 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_rea
 import 'package:flutter/material.dart';
 
 class IntentRuntimeReadinessScreen extends StatelessWidget {
-  const IntentRuntimeReadinessScreen({
-    super.key,
-    required this.readiness,
-  });
+  const IntentRuntimeReadinessScreen({super.key, required this.readiness});
 
   final IntentRuntimeReadinessModel readiness;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Runtime Readiness")),
+      appBar: AppBar(title: const Text("Release Readiness")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -51,28 +48,31 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Runtime criteria",
+                    "Readiness criteria",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   _CriterionRow(
-                    label: "Canonical artifact exported",
+                    label: "An exported handoff version exists",
                     satisfied: readiness.hasArtifact,
                   ),
                   _CriterionRow(
-                    label: "Artifact state is ready",
-                    satisfied: readiness.currentArtifact?.artifactState.name == 'ready',
+                    label: "Exported version is marked ready",
+                    satisfied:
+                        readiness.currentArtifact?.artifactState.name ==
+                        'ready',
                   ),
                   _CriterionRow(
-                    label: "Active entries available",
-                    satisfied: (readiness.currentArtifact?.activeEntryCount ?? 0) > 0,
+                    label: "At least one active route exists",
+                    satisfied:
+                        (readiness.currentArtifact?.activeEntryCount ?? 0) > 0,
                   ),
                   _CriterionRow(
-                    label: "No compiler errors",
+                    label: "No blocking issues",
                     satisfied: !readiness.hasBlockingErrors,
                   ),
                   _CriterionRow(
-                    label: "Draft still in sync",
+                    label: "Draft is still in sync",
                     satisfied: readiness.draftInSync,
                   ),
                 ],
@@ -93,8 +93,12 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text("History versions: ${readiness.historyCount}"),
                   Text("Ready artifacts: ${readiness.readyArtifactCount}"),
-                  Text("Reviewed artifacts: ${readiness.reviewedArtifactCount}"),
-                  Text("Promoted artifacts: ${readiness.promotedArtifactCount}"),
+                  Text(
+                    "Reviewed artifacts: ${readiness.reviewedArtifactCount}",
+                  ),
+                  Text(
+                    "Promoted artifacts: ${readiness.promotedArtifactCount}",
+                  ),
                   Text("Compiler warnings: ${readiness.warningCount}"),
                 ],
               ),
@@ -113,7 +117,9 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (readiness.blockers.isEmpty)
-                    const Text("No blockers. The current artifact is eligible for runtime use.")
+                    const Text(
+                      "No blockers. The current version is eligible for real release use.",
+                    )
                   else
                     ...readiness.blockers.map(
                       (blocker) => Padding(
@@ -137,11 +143,17 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
-                  Text("1. User Layer: owners interact with UX, drafts, review, and readiness summaries."),
+                  Text(
+                    "1. User Layer: owners use guided flows for setup, review, and readiness checks.",
+                  ),
                   SizedBox(height: 4),
-                  Text("2. PTN Core Layer: policy, controls, compiler semantics, and runtime readiness logic stay canonical here."),
+                  Text(
+                    "2. Policy Core Layer: safety controls and validation logic stay consistent here.",
+                  ),
                   SizedBox(height: 4),
-                  Text("3. Output Layer: release paths deliver only what PTN authorizes for the configured recipient or route."),
+                  Text(
+                    "3. Delivery Layer: release paths share only what policy allows for each recipient route.",
+                  ),
                 ],
               ),
             ),
@@ -153,10 +165,7 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
 }
 
 class _CriterionRow extends StatelessWidget {
-  const _CriterionRow({
-    required this.label,
-    required this.satisfied,
-  });
+  const _CriterionRow({required this.label, required this.satisfied});
 
   final String label;
   final bool satisfied;
@@ -168,7 +177,9 @@ class _CriterionRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            satisfied ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+            satisfied
+                ? Icons.check_circle_outline
+                : Icons.radio_button_unchecked,
             size: 20,
           ),
           const SizedBox(width: 8),
