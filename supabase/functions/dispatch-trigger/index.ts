@@ -65,16 +65,34 @@ function actionFor(mode: "legacy" | "self_recovery"): string {
   return mode === "legacy" ? "trigger_legacy_delivery" : "trigger_self_recovery_delivery";
 }
 
+function extractPacketValue(secureLink: string, key: "access_id" | "access_key"): string {
+  try {
+    const url = new URL(secureLink);
+    return url.searchParams.get(key)?.trim() ?? "";
+  } catch (_) {
+    return "";
+  }
+}
+
 function buildProviderHandoffHtml(args: {
   secureLink: string;
   mode: "legacy" | "self_recovery";
   inactiveDays: number;
   threshold: number;
+  ownerRef: string;
 }): string {
   const modeLabel = args.mode === "legacy" ? "legacy handoff" : "self-recovery handoff";
+  const roleLabel = args.mode === "legacy" ? "beneficiary" : "recovery contact";
+  const accessId = extractPacketValue(args.secureLink, "access_id");
+  const accessKey = extractPacketValue(args.secureLink, "access_key");
   return `
-  <p>A policy-approved ${modeLabel} is ready.</p>
-  <p>Open secure link: <a href="${args.secureLink}">${args.secureLink}</a></p>
+  <p>You received this because you were pre-assigned as a ${roleLabel} in Digital Legacy Weaver for owner reference <strong>${args.ownerRef}</strong>.</p>
+  <p>This message will never ask you for password resets, bank transfers, or private account fees.</p>
+  <p>You do not need to act immediately. If you are unsure, pause and confirm with another guardian/family member first.</p>
+  <p><strong>Recommended safe path:</strong> open the Digital Legacy Weaver app yourself and enter the handoff packet below.</p>
+  <p>Handoff packet</p>
+  <pre>access_id: ${accessId || "(missing)"}\naccess_key: ${accessKey || "(missing)"}</pre>
+  <p>Optional direct route (only if already verified): <a href="${args.secureLink}">${args.secureLink}</a></p>
   <p>Inactive days: ${args.inactiveDays} / ${args.threshold}</p>
   <p>Provider handoff checklist:</p>
   <ul>
@@ -787,12 +805,15 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
   const secureLink = await createSecureDeliveryLink(profile.id, mode);
   await sendEmail(
     receiver,
-    mode === "legacy" ? "Legacy Access Link" : "Self-Recovery Access Link",
+    mode === "legacy"
+      ? "Digital Legacy Weaver notice: pre-arranged legacy handoff"
+      : "Digital Legacy Weaver notice: pre-arranged self-recovery handoff",
     buildProviderHandoffHtml({
       secureLink,
       mode,
       inactiveDays,
       threshold,
+      ownerRef: profile.id,
     }),
   );
   await submitPartnerHandoffNotice({

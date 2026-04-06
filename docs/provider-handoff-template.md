@@ -13,16 +13,18 @@ It does not adjudicate legal entitlement or replace provider legal/compliance de
 
 Subject:
 
-- `Legacy Handoff Notice (Technical Coordination)`
+- `Digital Legacy Weaver notice: pre-arranged legacy handoff`
 
 Body:
 
-1. A policy-approved legacy handoff notice has been issued.
-2. Use the one-time secure link from this notice.
-3. Contact the destination app/provider directly for entitlement verification.
-4. Submit legal documents to destination provider process (not to this platform).
-5. Complete any provider security checks (KYC/AML/2FA).
-6. This platform only coordinates workflow and does not decide legal ownership.
+1. You received this because you were pre-assigned by the owner.
+2. This notice never asks for money transfer, password reset, or private account fees.
+3. You do not need to act immediately. If unsure, confirm with another guardian/family member first.
+4. Recommended safe path: open the app yourself and enter the handoff packet (`access_id` + `access_key`) instead of clicking unknown links.
+5. Contact the destination app/provider directly for legal entitlement verification.
+6. Submit legal documents to destination provider process (not to this platform).
+7. Complete any provider security checks (KYC/AML/2FA).
+8. This platform only coordinates workflow and does not decide legal ownership.
 
 ## Provider-facing summary fields
 

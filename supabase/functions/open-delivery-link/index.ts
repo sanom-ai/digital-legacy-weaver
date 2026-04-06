@@ -711,8 +711,12 @@ async function requestCode(accessId: string, accessKey: string) {
   const to = await getTargetEmail(valid.owner_id, valid.mode);
   await sendEmail(
     to,
-    "Your Delivery Verification Code",
-    `<p>Your verification code is: <strong>${code}</strong></p><p>Code expires in 10 minutes.</p>`,
+    "Digital Legacy Weaver verification code",
+    `<p>You are receiving this verification code because you are part of a pre-arranged Digital Legacy Weaver handoff.</p>
+<p>We never ask for money transfer, password reset, or private account details in this email.</p>
+<p>Your verification code is: <strong>${code}</strong></p>
+<p>Code expires in 10 minutes.</p>
+<p>If this request was not initiated by you inside the app, stop and confirm with a family guardian before continuing.</p>`,
   );
 
   return { ok: true, message: "Verification code sent." };
