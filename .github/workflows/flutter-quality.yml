@@ -22,6 +22,12 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
       - name: Bootstrap Flutter platforms
         run: flutter create --platforms=android,windows --project-name digital_legacy_weaver .
 
@@ -31,6 +37,9 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed lib test
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos
