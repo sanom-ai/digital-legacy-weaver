@@ -12,6 +12,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _emailController = TextEditingController();
   bool _sending = false;
   String? _message;
+  bool _messageIsError = false;
 
   @override
   void dispose() {
@@ -22,7 +23,17 @@ class _SignInScreenState extends State<SignInScreen> {
   Future<void> _sendMagicLink() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      setState(() => _message = "Please enter your email.");
+      setState(() {
+        _message = "Please enter your email.";
+        _messageIsError = true;
+      });
+      return;
+    }
+    if (!email.contains("@") || !email.contains(".")) {
+      setState(() {
+        _message = "Please enter a valid email.";
+        _messageIsError = true;
+      });
       return;
     }
     setState(() {
@@ -35,14 +46,31 @@ class _SignInScreenState extends State<SignInScreen> {
         email: email,
         emailRedirectTo: null,
       );
-      setState(() => _message = "Magic link sent. Please check your inbox.");
+      setState(() {
+        _message =
+            "Secure sign-in link sent. Check your inbox (and spam) then return to continue.";
+        _messageIsError = false;
+      });
     } on AuthException catch (e) {
-      setState(() => _message = e.message);
+      setState(() {
+        _message = _friendlyAuthError(e.message);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) {
         setState(() => _sending = false);
       }
     }
+  }
+
+  String _friendlyAuthError(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains("network") ||
+        lower.contains("timed out") ||
+        lower.contains("failed host lookup")) {
+      return "Network looks unstable. Please check your connection and try again.";
+    }
+    return raw;
   }
 
   @override
@@ -92,7 +120,17 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     if (_message != null) ...[
                       const SizedBox(height: 12),
-                      Text(_message!),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _messageIsError
+                              ? const Color(0xFFFFF1F1)
+                              : const Color(0xFFE9F6EF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(_message!),
+                      ),
                     ],
                   ],
                 ),

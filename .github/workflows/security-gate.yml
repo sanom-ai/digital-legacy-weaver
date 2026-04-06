@@ -32,6 +32,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
+          "missing=" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Run Security Triage Gate
@@ -49,7 +50,12 @@ jobs:
         if: steps.readiness.outputs.ready != 'true'
         shell: pwsh
         run: |
-          "Security Gate skipped: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          $missing = "${{ steps.readiness.outputs.missing }}"
+          if ([string]::IsNullOrWhiteSpace($missing)) {
+            "Security Gate skipped: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          } else {
+            "Security Gate skipped: $missing" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
 
       - name: Upload Triage Reports
         if: always()

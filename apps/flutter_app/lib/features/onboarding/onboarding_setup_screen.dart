@@ -142,6 +142,24 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     return null;
   }
 
+  bool _stepOneReady() {
+    return _requiredEmail(_backupEmailController.text) == null &&
+        _requiredEmail(_beneficiaryEmailController.text) == null &&
+        _requiredText(_beneficiaryNameController.text, minLength: 3) == null &&
+        _requiredText(_beneficiaryVerificationHintController.text, minLength: 4) == null &&
+        _verificationPhraseValidator(_beneficiaryVerificationPhraseController.text) == null;
+  }
+
+  bool _stepTwoReady() {
+    return _requiredIntInRange(_legacyDaysController.text, 90, 3650) == null &&
+        _requiredIntInRange(_selfRecoveryDaysController.text, 30, 180) == null &&
+        _requiredIntInRange(_graceDaysController.text, 7, 30) == null;
+  }
+
+  void _showStepError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   String _friendlySaveError(Object error) {
     final lower = error.toString().toLowerCase();
     if (lower.contains("socketexception") ||
@@ -400,45 +418,87 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     );
     final canFinalize = draftReport.errorCount == 0 &&
         (draftReport.warningCount == 0 || _warningAcknowledged);
+    final setupProgress = ((_stepIndex + 1) / 3).clamp(0.0, 1.0);
+    void onStepContinue() {
+      if (_stepIndex == 0 && !_stepOneReady()) {
+        _showStepError("Please complete contact details before continuing.");
+        return;
+      }
+      if (_stepIndex == 1 && !_stepTwoReady()) {
+        _showStepError("Please complete trigger settings before continuing.");
+        return;
+      }
+      if (_stepIndex < 2) {
+        setState(() => _stepIndex += 1);
+      } else {
+        _save();
+      }
+    }
     return Scaffold(
       appBar: AppBar(title: const Text("Finish Setup")),
       body: Form(
         key: _formKey,
-        child: Stepper(
-          currentStep: _stepIndex,
-          onStepContinue: () {
-            if (_stepIndex < 2) {
-              setState(() => _stepIndex += 1);
-            } else {
-              _save();
-            }
-          },
-          onStepCancel: () {
-            if (_stepIndex == 0) {
-              Navigator.of(context).maybePop();
-            } else {
-              setState(() => _stepIndex -= 1);
-            }
-          },
-          controlsBuilder: (context, details) {
-            final isFinalStep = _stepIndex == 2;
-            return Row(
-              children: [
-                FilledButton(
-                  onPressed: _saving || (isFinalStep && !canFinalize)
-                      ? null
-                      : details.onStepContinue,
-                  child: Text(isFinalStep ? "Save setup" : "Continue"),
-                ),
-                const SizedBox(width: 12),
-                TextButton(
-                  onPressed: _saving ? null : details.onStepCancel,
-                  child: Text(_stepIndex == 0 ? "Close" : "Back"),
-                ),
-              ],
-            );
-          },
-          steps: [
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F1E8),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Setup progress: step ${_stepIndex + 1} of 3",
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    "Complete contacts, trigger rules, and consent in one pass so beneficiary handoff is safe and predictable.",
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: setupProgress,
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(999),
+                    backgroundColor: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Stepper(
+                currentStep: _stepIndex,
+                onStepContinue: onStepContinue,
+                onStepCancel: () {
+                  if (_stepIndex == 0) {
+                    Navigator.of(context).maybePop();
+                  } else {
+                    setState(() => _stepIndex -= 1);
+                  }
+                },
+                controlsBuilder: (context, details) {
+                  final isFinalStep = _stepIndex == 2;
+                  return Row(
+                    children: [
+                      FilledButton(
+                        onPressed: _saving || (isFinalStep && !canFinalize)
+                            ? null
+                            : details.onStepContinue,
+                        child: Text(isFinalStep ? "Finalize setup" : "Continue"),
+                      ),
+                      const SizedBox(width: 12),
+                      TextButton(
+                        onPressed: _saving ? null : details.onStepCancel,
+                        child: Text(_stepIndex == 0 ? "Close" : "Back"),
+                      ),
+                    ],
+                  );
+                },
+                steps: [
             Step(
               isActive: _stepIndex >= 0,
               title: const Text("Contacts"),
@@ -733,6 +793,9 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                   const Text(
                     "This product helps coordinate secure access handoff. It does not replace a legal will.",
                   ),
+                ],
+              ),
+            ),
                 ],
               ),
             ),

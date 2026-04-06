@@ -6,6 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$script:ApiDegradedReason = $null
 
 function Require-Env([string]$key) {
   $value = [Environment]::GetEnvironmentVariable($key)
@@ -22,11 +23,45 @@ function Invoke-SupabaseGet {
     [string]$PathAndQuery
   )
   $headers = @{
-    "apikey"        = $ServiceRoleKey
-    "Authorization" = "Bearer $ServiceRoleKey"
-    "Content-Type"  = "application/json"
+    "Content-Type" = "application/json"
   }
-  return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
+
+  if ($ServiceRoleKey -like "eyJ*") {
+    $headers["apikey"] = $ServiceRoleKey
+    $headers["Authorization"] = "Bearer $ServiceRoleKey"
+  } else {
+    # New secret API keys (sb_secret...) are not JWTs.
+    # Use them as apikey only, without Authorization bearer token.
+    $headers["apikey"] = $ServiceRoleKey
+  }
+
+  try {
+    return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
+  } catch {
+    $rawParts = @()
+    if ($_.Exception -and $_.Exception.Message) {
+      $rawParts += $_.Exception.Message
+    }
+    if ($_.ErrorDetails -and $_.ErrorDetails.Message) {
+      $rawParts += $_.ErrorDetails.Message
+    }
+    $raw = ($rawParts -join " | ")
+    $lower = $raw.ToLowerInvariant()
+    $statusCode = $null
+    try {
+      if ($_.Exception.Response.StatusCode.value__) {
+        $statusCode = [int]$_.Exception.Response.StatusCode.value__
+      }
+    } catch { }
+
+    if ($lower.Contains("forbidden use of secret api key in browser") -or $statusCode -in @(401, 403)) {
+      if (-not $script:ApiDegradedReason) {
+        $script:ApiDegradedReason = "Supabase rejected CI Data API access (status=$statusCode). Security triage ran in degraded mode (no live event query)."
+      }
+      return @()
+    }
+    throw
+  }
 }
 
 function Group-Count($items, [string]$property) {
@@ -78,6 +113,10 @@ $lines.Add("- Critical events: $($criticalEvents.Count)")
 $lines.Add("- Active rate-limit blocks: $($activeBlocks.Count)")
 $lines.Add("- Heartbeat stale (>26h): $heartbeatStale")
 $lines.Add("- Heartbeat unhealthy: $heartbeatUnhealthy")
+$lines.Add("- API degraded mode: $([string]::IsNullOrWhiteSpace($script:ApiDegradedReason) -ne $true)")
+if (-not [string]::IsNullOrWhiteSpace($script:ApiDegradedReason)) {
+  $lines.Add("- Degraded reason: $script:ApiDegradedReason")
+}
 $lines.Add("")
 
 $lines.Add("## Event Type Counts")
