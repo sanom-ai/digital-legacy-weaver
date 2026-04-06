@@ -10,12 +10,12 @@ void main() {
     expect(
         find.text('Start now with private-first local mode'), findsOneWidget);
     expect(find.text('Choose your first real user journey'), findsOneWidget);
-    expect(find.text('Family beneficiary handoff'), findsOneWidget);
-    expect(find.text('Owner self-recovery'), findsOneWidget);
-    expect(find.text('Private-first archive'), findsOneWidget);
-    expect(find.text('Start local workspace'), findsOneWidget);
-    expect(find.text('Show cloud setup steps'), findsOneWidget);
-    expect(find.textContaining('No backend setup is required to start'),
+    expect(find.text('Digital Legacy Handoff'), findsWidgets);
+    expect(find.text('Owner Self-Recovery'), findsOneWidget);
+    expect(find.text('Private-first Archive'), findsOneWidget);
+    expect(find.text('Start in Private Local Mode'), findsWidgets);
+    expect(find.text('Cloud setup later'), findsOneWidget);
+    expect(find.textContaining('Start immediately without backend setup'),
         findsOneWidget);
   });
 
