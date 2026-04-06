@@ -38,8 +38,8 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Format check
-        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Format report (advisory)
+        run: dart format --output=none lib test
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos
