@@ -27,6 +27,10 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   bool _obscureAccessKey = true;
   String? _message;
   bool _messageIsError = false;
+  bool _networkIssue = false;
+  bool _requestedCode = false;
+  bool _unlockAttempted = false;
+  String _lastAction = "none";
   List<Map<String, dynamic>> _items = const [];
 
   bool get _hasAccessLink =>
@@ -79,6 +83,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     setState(() {
       _busy = true;
       _message = null;
+      _networkIssue = false;
+      _lastAction = "request_code";
     });
     try {
       final response = await Supabase.instance.client.functions.invoke(
@@ -93,11 +99,13 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _message = (data?["message"] ?? "Receipt code requested.").toString();
         _messageIsError = false;
+        _requestedCode = true;
       });
     } catch (e) {
       setState(() {
         _message = _friendlyActionError("requesting a receipt code", e);
         _messageIsError = true;
+        _networkIssue = _looksLikeNetworkError(e.toString());
       });
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -109,6 +117,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _busy = true;
       _message = null;
       _items = const [];
+      _networkIssue = false;
+      _unlockAttempted = true;
+      _lastAction = "unlock";
     });
     try {
       final response = await Supabase.instance.client.functions.invoke(
@@ -138,6 +149,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _message = _friendlyActionError("opening the delivery bundle", e);
         _messageIsError = true;
+        _networkIssue = _looksLikeNetworkError(e.toString());
       });
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -190,6 +202,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _busy = true;
       _message = null;
       _items = const [];
+      _networkIssue = false;
+      _lastAction = "report_wrong_recipient";
     });
     try {
       final response = await Supabase.instance.client.functions.invoke(
@@ -215,6 +229,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _message = _friendlyActionError("reporting wrong recipient", e);
         _messageIsError = true;
+        _networkIssue = _looksLikeNetworkError(e.toString());
       });
     } finally {
       if (mounted) {
@@ -283,14 +298,19 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 
-  String _friendlyActionError(String action, Object error) {
-    final lower = error.toString().toLowerCase();
-    if (lower.contains("socketexception") ||
+  bool _looksLikeNetworkError(String text) {
+    final lower = text.toLowerCase();
+    return lower.contains("socketexception") ||
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
-        lower.contains("timed out")) {
+        lower.contains("timed out");
+  }
+
+  String _friendlyActionError(String action, Object error) {
+    if (_looksLikeNetworkError(error.toString())) {
       return "We had trouble $action because the network looks unstable. Please check your connection and try again.";
     }
+    final lower = error.toString().toLowerCase();
     if (lower.contains("invalid") || lower.contains("unauthorized") || lower.contains("forbidden")) {
       return "We could not continue $action. Please verify Access ID, Access Key, and beneficiary details, then try again.";
     }
@@ -307,6 +327,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         ? "Working on your request..."
         : _items.isNotEmpty
             ? "Receipt opened"
+            : _networkIssue
+                ? "Offline or unstable connection"
             : "Setup in progress";
 
     return Container(
@@ -327,6 +349,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           Text("Progress: $completedSteps/3 steps complete"),
           const SizedBox(height: 6),
           Text("Status: $statusLabel"),
+          const SizedBox(height: 6),
+          Text(
+            _lastAction == "none"
+                ? "Last action: no request sent yet"
+                : "Last action: ${_lastAction.replaceAll("_", " ")}",
+          ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: completedSteps / 3,
@@ -351,7 +379,29 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         color: color,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(_message!),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(_message!),
+          if (_messageIsError && _networkIssue) ...[
+            const SizedBox(height: 10),
+            OutlinedButton(
+              onPressed: _busy
+                  ? null
+                  : () async {
+                      if (_lastAction == "request_code") {
+                        await _requestCode();
+                        return;
+                      }
+                      if (_lastAction == "unlock") {
+                        await _unlock();
+                      }
+                    },
+              child: const Text("Retry last action"),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -610,10 +660,21 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     title: "3. Verify and unlock",
                     body:
                         "Request the one-time code, then unlock. Add the TOTP code only if the bundle requires it.",
-                    complete: _hasVerificationCode,
+                    complete: _hasVerificationCode || _items.isNotEmpty,
                     cue: _hasVerificationCode
                         ? "Verification code is ready for unlock."
                         : "Best next move: request the verification code after the access link is ready.",
+                  ),
+                  _buildJourneyStep(
+                    title: "4. Confirm receipt result",
+                    body:
+                        "After unlock, verify the released phase and follow the destination verification route before acting.",
+                    complete: _items.isNotEmpty,
+                    cue: _items.isNotEmpty
+                        ? "Receipt opened. Review phase details below."
+                        : _unlockAttempted
+                            ? "Unlock attempted. Review response and retry if needed."
+                            : "Best next move: open the bundle after code verification.",
                   ),
                   const SizedBox(height: 2),
                   _buildStatusCard(),
@@ -651,6 +712,20 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       ),
                     ],
                   ),
+                  if (_requestedCode) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE9F6EF),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        "Code requested. Check your registered fallback channel now, then return to unlock.",
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 10),
                   TextField(
                     controller: _codeController,
