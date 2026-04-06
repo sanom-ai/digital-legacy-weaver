@@ -13,18 +13,18 @@ It does not adjudicate legal entitlement or replace provider legal/compliance de
 
 Subject:
 
-- `Digital Legacy Weaver notice: pre-arranged legacy handoff`
+- `แจ้งเตือนแผนรับมรดกดิจิทัลที่ตั้งไว้ล่วงหน้า | Digital Legacy Weaver`
 
 Body:
 
-1. You received this because you were pre-assigned by the owner.
-2. This notice never asks for money transfer, password reset, or private account fees.
-3. You do not need to act immediately. If unsure, confirm with another guardian/family member first.
-4. Recommended safe path: open the app yourself and enter the handoff packet (`access_id` + `access_key`) instead of clicking unknown links.
-5. Contact the destination app/provider directly for legal entitlement verification.
-6. Submit legal documents to destination provider process (not to this platform).
-7. Complete any provider security checks (KYC/AML/2FA).
-8. This platform only coordinates workflow and does not decide legal ownership.
+1. คุณได้รับข้อความนี้เพราะเจ้าของแต่งตั้งคุณไว้ล่วงหน้า (You are pre-assigned by the owner).
+2. ข้อความนี้จะไม่ขอให้โอนเงิน ขอรหัสผ่าน หรือเก็บค่าธรรมเนียม (No transfer/password/fee request).
+3. คุณไม่จำเป็นต้องรีบดำเนินการทันที หากไม่มั่นใจให้ปรึกษาพยานหรือญาติอีกคนก่อน.
+4. เส้นทางที่ปลอดภัยกว่า: เปิดแอปด้วยตัวเอง แล้วกรอก handoff packet (`access_id` + `access_key`) แทนการคลิกลิงก์ที่ไม่แน่ใจ.
+5. ติดต่อผู้ให้บริการปลายทางโดยตรงเพื่อยืนยันสิทธิ์ทางกฎหมาย.
+6. ส่งเอกสารตามกระบวนการของผู้ให้บริการปลายทาง (ไม่ใช่ส่งให้แพลตฟอร์มนี้).
+7. ทำขั้นตอน KYC/AML/2FA ตามที่ผู้ให้บริการกำหนด.
+8. แพลตฟอร์มนี้ทำหน้าที่ประสานงานทางเทคนิคเท่านั้น ไม่ได้ตัดสินสิทธิ์ทางกฎหมาย.
 
 ## Provider-facing summary fields
 

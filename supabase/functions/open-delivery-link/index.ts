@@ -711,12 +711,16 @@ async function requestCode(accessId: string, accessKey: string) {
   const to = await getTargetEmail(valid.owner_id, valid.mode);
   await sendEmail(
     to,
-    "Digital Legacy Weaver verification code",
-    `<p>You are receiving this verification code because you are part of a pre-arranged Digital Legacy Weaver handoff.</p>
-<p>We never ask for money transfer, password reset, or private account details in this email.</p>
+    "รหัสยืนยันสำหรับการรับมอบ | Digital Legacy Weaver",
+    `<p>คุณได้รับรหัสนี้เพราะมีการเริ่มขั้นตอนรับมอบที่ตั้งไว้ล่วงหน้าใน Digital Legacy Weaver</p>
+<p>You received this code because a pre-arranged Digital Legacy Weaver handoff was initiated.</p>
+<p><strong>ระบบจะไม่ขอให้คุณโอนเงินหรือเปิดเผยรหัสผ่านทางอีเมลนี้</strong></p>
+<p><strong>We never ask for money transfer or password reset in this email.</strong></p>
+<p>รหัสยืนยันของคุณคือ: <strong>${code}</strong></p>
 <p>Your verification code is: <strong>${code}</strong></p>
-<p>Code expires in 10 minutes.</p>
-<p>If this request was not initiated by you inside the app, stop and confirm with a family guardian before continuing.</p>`,
+<p>รหัสหมดอายุใน 10 นาที | Code expires in 10 minutes.</p>
+<p>หากคุณไม่ได้เริ่มขั้นตอนนี้จากในแอปด้วยตัวเอง ให้หยุดและยืนยันกับพยาน/ญาติก่อนดำเนินการต่อ</p>
+<p>If this request was not initiated by you in-app, stop and verify with a family guardian before continuing.</p>`,
   );
 
   return { ok: true, message: "Verification code sent." };
