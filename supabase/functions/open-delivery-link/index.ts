@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-type Action = "request_code" | "unlock";
+type Action = "request_code" | "unlock" | "report_wrong_recipient";
 
 type RequestPayload = {
   action: Action;
@@ -283,7 +283,7 @@ async function getValidAccessKey(accessId: string, accessKey: string) {
   const accessKeyHash = await sha256Hex(accessKey);
   const { data, error } = await supabase
     .from("delivery_access_keys")
-    .select("id, owner_id, mode, access_key_hash, expires_at, consumed_at")
+    .select("id, owner_id, mode, access_key_hash, expires_at, consumed_at, blocked_at, blocked_reason, metadata")
     .eq("id", accessId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -324,6 +324,19 @@ async function getValidAccessKey(accessId: string, accessKey: string) {
     });
     throw new Error("This access key has already been used.");
   }
+  if (data.blocked_at) {
+    await logSecurityEvent({
+      eventType: "access_denied",
+      severity: "warn",
+      actorScope: "access_id",
+      actorRaw: accessId,
+      accessId,
+      ownerId: data.owner_id,
+      mode: data.mode,
+      details: { reason: "access_key_blocked", blockedReason: data.blocked_reason ?? null },
+    });
+    throw new Error("This access key is temporarily blocked pending recipient verification.");
+  }
   if (new Date(data.expires_at).getTime() < Date.now()) {
     await logSecurityEvent({
       eventType: "access_denied",
@@ -337,7 +350,77 @@ async function getValidAccessKey(accessId: string, accessKey: string) {
     });
     throw new Error("Access key expired.");
   }
-  return data as { id: string; owner_id: string; mode: "legacy" | "self_recovery" };
+  return data as {
+    id: string;
+    owner_id: string;
+    mode: "legacy" | "self_recovery";
+    metadata?: Record<string, unknown> | null;
+  };
+}
+
+async function reportWrongRecipient(accessId: string, accessKey: string, clientIp: string) {
+  const valid = await getValidAccessKey(accessId, accessKey);
+
+  const now = nowIso();
+  const blockReason = "wrong_recipient_reported";
+  const { error: blockError } = await supabase
+    .from("delivery_access_keys")
+    .update({
+      blocked_at: now,
+      blocked_reason: blockReason,
+      metadata: {
+        ...(valid.metadata ?? {}),
+        wrong_recipient_reported_at: now,
+        wrong_recipient_source: "beneficiary_secure_link",
+      },
+    })
+    .eq("id", valid.id);
+  if (blockError) throw new Error(`failed to block access key: ${blockError.message}`);
+
+  const { error: reportError } = await supabase.from("delivery_wrong_recipient_reports").insert({
+    access_key_id: valid.id,
+    owner_id: valid.owner_id,
+    mode: valid.mode,
+    source: "beneficiary_secure_link",
+    reported_ip_hash: await sha256Hex(clientIp),
+    details: {
+      accessId: accessId,
+      action: "report_wrong_recipient",
+    },
+  });
+  if (reportError) throw new Error(`failed to store wrong recipient report: ${reportError.message}`);
+
+  await supabase.from("trigger_logs").insert({
+    owner_id: valid.owner_id,
+    mode: valid.mode,
+    action: "wrong_recipient_reported",
+    status: "sent",
+    reason: "beneficiary reported this receipt is not theirs",
+    metadata: {
+      accessId,
+      source: "beneficiary_secure_link",
+    },
+    processed_at: now,
+  });
+  await logSecurityEvent({
+    eventType: "wrong_recipient_reported",
+    severity: "warn",
+    actorScope: "access_id",
+    actorRaw: accessId,
+    accessId,
+    ownerId: valid.owner_id,
+    mode: valid.mode,
+    details: {
+      source: "beneficiary_secure_link",
+      action: "access_key_blocked",
+    },
+  });
+
+  return {
+    ok: true,
+    message:
+      "Thanks for reporting. This receipt has been paused and routed for re-verification. Do not share the link or code.",
+  };
 }
 
 type TotpPolicy = {
@@ -680,6 +763,16 @@ Deno.serve(async (req) => {
         payload.beneficiary_name,
         payload.verification_phrase,
       );
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (payload.action === "report_wrong_recipient") {
+      await enforceRateLimit("wrong_recipient_by_ip", clientIp, 8, 15, 30);
+      await enforceRateLimit("wrong_recipient_by_access_id", payload.access_id, 3, 15, 30);
+      const result = await reportWrongRecipient(payload.access_id, payload.access_key, clientIp);
       return new Response(JSON.stringify(result), {
         status: 200,
         headers: { "Content-Type": "application/json" },

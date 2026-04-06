@@ -160,9 +160,52 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text("Close"),
           ),
+          FilledButton(
+            onPressed: _busy || !_hasAccessLink
+                ? null
+                : () async {
+                    Navigator.of(context).pop();
+                    await _reportWrongRecipient();
+                  },
+            child: const Text("Report and pause receipt"),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _reportWrongRecipient() async {
+    setState(() {
+      _busy = true;
+      _message = null;
+      _items = const [];
+    });
+    try {
+      final response = await Supabase.instance.client.functions.invoke(
+        "open-delivery-link",
+        body: {
+          "action": "report_wrong_recipient",
+          "access_id": _accessIdController.text.trim(),
+          "access_key": _accessKeyController.text.trim(),
+        },
+      );
+      final data = response.data as Map<String, dynamic>?;
+      setState(() {
+        _message = (data?["message"] ??
+                "Receipt reported as wrong recipient. Access is paused pending re-verification.")
+            .toString();
+        _codeController.clear();
+        _totpController.clear();
+        _beneficiaryNameController.clear();
+        _verificationPhraseController.clear();
+      });
+    } catch (e) {
+      setState(() => _message = "Wrong-recipient report failed: $e");
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
   }
 
   Widget _buildJourneyStep({
