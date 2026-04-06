@@ -19,21 +19,21 @@ function Invoke-SupabaseGet {
   param(
     [string]$BaseUrl,
     [string]$ServiceRoleKey,
-    [string]$AnonKey,
     [string]$PathAndQuery
   )
-  $apiKey = $ServiceRoleKey
-  if ($ServiceRoleKey -notlike "eyJ*") {
-    if ([string]::IsNullOrWhiteSpace($AnonKey)) {
-      throw "SUPABASE_ANON_KEY is required when SUPABASE_SERVICE_ROLE_KEY uses a secret API key (sb_secret...)."
-    }
-    $apiKey = $AnonKey
-  }
   $headers = @{
-    "apikey"        = $apiKey
-    "Authorization" = "Bearer $ServiceRoleKey"
-    "Content-Type"  = "application/json"
+    "Content-Type" = "application/json"
   }
+
+  if ($ServiceRoleKey -like "eyJ*") {
+    $headers["apikey"] = $ServiceRoleKey
+    $headers["Authorization"] = "Bearer $ServiceRoleKey"
+  } else {
+    # New secret API keys (sb_secret...) are not JWTs.
+    # Use them as apikey only, without Authorization bearer token.
+    $headers["apikey"] = $ServiceRoleKey
+  }
+
   return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
 }
 
@@ -43,7 +43,6 @@ function Group-Count($items, [string]$property) {
 
 $supabaseUrl = Require-Env "SUPABASE_URL"
 $serviceRole = Require-Env "SUPABASE_SERVICE_ROLE_KEY"
-$anonKey = [Environment]::GetEnvironmentVariable("SUPABASE_ANON_KEY")
 
 $sinceIso = (Get-Date).ToUniversalTime().AddHours(-$Hours).ToString("yyyy-MM-ddTHH:mm:ssZ")
 
@@ -54,13 +53,13 @@ $reportPath = Join-Path $OutputDir "security-triage-$stamp.md"
 Write-Host "Generating security triage report..." -ForegroundColor Cyan
 
 $eventsQuery = "security_events?select=event_type,severity,mode,created_at,details&created_at=gte.$sinceIso&order=created_at.desc&limit=1000"
-$events = @(Invoke-SupabaseGet -BaseUrl $supabaseUrl -ServiceRoleKey $serviceRole -AnonKey $anonKey -PathAndQuery $eventsQuery)
+$events = @(Invoke-SupabaseGet -BaseUrl $supabaseUrl -ServiceRoleKey $serviceRole -PathAndQuery $eventsQuery)
 
 $heartbeatsQuery = "system_heartbeats?select=source,status,created_at,details&source=eq.dispatch-trigger&order=created_at.desc&limit=5"
-$heartbeats = @(Invoke-SupabaseGet -BaseUrl $supabaseUrl -ServiceRoleKey $serviceRole -AnonKey $anonKey -PathAndQuery $heartbeatsQuery)
+$heartbeats = @(Invoke-SupabaseGet -BaseUrl $supabaseUrl -ServiceRoleKey $serviceRole -PathAndQuery $heartbeatsQuery)
 
 $blocksQuery = "delivery_access_rate_limits?select=scope,attempt_count,blocked_until,last_attempt_at&blocked_until=gt.$sinceIso&order=blocked_until.desc&limit=200"
-$activeBlocks = @(Invoke-SupabaseGet -BaseUrl $supabaseUrl -ServiceRoleKey $serviceRole -AnonKey $anonKey -PathAndQuery $blocksQuery)
+$activeBlocks = @(Invoke-SupabaseGet -BaseUrl $supabaseUrl -ServiceRoleKey $serviceRole -PathAndQuery $blocksQuery)
 
 $eventTypeCounts = Group-Count $events "event_type"
 $severityCounts = Group-Count $events "severity"

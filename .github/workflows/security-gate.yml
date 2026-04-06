@@ -30,18 +30,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          $hasUrl = -not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)
-          $hasService = -not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY)
-          $isLegacyJwt = $env:SUPABASE_SERVICE_ROLE_KEY -like "eyJ*"
-          $hasAnon = -not [string]::IsNullOrWhiteSpace($env:SUPABASE_ANON_KEY)
-          $ready = $hasUrl -and $hasService -and ($isLegacyJwt -or $hasAnon)
-          if (-not $ready) {
-            "missing=SUPABASE_ANON_KEY (required with sb_secret service key)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          } else {
-            "missing=" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          }
+          $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
+          "missing=" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Run Security Triage Gate
@@ -50,7 +41,6 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           HOURS: ${{ github.event.inputs.hours || '24' }}
           WARN_THRESHOLD: ${{ github.event.inputs.warn_threshold || '50' }}
         run: |
