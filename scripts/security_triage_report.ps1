@@ -38,11 +38,25 @@ function Invoke-SupabaseGet {
   try {
     return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
   } catch {
-    $raw = $_.Exception.Message
+    $rawParts = @()
+    if ($_.Exception -and $_.Exception.Message) {
+      $rawParts += $_.Exception.Message
+    }
+    if ($_.ErrorDetails -and $_.ErrorDetails.Message) {
+      $rawParts += $_.ErrorDetails.Message
+    }
+    $raw = ($rawParts -join " | ")
     $lower = $raw.ToLowerInvariant()
-    if ($lower.Contains("forbidden use of secret api key in browser")) {
+    $statusCode = $null
+    try {
+      if ($_.Exception.Response.StatusCode.value__) {
+        $statusCode = [int]$_.Exception.Response.StatusCode.value__
+      }
+    } catch { }
+
+    if ($lower.Contains("forbidden use of secret api key in browser") -or $statusCode -in @(401, 403)) {
       if (-not $script:ApiDegradedReason) {
-        $script:ApiDegradedReason = "Supabase rejected CI Data API calls for secret key policy. Security triage ran in degraded mode (no live event query)."
+        $script:ApiDegradedReason = "Supabase rejected CI Data API access (status=$statusCode). Security triage ran in degraded mode (no live event query)."
       }
       return @()
     }
