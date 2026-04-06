@@ -6,6 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$script:ApiDegradedReason = $null
 
 function Require-Env([string]$key) {
   $value = [Environment]::GetEnvironmentVariable($key)
@@ -34,7 +35,19 @@ function Invoke-SupabaseGet {
     $headers["apikey"] = $ServiceRoleKey
   }
 
-  return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
+  try {
+    return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
+  } catch {
+    $raw = $_.Exception.Message
+    $lower = $raw.ToLowerInvariant()
+    if ($lower.Contains("forbidden use of secret api key in browser")) {
+      if (-not $script:ApiDegradedReason) {
+        $script:ApiDegradedReason = "Supabase rejected CI Data API calls for secret key policy. Security triage ran in degraded mode (no live event query)."
+      }
+      return @()
+    }
+    throw
+  }
 }
 
 function Group-Count($items, [string]$property) {
@@ -86,6 +99,10 @@ $lines.Add("- Critical events: $($criticalEvents.Count)")
 $lines.Add("- Active rate-limit blocks: $($activeBlocks.Count)")
 $lines.Add("- Heartbeat stale (>26h): $heartbeatStale")
 $lines.Add("- Heartbeat unhealthy: $heartbeatUnhealthy")
+$lines.Add("- API degraded mode: $([string]::IsNullOrWhiteSpace($script:ApiDegradedReason) -ne $true)")
+if (-not [string]::IsNullOrWhiteSpace($script:ApiDegradedReason)) {
+  $lines.Add("- Degraded reason: $script:ApiDegradedReason")
+}
 $lines.Add("")
 
 $lines.Add("## Event Type Counts")
