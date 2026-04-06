@@ -83,6 +83,14 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Reset local draft" in screen_src
     assert "Encrypted draft stored on this device" in screen_src
     assert "Encrypted local draft persistence" in screen_src
+    assert "Guardian quorum & emergency access" in screen_src
+    assert "Enable guardian quorum" in screen_src
+    assert "Guardian pool size" in screen_src
+    assert "Required guardian approvals" in screen_src
+    assert "Enable emergency access override" in screen_src
+    assert "Require beneficiary request" in screen_src
+    assert "Require guardian quorum" in screen_src
+    assert "Emergency access grace window:" in screen_src
     assert "Restored encrypted local draft from this device." in screen_src
     assert "Legacy delivery" in screen_src
     assert "Self-recovery" in screen_src
@@ -153,6 +161,13 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "pre_trigger_visibility" in model_src
     assert "post_trigger_visibility" in model_src
     assert "value_disclosure_mode" in model_src
+    assert "guardian_quorum_enabled" in model_src
+    assert "guardian_quorum_required" in model_src
+    assert "guardian_quorum_pool_size" in model_src
+    assert "emergency_access_enabled" in model_src
+    assert "emergency_access_requires_beneficiary_request" in model_src
+    assert "emergency_access_requires_guardian_quorum" in model_src
+    assert "emergency_access_grace_hours" in model_src
     assert "document: _document" in screen_src
     assert "missing_partner_path" in _read(ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_compiler_report_model.dart")
     assert "class IntentCanonicalArtifactModel" in artifact_model_src
@@ -233,6 +248,8 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "primaryActionLabel" in readiness_model_src
     assert "primaryActionKey" in readiness_model_src
     assert "actionPlan" in readiness_model_src
+    assert "Guardian quorum requirement exceeds guardian pool" in readiness_model_src
+    assert "Emergency access should require an explicit beneficiary request" in readiness_model_src
     assert "Draft sync: current draft still matches the latest exported artifact." in dashboard_src
     assert "Draft sync: current draft changed since the latest export." in dashboard_src
     assert 'child: const Text("Readiness details")' in dashboard_src
@@ -347,6 +364,12 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Proof-of-life confirmation" in settings_src
     assert "Enable server heartbeat fallback" in settings_src
     assert "Acknowledge iOS/background limits" in settings_src
+    assert "Guardian quorum" in settings_src
+    assert "Enable guardian quorum for legacy release" in settings_src
+    assert "Current quorum:" in settings_src
+    assert "Emergency access override" in settings_src
+    assert "Enable emergency access override" in settings_src
+    assert "Emergency access grace window (hours)" in settings_src
     assert "proofOfLifeCheckMode" in settings_src
     assert "beneficiaryName" in profile_model_src
     assert "beneficiaryVerificationPhraseHash" in profile_model_src
@@ -388,3 +411,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "value_disclosure_too_open" in compiler_report_src
     assert "short_grace_period" in compiler_report_src
     assert "server_heartbeat_fallback_disabled" in compiler_report_src
+    assert "guardian_quorum_invalid" in compiler_report_src
+    assert "guardian_quorum_weak" in compiler_report_src
+    assert "emergency_access_without_guardian_quorum" in compiler_report_src
+    assert "emergency_access_without_beneficiary_request" in compiler_report_src

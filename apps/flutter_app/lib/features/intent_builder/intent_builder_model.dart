@@ -567,6 +567,13 @@ class IntentGlobalSafeguardsModel {
     this.defaultRemindersDaysBefore = const [14, 7, 1],
     this.requireMultisignalBeforeRelease = true,
     this.requireGuardianApprovalForLegacy = false,
+    this.guardianQuorumEnabled = false,
+    this.guardianQuorumRequired = 2,
+    this.guardianQuorumPoolSize = 3,
+    this.emergencyAccessEnabled = false,
+    this.emergencyAccessRequiresBeneficiaryRequest = true,
+    this.emergencyAccessRequiresGuardianQuorum = true,
+    this.emergencyAccessGraceHours = 48,
     this.proofOfLifeCheckMode = "biometric_tap",
     this.proofOfLifeFallbackChannels = const ["email", "sms"],
     this.serverHeartbeatFallbackEnabled = true,
@@ -578,6 +585,13 @@ class IntentGlobalSafeguardsModel {
   final List<int> defaultRemindersDaysBefore;
   final bool requireMultisignalBeforeRelease;
   final bool requireGuardianApprovalForLegacy;
+  final bool guardianQuorumEnabled;
+  final int guardianQuorumRequired;
+  final int guardianQuorumPoolSize;
+  final bool emergencyAccessEnabled;
+  final bool emergencyAccessRequiresBeneficiaryRequest;
+  final bool emergencyAccessRequiresGuardianQuorum;
+  final int emergencyAccessGraceHours;
   final String proofOfLifeCheckMode;
   final List<String> proofOfLifeFallbackChannels;
   final bool serverHeartbeatFallbackEnabled;
@@ -590,6 +604,13 @@ class IntentGlobalSafeguardsModel {
       "default_reminders_days_before": defaultRemindersDaysBefore,
       "require_multisignal_before_release": requireMultisignalBeforeRelease,
       "require_guardian_approval_for_legacy": requireGuardianApprovalForLegacy,
+      "guardian_quorum_enabled": guardianQuorumEnabled,
+      "guardian_quorum_required": guardianQuorumRequired,
+      "guardian_quorum_pool_size": guardianQuorumPoolSize,
+      "emergency_access_enabled": emergencyAccessEnabled,
+      "emergency_access_requires_beneficiary_request": emergencyAccessRequiresBeneficiaryRequest,
+      "emergency_access_requires_guardian_quorum": emergencyAccessRequiresGuardianQuorum,
+      "emergency_access_grace_hours": emergencyAccessGraceHours,
       "proof_of_life_check_mode": proofOfLifeCheckMode,
       "proof_of_life_fallback_channels": proofOfLifeFallbackChannels,
       "server_heartbeat_fallback_enabled": serverHeartbeatFallbackEnabled,
@@ -606,6 +627,15 @@ class IntentGlobalSafeguardsModel {
           .toList(),
       requireMultisignalBeforeRelease: map["require_multisignal_before_release"] as bool? ?? true,
       requireGuardianApprovalForLegacy: map["require_guardian_approval_for_legacy"] as bool? ?? false,
+      guardianQuorumEnabled: map["guardian_quorum_enabled"] as bool? ?? false,
+      guardianQuorumRequired: map["guardian_quorum_required"] as int? ?? 2,
+      guardianQuorumPoolSize: map["guardian_quorum_pool_size"] as int? ?? 3,
+      emergencyAccessEnabled: map["emergency_access_enabled"] as bool? ?? false,
+      emergencyAccessRequiresBeneficiaryRequest:
+          map["emergency_access_requires_beneficiary_request"] as bool? ?? true,
+      emergencyAccessRequiresGuardianQuorum:
+          map["emergency_access_requires_guardian_quorum"] as bool? ?? true,
+      emergencyAccessGraceHours: map["emergency_access_grace_hours"] as int? ?? 48,
       proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
       proofOfLifeFallbackChannels: (map["proof_of_life_fallback_channels"] as List<dynamic>? ?? const ["email", "sms"])
           .whereType<String>()

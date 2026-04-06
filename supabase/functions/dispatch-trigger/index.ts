@@ -26,6 +26,13 @@ type SafetySettings = {
   minimum_recent_signal_types: number;
   require_guardian_approval_legacy: boolean;
   guardian_grace_hours: number;
+  guardian_quorum_enabled: boolean;
+  guardian_quorum_required: number;
+  guardian_quorum_pool_size: number;
+  emergency_access_enabled: boolean;
+  emergency_access_requires_beneficiary_request: boolean;
+  emergency_access_requires_guardian_quorum: boolean;
+  emergency_access_grace_hours: number;
   private_first_mode: boolean;
   minimize_trace_metadata: boolean;
   trace_retention_days: number;
@@ -158,7 +165,7 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
   const { data, error } = await supabase
     .from("user_safety_settings")
     .select(
-      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, proof_of_life_check_mode, proof_of_life_fallback_channels, server_heartbeat_fallback_enabled, ios_background_risk_acknowledged, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days, trace_privacy_profile",
+      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, proof_of_life_check_mode, proof_of_life_fallback_channels, server_heartbeat_fallback_enabled, ios_background_risk_acknowledged, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, guardian_quorum_enabled, guardian_quorum_required, guardian_quorum_pool_size, emergency_access_enabled, emergency_access_requires_beneficiary_request, emergency_access_requires_guardian_quorum, emergency_access_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days, trace_privacy_profile",
     )
     .eq("owner_id", ownerId)
     .maybeSingle();
@@ -180,6 +187,13 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
       minimum_recent_signal_types: 2,
       require_guardian_approval_legacy: false,
       guardian_grace_hours: 72,
+      guardian_quorum_enabled: false,
+      guardian_quorum_required: 2,
+      guardian_quorum_pool_size: 3,
+      emergency_access_enabled: false,
+      emergency_access_requires_beneficiary_request: true,
+      emergency_access_requires_guardian_quorum: true,
+      emergency_access_grace_hours: 48,
       private_first_mode: true,
       minimize_trace_metadata: true,
       trace_retention_days: 14,
@@ -302,7 +316,10 @@ async function evaluateRequiredControls(args: {
       );
     } else if (requirement === "guardian_approval") {
       const cycleDate = new Date().toISOString().slice(0, 10);
-      satisfied = await hasGuardianApproval(args.ownerId, args.mode, cycleDate);
+      const requiredApprovals = args.safety.guardian_quorum_enabled
+        ? Math.max(args.safety.guardian_quorum_required, 1)
+        : 1;
+      satisfied = await hasGuardianApproval(args.ownerId, args.mode, cycleDate, requiredApprovals);
     } else if (requirement === "cooldown_24h") {
       const hasRecent = await hasRecentFinalRelease(args.ownerId, args.mode, 24);
       satisfied = !hasRecent;
@@ -359,19 +376,39 @@ async function hasRecentMultiSignals(ownerId: string, windowHours: number, minSi
   return uniqueTypes.size >= minSignalTypes;
 }
 
-async function hasGuardianApproval(ownerId: string, mode: "legacy" | "self_recovery", cycleDate: string): Promise<boolean> {
-  const { data, error } = await supabase
+async function getGuardianApprovalCount(
+  ownerId: string,
+  mode: "legacy" | "self_recovery",
+  cycleDate: string,
+): Promise<number> {
+  const { count, error } = await supabase
     .from("guardian_approvals")
-    .select("id")
+    .select("id", { count: "exact", head: true })
     .eq("owner_id", ownerId)
     .eq("mode", mode)
     .eq("cycle_date", cycleDate)
     .eq("approved", true)
-    .not("approved_at", "is", null)
-    .limit(1)
-    .maybeSingle();
+    .not("approved_at", "is", null);
   if (error) throw new Error(error.message);
-  return Boolean(data);
+  return count ?? 0;
+}
+
+async function hasGuardianApproval(
+  ownerId: string,
+  mode: "legacy" | "self_recovery",
+  cycleDate: string,
+  requiredApprovals = 1,
+): Promise<boolean> {
+  const { count, error } = await supabase
+    .from("guardian_approvals")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", ownerId)
+    .eq("mode", mode)
+    .eq("cycle_date", cycleDate)
+    .eq("approved", true)
+    .not("approved_at", "is", null);
+  if (error) throw new Error(error.message);
+  return (count ?? 0) >= requiredApprovals;
 }
 
 async function hasRecentFinalRelease(ownerId: string, mode: "legacy" | "self_recovery", withinHours: number): Promise<boolean> {
@@ -637,6 +674,9 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
 
   if (mode === "legacy" && safety.require_guardian_approval_legacy) {
     const guardianGraceDays = Math.ceil(safety.guardian_grace_hours / 24);
+    const requiredApprovals = safety.guardian_quorum_enabled
+      ? Math.max(safety.guardian_quorum_required, 1)
+      : 1;
     if (inactiveDays < threshold + effectiveGraceDays + guardianGraceDays) {
       await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "guardian grace window still active", {
         inactiveDays,
@@ -645,13 +685,17 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       });
       return;
     }
-    const guardianApproved = await hasGuardianApproval(profile.id, mode, cycleDate);
+    const guardianApproved = await hasGuardianApproval(profile.id, mode, cycleDate, requiredApprovals);
     if (!guardianApproved) {
+      const approvalCount = await getGuardianApprovalCount(profile.id, mode, cycleDate);
       await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "guardian approval missing for legacy release", {
         inactiveDays,
         threshold,
         cycleDate,
         guardianGraceHours: safety.guardian_grace_hours,
+        guardianQuorumEnabled: safety.guardian_quorum_enabled,
+        guardianApprovalsRequired: requiredApprovals,
+        guardianApprovalsReceived: approvalCount,
       });
       await supabase.from("trigger_logs").insert({
         owner_id: profile.id,
@@ -659,7 +703,15 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         action,
         status: "skipped",
         reason: "guardian approval missing for legacy release",
-        metadata: { inactiveDays, threshold, cycleDate, guardianGraceHours: safety.guardian_grace_hours },
+        metadata: {
+          inactiveDays,
+          threshold,
+          cycleDate,
+          guardianGraceHours: safety.guardian_grace_hours,
+          guardianQuorumEnabled: safety.guardian_quorum_enabled,
+          guardianApprovalsRequired: requiredApprovals,
+          guardianApprovalsReceived: approvalCount,
+        },
         processed_at: new Date().toISOString(),
       });
       return;

@@ -368,6 +368,55 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
     );
   }
 
+  final safeguards = document.globalSafeguards;
+  if (safeguards.guardianQuorumEnabled &&
+      safeguards.guardianQuorumRequired > safeguards.guardianQuorumPoolSize) {
+    issues.add(
+      _issue(
+        severity: "error",
+        code: "guardian_quorum_invalid",
+        message:
+            "Guardian quorum requires more approvals than the configured guardian pool can provide.",
+      ),
+    );
+  }
+
+  if (safeguards.guardianQuorumEnabled && safeguards.guardianQuorumRequired < 2) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "guardian_quorum_weak",
+        message:
+            "Guardian quorum is enabled with fewer than two approvals. Sensitive legacy routes should usually require at least 2 approvals.",
+      ),
+    );
+  }
+
+  if (safeguards.emergencyAccessEnabled &&
+      safeguards.emergencyAccessRequiresGuardianQuorum &&
+      !safeguards.guardianQuorumEnabled) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "emergency_access_without_guardian_quorum",
+        message:
+            "Emergency access is configured to depend on guardian quorum, but guardian quorum is not enabled globally.",
+      ),
+    );
+  }
+
+  if (safeguards.emergencyAccessEnabled &&
+      !safeguards.emergencyAccessRequiresBeneficiaryRequest) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "emergency_access_without_beneficiary_request",
+        message:
+            "Emergency access does not require an explicit beneficiary request. This increases override risk for incapacity scenarios.",
+      ),
+    );
+  }
+
   final errorCount = issues.where((issue) => issue["severity"] == "error").length;
   final warningCount = issues.where((issue) => issue["severity"] == "warning").length;
   return IntentCompilerReportModel.fromMap({

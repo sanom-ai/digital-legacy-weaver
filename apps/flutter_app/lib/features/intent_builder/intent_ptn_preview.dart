@@ -63,6 +63,18 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
       ),
     );
   }
+  if (document.globalSafeguards.guardianQuorumEnabled) {
+    lines.add(
+      '# guardian quorum ${document.globalSafeguards.guardianQuorumRequired}-of-${document.globalSafeguards.guardianQuorumPoolSize}',
+    );
+  }
+  if (document.globalSafeguards.emergencyAccessEnabled) {
+    lines.add(
+      '# emergency access override ${document.globalSafeguards.emergencyAccessGraceHours}h'
+      '${document.globalSafeguards.emergencyAccessRequiresBeneficiaryRequest ? ", beneficiary_request" : ""}'
+      '${document.globalSafeguards.emergencyAccessRequiresGuardianQuorum ? ", guardian_quorum" : ""}',
+    );
+  }
   if (document.globalSafeguards.serverHeartbeatFallbackEnabled) {
     lines.add(
       _requireLine(

@@ -130,6 +130,24 @@ def collect_intent_warnings(intent: Dict[str, Any]) -> List[str]:
     if global_safeguards.get("ios_background_risk_acknowledged") is False:
         warnings.append("global: iOS/background execution risk is not acknowledged yet; review fallback posture before treating this workspace as reliable")
 
+    if global_safeguards.get("guardian_quorum_enabled", False):
+        quorum_required = int(global_safeguards.get("guardian_quorum_required", 2))
+        quorum_pool_size = int(global_safeguards.get("guardian_quorum_pool_size", 3))
+        if quorum_required > quorum_pool_size:
+            warnings.append("global: guardian quorum requires more approvals than the configured guardian pool can provide")
+        elif quorum_required < 2:
+            warnings.append("global: guardian quorum is enabled with fewer than two approvals; sensitive legacy routes should usually require at least 2 approvals")
+
+    if global_safeguards.get("emergency_access_enabled", False):
+        if global_safeguards.get("emergency_access_requires_guardian_quorum", True) and not global_safeguards.get(
+            "guardian_quorum_enabled", False
+        ):
+            warnings.append("global: emergency access depends on guardian quorum, but guardian quorum is not enabled globally")
+        if not global_safeguards.get("emergency_access_requires_beneficiary_request", True):
+            warnings.append(
+                "global: emergency access does not require an explicit beneficiary request; override risk will increase for incapacity scenarios"
+            )
+
     for index, entry in enumerate(intent.get("entries", [])):
         label = f"entry[{index}]"
         entry_id = entry.get("entry_id") or label
@@ -231,6 +249,14 @@ def build_intent_compiler_report(intent: Dict[str, Any]) -> Dict[str, Any]:
             code = "server_heartbeat_fallback_disabled"
         elif "iOS/background execution risk is not acknowledged" in warning:
             code = "ios_background_risk_unacknowledged"
+        elif "guardian quorum requires more approvals" in warning:
+            code = "guardian_quorum_invalid"
+        elif "guardian quorum is enabled with fewer than two approvals" in warning:
+            code = "guardian_quorum_weak"
+        elif "emergency access depends on guardian quorum" in warning:
+            code = "emergency_access_without_guardian_quorum"
+        elif "emergency access does not require an explicit beneficiary request" in warning:
+            code = "emergency_access_without_beneficiary_request"
         issues.append(_make_issue("warning", code, warning, entry_id))
 
     return {
@@ -315,6 +341,20 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
                 "global_guardian_requirement",
                 "safety-core",
             ),
+        )
+    if global_safeguards.get("guardian_quorum_enabled", False):
+        lines.append(
+            f"# guardian quorum {global_safeguards.get('guardian_quorum_required', 2)}-of-{global_safeguards.get('guardian_quorum_pool_size', 3)}",
+        )
+    if global_safeguards.get("emergency_access_enabled", False):
+        flags: List[str] = []
+        if global_safeguards.get("emergency_access_requires_beneficiary_request", True):
+            flags.append("beneficiary_request")
+        if global_safeguards.get("emergency_access_requires_guardian_quorum", True):
+            flags.append("guardian_quorum")
+        suffix = f", {', '.join(flags)}" if flags else ""
+        lines.append(
+            f"# emergency access override {global_safeguards.get('emergency_access_grace_hours', 48)}h{suffix}",
         )
     if global_safeguards.get("server_heartbeat_fallback_enabled", True):
         lines.append(

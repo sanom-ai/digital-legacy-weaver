@@ -36,6 +36,12 @@ class IntentRuntimeReadinessModel {
       currentArtifact?.sealedReleaseCandidate.deviceSecretResidency ==
       "device_local_only";
 
+  bool get guardianQuorumEnabled =>
+      currentDraft?.globalSafeguards.guardianQuorumEnabled ?? false;
+
+  bool get emergencyAccessEnabled =>
+      currentDraft?.globalSafeguards.emergencyAccessEnabled ?? false;
+
   String? get currentScenarioId => currentDraft?.metadata["demo_scenario"] as String?;
 
   String? get currentScenarioTitle => currentDraft?.metadata["demo_title"] as String?;
@@ -76,6 +82,11 @@ class IntentRuntimeReadinessModel {
     if (!hasArtifact) {
       return "Next step: export a canonical PTN artifact from the current draft.";
     }
+    if (guardianQuorumEnabled &&
+        (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
+            (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
+      return "Next step: fix guardian quorum because required approvals exceed the configured guardian pool.";
+    }
     if (hasBlockingErrors) {
       return "Next step: resolve compiler errors before moving this artifact forward.";
     }
@@ -100,6 +111,11 @@ class IntentRuntimeReadinessModel {
   String get primaryActionLabel {
     if (!hasArtifact) {
       return "Export first artifact";
+    }
+    if (guardianQuorumEnabled &&
+        (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
+            (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
+      return "Fix guardian quorum";
     }
     if (hasBlockingErrors) {
       return "Fix blocking issues";
@@ -126,6 +142,11 @@ class IntentRuntimeReadinessModel {
     if (!hasArtifact) {
       return "export_first_artifact";
     }
+    if (guardianQuorumEnabled &&
+        (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
+            (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
+      return "fix_guardian_quorum";
+    }
     if (hasBlockingErrors) {
       return "fix_blocking_issues";
     }
@@ -151,6 +172,10 @@ class IntentRuntimeReadinessModel {
     final steps = <String>[];
     if (!hasArtifact) {
       steps.add("Open Intent Builder and export the first canonical PTN artifact.");
+    } else if (guardianQuorumEnabled &&
+        (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
+            (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
+      steps.add("Reduce required guardian approvals or increase the guardian pool so quorum is structurally valid.");
     } else if (hasBlockingErrors) {
       steps.add("Resolve compiler errors before advancing the current artifact.");
     } else if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
@@ -177,6 +202,22 @@ class IntentRuntimeReadinessModel {
 
     if (deviceOnlySecretResidency) {
       steps.add("Device-only secret residency is active; verify that the release path still remains usable if the owner device changes.");
+    }
+
+    if (guardianQuorumEnabled) {
+      final required = currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0;
+      final poolSize = currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0;
+      steps.add("Guardian quorum is active at $required-of-$poolSize for high-impact legacy release.");
+    }
+
+    if (emergencyAccessEnabled) {
+      final safeguards = currentDraft?.globalSafeguards;
+      final graceHours = safeguards?.emergencyAccessGraceHours ?? 0;
+      final beneficiaryRequest = safeguards?.emergencyAccessRequiresBeneficiaryRequest ?? false;
+      final guardianRequirement = safeguards?.emergencyAccessRequiresGuardianQuorum ?? false;
+      steps.add(
+        "Emergency access override is enabled with a ${graceHours.toString()}-hour grace window${beneficiaryRequest ? ", beneficiary request" : ""}${guardianRequirement ? ", and guardian quorum" : ""}.",
+      );
     }
 
     return steps;
@@ -211,6 +252,26 @@ class IntentRuntimeReadinessModel {
       }
       if (currentArtifact.artifactState == IntentArtifactState.ready && !draftInSync) {
         blockers.add("Ready artifact is no longer in sync");
+      }
+    }
+
+    final safeguards = currentDraft?.globalSafeguards;
+    if (safeguards != null) {
+      if (safeguards.guardianQuorumEnabled &&
+          safeguards.guardianQuorumRequired > safeguards.guardianQuorumPoolSize) {
+        blockers.add("Guardian quorum requirement exceeds guardian pool");
+      }
+      if (safeguards.guardianQuorumEnabled && safeguards.guardianQuorumRequired < 2) {
+        blockers.add("Guardian quorum is too weak for sensitive legacy release");
+      }
+      if (safeguards.emergencyAccessEnabled &&
+          safeguards.emergencyAccessRequiresGuardianQuorum &&
+          !safeguards.guardianQuorumEnabled) {
+        blockers.add("Emergency access requires guardian quorum but quorum is disabled");
+      }
+      if (safeguards.emergencyAccessEnabled &&
+          !safeguards.emergencyAccessRequiresBeneficiaryRequest) {
+        blockers.add("Emergency access should require an explicit beneficiary request");
       }
     }
 

@@ -263,6 +263,15 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             legalDisclaimerAccepted: _legalAccepted,
             emergencyPauseUntil: null,
             requireTotpUnlock: widget.initialSettings.requireTotpUnlock,
+            guardianQuorumEnabled: widget.initialSettings.guardianQuorumEnabled,
+            guardianQuorumRequired: widget.initialSettings.guardianQuorumRequired,
+            guardianQuorumPoolSize: widget.initialSettings.guardianQuorumPoolSize,
+            emergencyAccessEnabled: widget.initialSettings.emergencyAccessEnabled,
+            emergencyAccessRequiresBeneficiaryRequest:
+                widget.initialSettings.emergencyAccessRequiresBeneficiaryRequest,
+            emergencyAccessRequiresGuardianQuorum:
+                widget.initialSettings.emergencyAccessRequiresGuardianQuorum,
+            emergencyAccessGraceHours: widget.initialSettings.emergencyAccessGraceHours,
             privateFirstMode: _privateFirstMode,
             tracePrivacyProfile: presetById(_selectedPresetId).tracePrivacyProfile,
           );

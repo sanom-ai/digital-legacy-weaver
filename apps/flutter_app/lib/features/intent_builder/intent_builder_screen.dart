@@ -224,7 +224,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         defaultGraceDays: widget.settings.gracePeriodDays,
         defaultRemindersDaysBefore: widget.settings.reminderOffsetsDays,
         requireMultisignalBeforeRelease: true,
-        requireGuardianApprovalForLegacy: false,
+        requireGuardianApprovalForLegacy: widget.settings.guardianQuorumEnabled,
+        guardianQuorumEnabled: widget.settings.guardianQuorumEnabled,
+        guardianQuorumRequired: widget.settings.guardianQuorumRequired,
+        guardianQuorumPoolSize: widget.settings.guardianQuorumPoolSize,
+        emergencyAccessEnabled: widget.settings.emergencyAccessEnabled,
+        emergencyAccessRequiresBeneficiaryRequest:
+            widget.settings.emergencyAccessRequiresBeneficiaryRequest,
+        emergencyAccessRequiresGuardianQuorum:
+            widget.settings.emergencyAccessRequiresGuardianQuorum,
+        emergencyAccessGraceHours: widget.settings.emergencyAccessGraceHours,
         proofOfLifeCheckMode: widget.settings.proofOfLifeCheckMode,
         proofOfLifeFallbackChannels: widget.settings.proofOfLifeFallbackChannels,
         serverHeartbeatFallbackEnabled: widget.settings.serverHeartbeatFallbackEnabled,
@@ -245,6 +254,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _hasLocalDraft = true;
     });
+  }
+
+  Future<void> _updateGlobalSafeguards(
+    IntentGlobalSafeguardsModel safeguards, {
+    required String message,
+  }) async {
+    await _persistDocument(
+      _document.copyWith(globalSafeguards: safeguards),
+      message: message,
+    );
   }
 
   Future<void> _resetDraft() async {
@@ -852,6 +871,345 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   Text(
                     "Intent drafts are encrypted and cached on this device so users can continue shaping intent in plain language before activation. This draft cache is local-first and not treated as a published PTN policy yet.",
                   ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Guardian quorum & emergency access",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Use guardian quorum for sensitive legacy release and keep emergency access as a separate incapacity flow rather than a shortcut around dead-man timing.",
+                  ),
+                  const SizedBox(height: 12),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text("Enable guardian quorum"),
+                    subtitle: const Text("Recommended baseline: 2-of-3 for important legacy delivery."),
+                    value: _document.globalSafeguards.guardianQuorumEnabled,
+                    onChanged: (value) {
+                      final poolSize = _document.globalSafeguards.guardianQuorumPoolSize;
+                      _updateGlobalSafeguards(
+                        IntentGlobalSafeguardsModel(
+                          emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
+                          defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
+                          defaultRemindersDaysBefore:
+                              _document.globalSafeguards.defaultRemindersDaysBefore,
+                          requireMultisignalBeforeRelease:
+                              _document.globalSafeguards.requireMultisignalBeforeRelease,
+                          requireGuardianApprovalForLegacy: value,
+                          guardianQuorumEnabled: value,
+                          guardianQuorumRequired: value
+                              ? _document.globalSafeguards.guardianQuorumRequired.clamp(1, poolSize)
+                              : _document.globalSafeguards.guardianQuorumRequired,
+                          guardianQuorumPoolSize: poolSize,
+                          emergencyAccessEnabled:
+                              _document.globalSafeguards.emergencyAccessEnabled,
+                          emergencyAccessRequiresBeneficiaryRequest: _document
+                              .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                          emergencyAccessRequiresGuardianQuorum: _document
+                              .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                          emergencyAccessGraceHours:
+                              _document.globalSafeguards.emergencyAccessGraceHours,
+                          proofOfLifeCheckMode: _document.globalSafeguards.proofOfLifeCheckMode,
+                          proofOfLifeFallbackChannels:
+                              _document.globalSafeguards.proofOfLifeFallbackChannels,
+                          serverHeartbeatFallbackEnabled: _document
+                              .globalSafeguards.serverHeartbeatFallbackEnabled,
+                          iosBackgroundRiskAcknowledged:
+                              _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                        ),
+                        message: "Updated guardian quorum posture.",
+                      );
+                    },
+                  ),
+                  if (_document.globalSafeguards.guardianQuorumEnabled) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      "Current quorum: ${_document.globalSafeguards.guardianQuorumRequired}-of-${_document.globalSafeguards.guardianQuorumPoolSize}",
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      initialValue: _document.globalSafeguards.guardianQuorumPoolSize,
+                      decoration: const InputDecoration(labelText: "Guardian pool size"),
+                      items: const [
+                        DropdownMenuItem(value: 2, child: Text("2 guardians")),
+                        DropdownMenuItem(value: 3, child: Text("3 guardians")),
+                        DropdownMenuItem(value: 4, child: Text("4 guardians")),
+                        DropdownMenuItem(value: 5, child: Text("5 guardians")),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        _updateGlobalSafeguards(
+                          IntentGlobalSafeguardsModel(
+                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore:
+                                _document.globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease:
+                                _document.globalSafeguards.requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy:
+                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired:
+                                _document.globalSafeguards.guardianQuorumRequired.clamp(1, value),
+                            guardianQuorumPoolSize: value,
+                            emergencyAccessEnabled:
+                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyAccessRequiresBeneficiaryRequest: _document
+                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                            emergencyAccessRequiresGuardianQuorum: _document
+                                .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                            emergencyAccessGraceHours:
+                                _document.globalSafeguards.emergencyAccessGraceHours,
+                            proofOfLifeCheckMode:
+                                _document.globalSafeguards.proofOfLifeCheckMode,
+                            proofOfLifeFallbackChannels:
+                                _document.globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled: _document
+                                .globalSafeguards.serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged:
+                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                          ),
+                          message: "Updated guardian pool size.",
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      initialValue: _document.globalSafeguards.guardianQuorumRequired,
+                      decoration: const InputDecoration(labelText: "Required guardian approvals"),
+                      items: List.generate(
+                        _document.globalSafeguards.guardianQuorumPoolSize,
+                        (index) => DropdownMenuItem(
+                          value: index + 1,
+                          child: Text("${index + 1} approvals"),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        _updateGlobalSafeguards(
+                          IntentGlobalSafeguardsModel(
+                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore:
+                                _document.globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease:
+                                _document.globalSafeguards.requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy:
+                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired: value,
+                            guardianQuorumPoolSize:
+                                _document.globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled:
+                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyAccessRequiresBeneficiaryRequest: _document
+                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                            emergencyAccessRequiresGuardianQuorum: _document
+                                .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                            emergencyAccessGraceHours:
+                                _document.globalSafeguards.emergencyAccessGraceHours,
+                            proofOfLifeCheckMode:
+                                _document.globalSafeguards.proofOfLifeCheckMode,
+                            proofOfLifeFallbackChannels:
+                                _document.globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled: _document
+                                .globalSafeguards.serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged:
+                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                          ),
+                          message: "Updated guardian quorum requirement.",
+                        );
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text("Enable emergency access override"),
+                    subtitle: const Text("For incapacity cases such as ICU, separate from standard inactivity release."),
+                    value: _document.globalSafeguards.emergencyAccessEnabled,
+                    onChanged: (value) {
+                      _updateGlobalSafeguards(
+                        IntentGlobalSafeguardsModel(
+                          emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
+                          defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
+                          defaultRemindersDaysBefore:
+                              _document.globalSafeguards.defaultRemindersDaysBefore,
+                          requireMultisignalBeforeRelease:
+                              _document.globalSafeguards.requireMultisignalBeforeRelease,
+                          requireGuardianApprovalForLegacy:
+                              _document.globalSafeguards.requireGuardianApprovalForLegacy,
+                          guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                          guardianQuorumRequired:
+                              _document.globalSafeguards.guardianQuorumRequired,
+                          guardianQuorumPoolSize:
+                              _document.globalSafeguards.guardianQuorumPoolSize,
+                          emergencyAccessEnabled: value,
+                          emergencyAccessRequiresBeneficiaryRequest:
+                              _document.globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                          emergencyAccessRequiresGuardianQuorum:
+                              _document.globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                          emergencyAccessGraceHours:
+                              _document.globalSafeguards.emergencyAccessGraceHours,
+                          proofOfLifeCheckMode: _document.globalSafeguards.proofOfLifeCheckMode,
+                          proofOfLifeFallbackChannels:
+                              _document.globalSafeguards.proofOfLifeFallbackChannels,
+                          serverHeartbeatFallbackEnabled:
+                              _document.globalSafeguards.serverHeartbeatFallbackEnabled,
+                          iosBackgroundRiskAcknowledged:
+                              _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                        ),
+                        message: "Updated emergency access posture.",
+                      );
+                    },
+                  ),
+                  if (_document.globalSafeguards.emergencyAccessEnabled) ...[
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text("Require beneficiary request"),
+                      subtitle: const Text("Emergency access should begin with an explicit beneficiary request."),
+                      value: _document.globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                      onChanged: (value) {
+                        _updateGlobalSafeguards(
+                          IntentGlobalSafeguardsModel(
+                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore:
+                                _document.globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease:
+                                _document.globalSafeguards.requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy:
+                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired:
+                                _document.globalSafeguards.guardianQuorumRequired,
+                            guardianQuorumPoolSize:
+                                _document.globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled:
+                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyAccessRequiresBeneficiaryRequest: value ?? true,
+                            emergencyAccessRequiresGuardianQuorum:
+                                _document.globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                            emergencyAccessGraceHours:
+                                _document.globalSafeguards.emergencyAccessGraceHours,
+                            proofOfLifeCheckMode:
+                                _document.globalSafeguards.proofOfLifeCheckMode,
+                            proofOfLifeFallbackChannels:
+                                _document.globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled:
+                                _document.globalSafeguards.serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged:
+                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                          ),
+                          message: "Updated beneficiary request requirement.",
+                        );
+                      },
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text("Require guardian quorum"),
+                      subtitle: const Text("Recommended so emergency access stays multi-party and auditable."),
+                      value: _document.globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                      onChanged: (value) {
+                        _updateGlobalSafeguards(
+                          IntentGlobalSafeguardsModel(
+                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore:
+                                _document.globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease:
+                                _document.globalSafeguards.requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy:
+                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired:
+                                _document.globalSafeguards.guardianQuorumRequired,
+                            guardianQuorumPoolSize:
+                                _document.globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled:
+                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyAccessRequiresBeneficiaryRequest: _document
+                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                            emergencyAccessRequiresGuardianQuorum: value ?? true,
+                            emergencyAccessGraceHours:
+                                _document.globalSafeguards.emergencyAccessGraceHours,
+                            proofOfLifeCheckMode:
+                                _document.globalSafeguards.proofOfLifeCheckMode,
+                            proofOfLifeFallbackChannels:
+                                _document.globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled:
+                                _document.globalSafeguards.serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged:
+                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                          ),
+                          message: "Updated emergency guardian requirement.",
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Emergency access grace window: ${_document.globalSafeguards.emergencyAccessGraceHours} hours",
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Slider(
+                      value: _document.globalSafeguards.emergencyAccessGraceHours.toDouble(),
+                      min: 24,
+                      max: 168,
+                      divisions: 6,
+                      label: "${_document.globalSafeguards.emergencyAccessGraceHours}",
+                      onChanged: (value) {
+                        _updateGlobalSafeguards(
+                          IntentGlobalSafeguardsModel(
+                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore:
+                                _document.globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease:
+                                _document.globalSafeguards.requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy:
+                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired:
+                                _document.globalSafeguards.guardianQuorumRequired,
+                            guardianQuorumPoolSize:
+                                _document.globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled:
+                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyAccessRequiresBeneficiaryRequest: _document
+                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                            emergencyAccessRequiresGuardianQuorum: _document
+                                .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                            emergencyAccessGraceHours: value.round(),
+                            proofOfLifeCheckMode:
+                                _document.globalSafeguards.proofOfLifeCheckMode,
+                            proofOfLifeFallbackChannels:
+                                _document.globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled:
+                                _document.globalSafeguards.serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged:
+                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                          ),
+                          message: "Updated emergency access grace window.",
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),

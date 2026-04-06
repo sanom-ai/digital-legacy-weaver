@@ -20,6 +20,13 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   bool _offset7 = true;
   bool _offset1 = true;
   bool _requireTotpUnlock = false;
+  bool _guardianQuorumEnabled = false;
+  int _guardianQuorumRequired = 2;
+  int _guardianQuorumPoolSize = 3;
+  bool _emergencyAccessEnabled = false;
+  bool _emergencyAccessRequiresBeneficiaryRequest = true;
+  bool _emergencyAccessRequiresGuardianQuorum = true;
+  int _emergencyAccessGraceHours = 48;
   bool _privateFirstMode = true;
   String _proofOfLifeCheckMode = "biometric_tap";
   bool _fallbackEmail = true;
@@ -72,6 +79,15 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
             _offset7 = offsets.contains(7);
             _offset1 = offsets.contains(1);
             _requireTotpUnlock = settings.requireTotpUnlock;
+            _guardianQuorumEnabled = settings.guardianQuorumEnabled;
+            _guardianQuorumRequired = settings.guardianQuorumRequired;
+            _guardianQuorumPoolSize = settings.guardianQuorumPoolSize;
+            _emergencyAccessEnabled = settings.emergencyAccessEnabled;
+            _emergencyAccessRequiresBeneficiaryRequest =
+                settings.emergencyAccessRequiresBeneficiaryRequest;
+            _emergencyAccessRequiresGuardianQuorum =
+                settings.emergencyAccessRequiresGuardianQuorum;
+            _emergencyAccessGraceHours = settings.emergencyAccessGraceHours;
             _privateFirstMode = settings.privateFirstMode;
             _selectedPresetId = settings.tracePrivacyProfile;
             _seeded = true;
@@ -222,6 +238,108 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                           child: const Text("Manage TOTP Factor"),
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      const Text("Guardian quorum", style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      const Text(
+                        "Use quorum for sensitive legacy release so no single guardian can approve or block alone.",
+                      ),
+                      SwitchListTile(
+                        value: _guardianQuorumEnabled,
+                        onChanged: (v) => setState(() => _guardianQuorumEnabled = v),
+                        title: const Text("Enable guardian quorum for legacy release"),
+                        subtitle: const Text("Recommended baseline: 2-of-3 guardians."),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      if (_guardianQuorumEnabled) ...[
+                        DropdownButtonFormField<int>(
+                          initialValue: _guardianQuorumPoolSize,
+                          decoration: const InputDecoration(labelText: "Guardian pool size"),
+                          items: const [
+                            DropdownMenuItem(value: 2, child: Text("2 guardians")),
+                            DropdownMenuItem(value: 3, child: Text("3 guardians")),
+                            DropdownMenuItem(value: 4, child: Text("4 guardians")),
+                            DropdownMenuItem(value: 5, child: Text("5 guardians")),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _guardianQuorumPoolSize = value;
+                                if (_guardianQuorumRequired > value) {
+                                  _guardianQuorumRequired = value;
+                                }
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<int>(
+                          initialValue: _guardianQuorumRequired,
+                          decoration: const InputDecoration(labelText: "Required guardian approvals"),
+                          items: List.generate(
+                            _guardianQuorumPoolSize,
+                            (index) => DropdownMenuItem(
+                              value: index + 1,
+                              child: Text("${index + 1} approvals"),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _guardianQuorumRequired = value);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Current quorum: $_guardianQuorumRequired-of-$_guardianQuorumPoolSize",
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      const Text("Emergency access override", style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      const Text(
+                        "Emergency access covers incapacity cases such as ICU or sudden device loss without waiting for a full dead-man cycle.",
+                      ),
+                      SwitchListTile(
+                        value: _emergencyAccessEnabled,
+                        onChanged: (v) => setState(() => _emergencyAccessEnabled = v),
+                        title: const Text("Enable emergency access override"),
+                        subtitle: const Text("Keep this separate from standard inactivity-trigger release."),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      if (_emergencyAccessEnabled) ...[
+                        CheckboxListTile(
+                          value: _emergencyAccessRequiresBeneficiaryRequest,
+                          onChanged: (v) => setState(
+                            () => _emergencyAccessRequiresBeneficiaryRequest = v ?? true,
+                          ),
+                          title: const Text("Require beneficiary request"),
+                          subtitle: const Text("Emergency access should start with an explicit beneficiary request."),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        CheckboxListTile(
+                          value: _emergencyAccessRequiresGuardianQuorum,
+                          onChanged: (v) => setState(
+                            () => _emergencyAccessRequiresGuardianQuorum = v ?? true,
+                          ),
+                          title: const Text("Require guardian quorum"),
+                          subtitle: const Text("Recommended so one person cannot force emergency access alone."),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text("Emergency access grace window (hours)"),
+                        Slider(
+                          value: _emergencyAccessGraceHours.toDouble(),
+                          min: 24,
+                          max: 168,
+                          divisions: 6,
+                          label: "$_emergencyAccessGraceHours",
+                          onChanged: (v) => setState(() => _emergencyAccessGraceHours = v.round()),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -332,6 +450,15 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         legalDisclaimerAccepted: _legalAccepted,
                         emergencyPauseUntil: _pause7Days ? DateTime.now().add(const Duration(days: 7)) : null,
                         requireTotpUnlock: _requireTotpUnlock,
+                        guardianQuorumEnabled: _guardianQuorumEnabled,
+                        guardianQuorumRequired: _guardianQuorumRequired,
+                        guardianQuorumPoolSize: _guardianQuorumPoolSize,
+                        emergencyAccessEnabled: _emergencyAccessEnabled,
+                        emergencyAccessRequiresBeneficiaryRequest:
+                            _emergencyAccessRequiresBeneficiaryRequest,
+                        emergencyAccessRequiresGuardianQuorum:
+                            _emergencyAccessRequiresGuardianQuorum,
+                        emergencyAccessGraceHours: _emergencyAccessGraceHours,
                         privateFirstMode: _privateFirstMode,
                         tracePrivacyProfile: selectedPreset.tracePrivacyProfile,
                       );
