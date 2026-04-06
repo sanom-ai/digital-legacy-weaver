@@ -22,6 +22,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   final _accessIdController = TextEditingController();
   final _accessKeyController = TextEditingController();
+  final _handoffCodeController = TextEditingController();
   final _codeController = TextEditingController();
   final _totpController = TextEditingController();
   final _beneficiaryNameController = TextEditingController();
@@ -40,6 +41,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   int _unlockFailures = 0;
   DateTime? _lockedUntil;
   bool _receiptOpened = false;
+  bool _antiScamChecklistAccepted = false;
+  bool _guardianConfirmed = false;
 
   bool get _hasAccessLink =>
       _accessIdController.text.trim().isNotEmpty &&
@@ -55,7 +58,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _lockedUntil != null && DateTime.now().isBefore(_lockedUntil!);
 
   bool get _canRequestCode =>
-      !_busy && !_receiptOpened && !_isTemporarilyLocked && _hasAccessLink;
+      !_busy &&
+      !_receiptOpened &&
+      !_isTemporarilyLocked &&
+      _hasAccessLink &&
+      _antiScamChecklistAccepted &&
+      _guardianConfirmed;
 
   bool get _canUnlock =>
       !_busy &&
@@ -63,7 +71,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       !_isTemporarilyLocked &&
       _hasAccessLink &&
       _hasIdentityKit &&
-      _hasVerificationCode;
+      _hasVerificationCode &&
+      _antiScamChecklistAccepted &&
+      _guardianConfirmed;
 
   String _cooldownRemainingLabel() {
     final until = _lockedUntil;
@@ -139,11 +149,58 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   void dispose() {
     _accessIdController.dispose();
     _accessKeyController.dispose();
+    _handoffCodeController.dispose();
     _codeController.dispose();
     _totpController.dispose();
     _beneficiaryNameController.dispose();
     _verificationPhraseController.dispose();
     super.dispose();
+  }
+
+  String? _extractQueryValue(String text, String key) {
+    final pattern = RegExp('$key=([^&\\s]+)', caseSensitive: false);
+    final match = pattern.firstMatch(text);
+    if (match == null) return null;
+    return Uri.decodeComponent(match.group(1) ?? "").trim();
+  }
+
+  String? _extractLineValue(String text, String key) {
+    final pattern = RegExp('$key\\s*[:=]\\s*([^\\n\\r]+)', caseSensitive: false);
+    final match = pattern.firstMatch(text);
+    return match?.group(1)?.trim();
+  }
+
+  void _applyHandoffPacket() {
+    final raw = _handoffCodeController.text.trim();
+    if (raw.isEmpty) {
+      setState(() {
+        _messageIsError = true;
+        _message = "Paste the handoff packet first.";
+      });
+      return;
+    }
+
+    final accessId =
+        _extractQueryValue(raw, "access_id") ?? _extractLineValue(raw, "access_id");
+    final accessKey = _extractQueryValue(raw, "access_key") ??
+        _extractLineValue(raw, "access_key");
+
+    if ((accessId ?? "").isEmpty || (accessKey ?? "").isEmpty) {
+      setState(() {
+        _messageIsError = true;
+        _message =
+            "Could not read Access ID + Access Key from this packet. Ask your family or guardian to resend the official handoff details.";
+      });
+      return;
+    }
+
+    setState(() {
+      _accessIdController.text = accessId!;
+      _accessKeyController.text = accessKey!;
+      _messageIsError = false;
+      _message =
+          "Handoff packet verified. Access ID and Access Key were filled for you.";
+    });
   }
 
   Future<void> _requestCode() async {
@@ -420,6 +477,113 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(label),
+    );
+  }
+
+  Widget _buildAntiScamChecklistCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE8C89A)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.verified_user_outlined),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Safety check before you continue",
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "We never call to ask for passwords, verification phrases, or money transfer fees.",
+          ),
+          const SizedBox(height: 8),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _antiScamChecklistAccepted,
+            onChanged: (value) {
+              setState(() {
+                _antiScamChecklistAccepted = value ?? false;
+              });
+            },
+            title: const Text(
+              "I understand this is a no-transfer, no-phone-password process.",
+            ),
+          ),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _guardianConfirmed,
+            onChanged: (value) {
+              setState(() {
+                _guardianConfirmed = value ?? false;
+              });
+            },
+            title: const Text(
+              "I have confirmed this handoff with a family member or guardian.",
+            ),
+          ),
+          if (!_antiScamChecklistAccepted || !_guardianConfirmed)
+            const Text(
+              "Complete both checks to enable code request and unlock.",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHandoffPacketCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF2F7F7),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "No-click option (recommended)",
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            "Paste the handoff message or code packet from your family. This app will read Access ID and Access Key for you without opening unknown links.",
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _handoffCodeController,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: "Handoff packet / message",
+              helperText:
+                  "Supports access_id=... and access_key=... format from official handoff message.",
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: _busy ? null : _applyHandoffPacket,
+              icon: const Icon(Icons.key_outlined),
+              label: const Text("Use this packet"),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -739,6 +903,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
+                  _buildAntiScamChecklistCard(),
+                  const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
@@ -765,6 +931,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  _buildHandoffPacketCard(),
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
@@ -796,11 +964,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   _buildJourneyStep(
                     title: "1. Confirm the access link",
                     body:
-                        "Paste the Access ID and Access Key from the owner handoff link before requesting a verification code.",
+                        "Use the no-click packet first, or paste Access ID and Access Key from an owner-approved handoff message before requesting a verification code.",
                     complete: _hasAccessLink,
                     cue: _hasAccessLink
                         ? "Access link detected. You can request a code now."
-                        : "Best next move: add both Access ID and Access Key.",
+                        : "Best next move: use the handoff packet or add both Access ID and Access Key.",
                   ),
                   _buildJourneyStep(
                     title: "2. Confirm your beneficiary identity",
@@ -872,6 +1040,13 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       ),
                     ],
                   ),
+                  if (!_antiScamChecklistAccepted || !_guardianConfirmed) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Complete safety check + guardian confirmation above to enable this step.",
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ],
                   if (_requestedCode) ...[
                     const SizedBox(height: 8),
                     Container(
@@ -960,6 +1135,10 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         SizedBox(height: 6),
                         Text(
                           "Legacy handoff now expects a pre-registered beneficiary name and verification phrase from owner setup before the bundle can open.",
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          "Safer pattern: open the app yourself and paste the handoff packet. Do not continue from unknown clickable links.",
                         ),
                         SizedBox(height: 6),
                         Text(
