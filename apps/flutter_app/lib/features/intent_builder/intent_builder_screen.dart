@@ -1427,7 +1427,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  "Route entries",
+                  "ใครจะได้รับอะไร",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -1435,7 +1435,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 onPressed: () {
                   _addDraftEntry();
                 },
-                child: const Text("Add route"),
+                child: const Text("เพิ่มเส้นทาง"),
               ),
             ],
           ),
@@ -1449,17 +1449,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "No routes yet",
+                      "ยังไม่มีเส้นทาง",
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Add at least one intent entry so this workspace can protect self-recovery or beneficiary delivery in a real scenario.",
+                      "เริ่มจากเพิ่มอย่างน้อย 1 เส้นทาง เช่น ส่งให้คนที่คุณรัก หรือกู้คืนบัญชีตัวเอง",
                     ),
                     const SizedBox(height: 10),
                     FilledButton.tonal(
                       onPressed: _addDraftEntry,
-                      child: const Text("Add first entry"),
+                      child: const Text("เพิ่มเส้นทางแรก"),
                     ),
                   ],
                 ),
@@ -1492,12 +1492,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Export",
+                    "สร้างเวอร์ชันใช้งาน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Export the current active routes into a sealed local version with issue report and trace metadata. This is the bridge from draft work to a release candidate.",
+                    "เมื่อพร้อมแล้ว กดสร้างเวอร์ชันเพื่อบันทึกแผนล่าสุดแบบปลอดภัยในเครื่อง",
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -1511,14 +1511,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         child: Text(
                           _isExporting
                               ? "Exporting..."
-                              : "Export current version",
+                              : "สร้างเวอร์ชันล่าสุด",
                         ),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton(
                         onPressed:
                             _artifact == null ? null : _clearCanonicalArtifact,
-                        child: const Text("Clear exported version"),
+                        child: const Text("ล้างเวอร์ชันที่สร้างไว้"),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton(
@@ -1826,14 +1826,43 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Policy preview",
+                    "ภาพรวมการทำงาน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Preview generated from the current draft so you can review policy text early before exporting.",
+                    "อ่านแบบสั้นก่อน เพื่อให้มั่นใจว่าเส้นทางทำงานถูกต้อง แล้วค่อยดูรายละเอียดเชิงเทคนิค",
                   ),
                   const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFFEFF6F5),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "ลำดับแบบเข้าใจง่าย",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        SizedBox(height: 8),
+                        Text("1) ขาดการติดต่อครบตามที่ตั้งไว้"),
+                        Text("2) ระบบตรวจสอบความปลอดภัยก่อน"),
+                        Text("3) ส่งลิงก์หรือขั้นตอนให้ผู้รับตามเส้นทาง"),
+                        Text("4) บันทึกประวัติการเข้าถึงเพื่อยืนยันย้อนหลัง"),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    title: const Text("ดูรายละเอียดเชิงเทคนิค (PTN)"),
+                    subtitle: const Text("เหมาะสำหรับผู้ดูแลระบบหรือทีมเทคนิค"),
+                    children: [
+                      const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
@@ -1848,6 +1877,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         fontSize: 12,
                       ),
                     ),
+                  ),
+                    ],
                   ),
                 ],
               ),
@@ -1874,6 +1905,17 @@ class _IntentEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final receiver = entry.recipient.registeredLegalName.trim().isNotEmpty
+        ? entry.recipient.registeredLegalName
+        : (entry.recipient.destinationRef.isEmpty
+            ? "ยังไม่ระบุผู้รับ"
+            : entry.recipient.destinationRef);
+    final startCondition =
+        "เริ่มเมื่อไม่พบการใช้งาน ${entry.trigger.inactivityDays} วัน แล้วรอเพิ่ม ${entry.trigger.graceDays} วัน";
+    final statusLabel = entry.status == "active" ? "กำลังใช้งาน" : "พักไว้";
+    final kindLabel =
+        entry.kind == "legacy_delivery" ? "ส่งต่อให้ผู้รับ" : "กู้คืนด้วยตัวเอง";
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1891,74 +1933,69 @@ class _IntentEntryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _Pill(label: entry.kind),
+                _Pill(label: kindLabel),
                 const SizedBox(width: 8),
-                _Pill(label: entry.status),
+                _Pill(label: statusLabel),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              "Recipient: ${entry.recipient.destinationRef.isEmpty ? "Not set" : entry.recipient.destinationRef}",
+              "สรุป: ส่งให้ $receiver",
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
-            Text("Recipient channel: ${entry.recipient.deliveryChannel}"),
+            Text(startCondition),
             const SizedBox(height: 4),
-            if (entry.recipient.registeredLegalName.trim().isNotEmpty) ...[
-              Text(
-                "Registered beneficiary: ${entry.recipient.registeredLegalName}",
-              ),
-              const SizedBox(height: 4),
-            ],
-            if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
-              Text("Verification hint: ${entry.recipient.verificationHint}"),
-              const SizedBox(height: 4),
-            ],
-            Text(
-              "Fallback channels: ${entry.recipient.fallbackChannels.join(", ")}",
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: const Text("ดูรายละเอียดเพิ่มเติม"),
+              subtitle: const Text("ช่องทางส่ง, การยืนยันตัวตน, และความเป็นส่วนตัว"),
+              children: [
+                const SizedBox(height: 6),
+                Text("ช่องทางติดต่อผู้รับ: ${entry.recipient.deliveryChannel}"),
+                const SizedBox(height: 4),
+                if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
+                  Text("คำใบ้ยืนยันตัวตน: ${entry.recipient.verificationHint}"),
+                  const SizedBox(height: 4),
+                ],
+                Text(
+                  "ช่องทางสำรอง: ${entry.recipient.fallbackChannels.join(", ")}",
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "รูปแบบการส่ง: ${entry.delivery.method}"
+                  "${entry.delivery.requireVerificationCode ? " + รหัสยืนยัน" : ""}"
+                  "${entry.delivery.requireTotp ? " + แอปยืนยันตัวตน" : ""}",
+                ),
+                const SizedBox(height: 4),
+                Text("ระดับความเป็นส่วนตัว: ${entry.privacy.profile}"),
+                const SizedBox(height: 4),
+                Text("ก่อนปล่อยให้เห็น: ${entry.privacy.preTriggerVisibility}"),
+                const SizedBox(height: 4),
+                Text("หลังปล่อยให้เห็น: ${entry.privacy.postTriggerVisibility}"),
+                const SizedBox(height: 4),
+                Text("เปิดเผยมูลค่าแบบ: ${entry.privacy.valueDisclosureMode}"),
+                const SizedBox(height: 4),
+                Text(
+                  "ชั้นความปลอดภัย: "
+                  "${entry.safeguards.requireMultisignal ? "ยืนยันหลายสัญญาณ" : "ยืนยันสัญญาณเดียว"}"
+                  "${entry.safeguards.requireGuardianApproval ? ", ต้องมีผู้ดูแลอนุมัติ" : ""}",
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              "Start condition: ${entry.trigger.mode} | ${entry.trigger.inactivityDays} inactive days + ${entry.trigger.graceDays} confirmation days",
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Delivery: ${entry.delivery.method}"
-              "${entry.delivery.requireVerificationCode ? " + verification code" : ""}"
-              "${entry.delivery.requireTotp ? " + authenticator code" : ""}",
-            ),
-            const SizedBox(height: 4),
-            Text("Privacy: ${entry.privacy.profile}"),
-            const SizedBox(height: 4),
-            Text(
-              "Before release visibility: ${entry.privacy.preTriggerVisibility}",
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "After release visibility: ${entry.privacy.postTriggerVisibility}",
-            ),
-            const SizedBox(height: 4),
-            Text("Value disclosure: ${entry.privacy.valueDisclosureMode}"),
-            const SizedBox(height: 4),
-            Text(
-              "Safeguards: "
-              "${entry.safeguards.requireMultisignal ? "multi-signal confirmation" : "single confirmation"}"
-              "${entry.safeguards.requireGuardianApproval ? ", guardian approval" : ""}",
-            ),
-            const SizedBox(height: 4),
-            Text("Status: ${entry.status}"),
             const SizedBox(height: 12),
             Row(
               children: [
-                OutlinedButton(onPressed: onEdit, child: const Text("Edit")),
+                OutlinedButton(onPressed: onEdit, child: const Text("แก้ไข")),
                 const SizedBox(width: 8),
                 FilledButton.tonal(
                   onPressed: onToggleStatus,
                   child: Text(
-                    entry.status == 'active' ? "Pause route" : "Activate route",
+                    entry.status == 'active' ? "พักเส้นทาง" : "เปิดใช้งาน",
                   ),
                 ),
                 const SizedBox(width: 8),
-                TextButton(onPressed: onRemove, child: const Text("Remove")),
+                TextButton(onPressed: onRemove, child: const Text("ลบ")),
               ],
             ),
           ],
