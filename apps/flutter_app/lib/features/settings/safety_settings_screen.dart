@@ -42,6 +42,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   bool _iosBackgroundRiskAcknowledged = false;
   String _selectedPresetId = "minimal";
   bool _seeded = false;
+  bool _saving = false;
 
   void _applyPreset(String presetId) {
     final preset = presetById(presetId);
@@ -517,7 +518,10 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
               ),
               const SizedBox(height: 12),
               FilledButton(
-                onPressed: () async {
+                onPressed: _saving
+                    ? null
+                    : () async {
+                        setState(() => _saving = true);
                   final offsets = <int>[];
                   if (_offset14) offsets.add(14);
                   if (_offset7) offsets.add(7);
@@ -529,7 +533,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                   if (fallbackChannels.isEmpty) fallbackChannels.add("email");
 
                   final messenger = ScaffoldMessenger.of(context);
-                  await ref.read(safetySettingsProvider.notifier).save(
+                  try {
+                    await ref.read(safetySettingsProvider.notifier).save(
                         remindersEnabled: _remindersEnabled,
                         reminderOffsetsDays: offsets,
                         gracePeriodDays: _graceDays,
@@ -559,18 +564,63 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         privateFirstMode: _privateFirstMode,
                         tracePrivacyProfile: selectedPreset.tracePrivacyProfile,
                       );
-                  if (!mounted) return;
-                  messenger.showSnackBar(
-                    const SnackBar(content: Text("Safety settings updated.")),
-                  );
+                    if (!mounted) return;
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text("Safety settings updated.")),
+                    );
+                  } catch (error) {
+                    if (!mounted) return;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Could not save safety settings right now. Please retry. Details: $error",
+                        ),
+                      ),
+                    );
+                  } finally {
+                    if (mounted) {
+                      setState(() => _saving = false);
+                    }
+                  }
                 },
-                child: const Text("Save Safety Settings"),
+                child: Text(_saving ? "Saving..." : "Save Safety Settings"),
               ),
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text("Failed to load settings: $error")),
+        loading: () => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 10),
+                Text("Loading safety settings..."),
+              ],
+            ),
+          ),
+        ),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Failed to load settings: $error"),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: () => ref.invalidate(safetySettingsProvider),
+                  child: const Text("Retry"),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

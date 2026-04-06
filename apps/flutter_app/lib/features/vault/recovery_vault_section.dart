@@ -48,7 +48,27 @@ class RecoveryVaultSection extends ConsumerWidget {
             itemsAsync.when(
               data: (items) {
                 if (items.isEmpty) {
-                  return const Text("No recovery items yet.");
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7ED),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "No recovery items yet.",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          "Add at least one encrypted recovery item so this workspace can support real self-recovery or beneficiary handoff.",
+                        ),
+                      ],
+                    ),
+                  );
                 }
                 return Column(
                   children: items.map((item) {
@@ -56,7 +76,7 @@ class RecoveryVaultSection extends ConsumerWidget {
                       contentPadding: EdgeInsets.zero,
                       title: Text(item.title),
                       subtitle: Text(
-                        "${item.releaseNotes ?? "Encrypted vault item"}\nVisibility: ${item.postTriggerVisibility} · Value: ${item.valueDisclosureMode}",
+                        "${item.releaseNotes ?? "Encrypted vault item"}\nVisibility: ${item.postTriggerVisibility} | Value: ${item.valueDisclosureMode}",
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -81,9 +101,42 @@ class RecoveryVaultSection extends ConsumerWidget {
               },
               loading: () => const Padding(
                 padding: EdgeInsets.all(8),
-                child: CircularProgressIndicator(),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(child: Text("Loading recovery vault items...")),
+                  ],
+                ),
               ),
-              error: (error, _) => Text("Vault load error: $error"),
+              error: (error, _) => Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF1F1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Vault load error",
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    Text("$error"),
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: () => ref.invalidate(vaultItemsProvider),
+                      child: const Text("Retry"),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -91,3 +144,4 @@ class RecoveryVaultSection extends ConsumerWidget {
     );
   }
 }
+
