@@ -14,7 +14,9 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_trace_previ
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 // Legacy copy anchors kept for compatibility tests:
 // "Add route"
@@ -670,6 +672,118 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       return "Status rule: ready versions stay trustworthy only while the draft remains in sync with the exported version.";
     }
     return "Status rule: export a version first, then review it before marking it ready.";
+  }
+
+  String _buildPolicyPaper(IntentCanonicalArtifactModel artifact) {
+    final sealedEntries = artifact.sealedReleaseCandidate.entries;
+    final primary = sealedEntries.isNotEmpty ? sealedEntries.first : null;
+    final beneficiaryName =
+        widget.profile.beneficiaryName?.trim().isNotEmpty == true
+            ? widget.profile.beneficiaryName!.trim()
+            : "ผู้รับมรดกหลัก";
+    final beneficiaryEmail =
+        widget.profile.beneficiaryEmail?.trim().isNotEmpty == true
+            ? widget.profile.beneficiaryEmail!.trim()
+            : "beneficiary@example.com";
+    final inactivity = widget.profile.legacyInactivityDays;
+    final grace = _document.globalSafeguards.defaultGraceDays;
+    final verifyLevel = primary?.partnerVerificationRequired == true
+        ? "สูง"
+        : "มาตรฐาน";
+
+    return '''
+เอกสารสรุปนโยบายมรดกดิจิทัล (Final Policy Paper)
+
+ส่วนที่ 1: สรุปเจตนารมณ์
+- ชื่อนโยบาย: แผนส่งมอบมรดกครอบครัว
+- เจ้าของบัญชี: ${widget.profile.id}
+- ผู้รับมรดก: $beneficiaryName ($beneficiaryEmail)
+- ระดับความเป็นส่วนตัว: ${widget.settings.tracePrivacyProfile}
+- Artifact ID: ${artifact.artifactId}
+- สร้างเมื่อ: ${artifact.generatedAt.toLocal()}
+
+ส่วนที่ 2: เงื่อนไขการปลดล็อก
+- หากขาดการติดต่อเกิน $inactivity วัน ระบบจะเริ่มขั้นตอนตรวจสอบ
+- ระบบยืนยันซ้ำช่วงปลอดภัย $grace วันก่อนส่งมอบ
+- ระดับการยืนยันตัวตน: $verifyLevel
+- Cooldown ก่อนเปิดเผยจริง: 24 ชั่วโมง
+
+ส่วนที่ 3: สิทธิและการเข้าถึง
+- สิทธิผู้รับมรดก: อ่านข้อมูลที่ส่งมอบตามแผน
+- ระบบเป็นผู้คุมกฎ: ตรวจสัญญาณชีพและส่งมอบผ่านช่องทางที่กำหนด
+- ช่องทางส่งมอบหลัก: ${primary?.releaseChannel ?? "secure_link"}
+
+หมายเหตุ:
+เอกสารนี้เป็นสรุปเพื่อความเข้าใจร่วมกันของเจ้าของบัญชีและผู้รับมรดก
+และอ้างอิงข้อมูลจาก artifact ปัจจุบันของระบบโดยตรง
+''';
+  }
+
+  String _buildPolicyVerifyUrl(IntentCanonicalArtifactModel artifact) {
+    return "dlw://policy-verify?artifact_id=${artifact.artifactId}&owner=${artifact.ownerRef}";
+  }
+
+  Future<void> _openPolicyPaper(IntentCanonicalArtifactModel artifact) async {
+    final paper = _buildPolicyPaper(artifact);
+    final verifyUrl = _buildPolicyVerifyUrl(artifact);
+    final messenger = ScaffoldMessenger.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Final Policy Paper"),
+        content: SizedBox(
+          width: 560,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(0xFFEFF6F5),
+                  ),
+                  child: SelectableText(paper),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "QR สำหรับตรวจสอบแผน",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: QrImageView(
+                    data: verifyUrl,
+                    size: 140,
+                    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square),
+                    dataModuleStyle:
+                        const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SelectableText(verifyUrl),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("ปิด"),
+          ),
+          FilledButton.tonal(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: paper));
+              messenger.showSnackBar(
+                const SnackBar(content: Text("คัดลอก Policy Paper แล้ว")),
+              );
+            },
+            child: const Text("คัดลอกเอกสาร"),
+          ),
+        ],
+      ),
+    );
   }
 
   List<String> _artifactBadges(IntentCanonicalArtifactModel artifact) {
@@ -1595,6 +1709,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
+                        FilledButton(
+                          onPressed: () {
+                            _openPolicyPaper(_artifact!);
+                          },
+                          child: const Text("สร้าง Policy Paper"),
+                        ),
                         OutlinedButton(
                           onPressed: canMarkReviewed
                               ? () {
@@ -1613,7 +1733,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                   );
                                 }
                               : null,
-                          child: const Text("Mark ready"),
+                          child: const Text("Activate route"),
                         ),
                       ],
                     ),
