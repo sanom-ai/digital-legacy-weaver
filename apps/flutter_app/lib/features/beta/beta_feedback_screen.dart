@@ -18,6 +18,8 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
   String _category = "ux";
   String _severity = "medium";
   bool _submitting = false;
+  String? _message;
+  bool _messageIsError = false;
 
   @override
   void dispose() {
@@ -37,7 +39,10 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
   Future<void> _submit() async {
     if (_submitting) return;
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
+    setState(() {
+      _submitting = true;
+      _message = null;
+    });
     try {
       await ref
           .read(betaFeedbackRepositoryProvider)
@@ -49,22 +54,37 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
             appVersion: _appVersionController.text,
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Feedback submitted. Thank you.")),
-      );
-      Navigator.of(context).pop(true);
+      setState(() {
+        _message =
+            "Feedback submitted. Thank you. Your note helps improve the product.";
+        _messageIsError = false;
+      });
+      _summaryController.clear();
+      _detailsController.clear();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Could not submit feedback right now. Please check your connection and try again.",
-          ),
-        ),
-      );
+      setState(() {
+        _message = _friendlyError(error);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  String _friendlyError(Object error) {
+    final lower = error.toString().toLowerCase();
+    if (lower.contains("socketexception") ||
+        lower.contains("failed host lookup") ||
+        lower.contains("network") ||
+        lower.contains("timed out")) {
+      return "Could not submit feedback right now because your connection looks unstable. Please retry.";
+    }
+    if (lower.contains("authenticated user") ||
+        lower.contains("unauthorized")) {
+      return "Your session may have expired. Sign in again, then submit feedback.";
+    }
+    return "Could not submit feedback right now. Please retry.";
   }
 
   @override
@@ -133,6 +153,20 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
               decoration: const InputDecoration(labelText: "App version"),
             ),
             const SizedBox(height: 20),
+            if (_message != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _messageIsError
+                      ? const Color(0xFFFFF1F1)
+                      : const Color(0xFFE9F6EF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(_message!),
+              ),
+              const SizedBox(height: 12),
+            ],
             FilledButton(
               onPressed: _submitting ? null : _submit,
               child: Text(_submitting ? "Submitting..." : "Submit feedback"),

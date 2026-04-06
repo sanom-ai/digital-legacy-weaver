@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/core/config/app_config.dart';
 import 'package:digital_legacy_weaver/core/providers/supabase_provider.dart';
 import 'package:digital_legacy_weaver/features/legal/reviewer_ops_repository.dart';
 import 'package:flutter/material.dart';
@@ -20,12 +21,15 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
   String _status = "under_review";
   bool _busy = false;
   String? _message;
+  bool _messageIsError = false;
   List<ReviewerQueueItem> _queue = const [];
 
   @override
   void initState() {
     super.initState();
-    _reload();
+    if (AppConfig.reviewerOpsEnabled) {
+      _reload();
+    }
   }
 
   @override
@@ -36,6 +40,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
   }
 
   Future<void> _reload() async {
+    if (!AppConfig.reviewerOpsEnabled) return;
     setState(() {
       _busy = true;
       _message = null;
@@ -48,10 +53,10 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       setState(() => _queue = queue);
     } catch (e) {
       if (!mounted) return;
-      setState(
-        () => _message =
-            "We could not load the review queue right now. Please refresh.",
-      );
+      setState(() {
+        _message = _friendlyError("load the review queue", e);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -60,7 +65,10 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
   Future<void> _review(String evidenceId, String decision) async {
     final reviewerRef = _reviewerRefController.text.trim();
     if (reviewerRef.isEmpty) {
-      setState(() => _message = "Reviewer reference is required.");
+      setState(() {
+        _message = "Reviewer reference is required.";
+        _messageIsError = true;
+      });
       return;
     }
     setState(() {
@@ -82,14 +90,15 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       setState(() {
         _message =
             "Updated ${result["evidence_id"]}: status=${result["review_status"]}, approvals=${result["approvals"]}.";
+        _messageIsError = false;
       });
       await _reload();
     } catch (e) {
       if (!mounted) return;
-      setState(
-        () => _message =
-            "We could not complete that review action. Please retry.",
-      );
+      setState(() {
+        _message = _friendlyError("complete that review action", e);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -149,16 +158,65 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      setState(
-        () => _message = "We could not load the review timeline right now.",
-      );
+      setState(() {
+        _message = _friendlyError("load the review timeline", e);
+        _messageIsError = true;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
+  String _friendlyError(String action, Object error) {
+    final lower = error.toString().toLowerCase();
+    if (lower.contains("socketexception") ||
+        lower.contains("failed host lookup") ||
+        lower.contains("network") ||
+        lower.contains("timed out")) {
+      return "We could not $action because the network looks unstable. Please retry.";
+    }
+    if (lower.contains("x-reviewer-key") ||
+        lower.contains("forbidden") ||
+        lower.contains("unauthorized")) {
+      return "Reviewer key is missing or invalid. Check REVIEWER_API_KEY setup, then retry.";
+    }
+    return "We could not $action right now. Please retry.";
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!AppConfig.reviewerOpsEnabled) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Review Operations")),
+        body: ListView(
+          padding: const EdgeInsets.all(20),
+          children: const [
+            Card(
+              color: Color(0xFFFFF7ED),
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Reviewer setup needed",
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "This screen needs a reviewer key before queue operations can run.",
+                    ),
+                    SizedBox(height: 8),
+                    SelectableText("flutter run --dart-define=REVIEWER_API_KEY=<reviewer_key>"),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Review Operations")),
       body: ListView(
@@ -231,7 +289,9 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7F1E8),
+                color: _messageIsError
+                    ? const Color(0xFFFFF1F1)
+                    : const Color(0xFFE9F6EF),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(_message!),
@@ -254,7 +314,17 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                   const SizedBox(height: 8),
                   if (_busy) const LinearProgressIndicator(),
                   if (_queue.isEmpty && !_busy)
-                    const Text("No records in selected queue."),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F1E8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        "No records in the selected queue yet. Try another status or refresh.",
+                      ),
+                    ),
                   ..._queue.map(
                     (item) => ListTile(
                       contentPadding: EdgeInsets.zero,
