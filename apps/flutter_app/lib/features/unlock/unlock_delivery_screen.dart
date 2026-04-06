@@ -239,6 +239,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     switch (kind.trim().toLowerCase()) {
       case "self_recovery":
         return "Self-recovery route";
+      case "legacy":
       case "legacy_delivery":
         return "Legacy delivery route";
       case "archive_reference":
@@ -252,12 +253,24 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     switch (kind.trim().toLowerCase()) {
       case "self_recovery":
         return "Verify the current recovery route directly with the designated provider or recovery service.";
+      case "legacy":
       case "legacy_delivery":
         return "Verify the current holdings, balances, or legal status directly with the relevant partner, institution, or law office.";
       case "archive_reference":
         return "Verify the referenced archive with the designated partner or records custodian before acting on it.";
       default:
         return "Verify the latest status directly with the relevant partner, institution, or professional advisor.";
+    }
+  }
+
+  String _visibilityLabel(String visibility) {
+    switch (visibility) {
+      case "existence_only":
+        return "Existence only";
+      case "route_and_instructions":
+        return "Route and instructions";
+      default:
+        return "Route only";
     }
   }
 
@@ -285,6 +298,10 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   Widget _buildReceiptItem(Map<String, dynamic> item) {
     final title = (item["title"] ?? "").toString();
     final kind = (item["kind"] ?? "").toString();
+    final visibility = (item["visibility_policy"] ?? "route_only").toString();
+    final valueDisclosure = (item["value_disclosure_mode"] ?? "institution_verified_only")
+        .toString();
+    final instructionSummary = (item["instruction_summary"] ?? "").toString().trim();
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -302,9 +319,24 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           const SizedBox(height: 6),
           Text("Type: ${_kindLabel(kind)}"),
           const SizedBox(height: 6),
+          Text("Post-trigger visibility: ${_visibilityLabel(visibility)}"),
+          const SizedBox(height: 6),
           Text(
-            "Verification route: ${_verificationRoute(kind)}",
+            "Value disclosure: ${valueDisclosure == "hidden" ? "Hidden in receipt" : "Institution verified only"}",
           ),
+          const SizedBox(height: 6),
+          if (visibility == "existence_only")
+            const Text(
+              "This receipt confirms that a protected legacy route exists. Continue with recipient verification before route details are shown.",
+            ),
+          if (visibility == "route_only" || visibility == "route_and_instructions")
+            Text(
+              "Verification route: ${item["verification_route"] ?? _verificationRoute(kind)}",
+            ),
+          if (visibility == "route_and_instructions" && instructionSummary.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text("Instruction summary: $instructionSummary"),
+          ],
         ],
       ),
     );

@@ -12,6 +12,18 @@ type RequestPayload = {
   verification_phrase?: string;
 };
 
+type ReceiptVisibility = "existence_only" | "route_only" | "route_and_instructions";
+
+type DeliveryReceiptItem = {
+  id: string;
+  kind: string;
+  title: string;
+  visibility_policy: ReceiptVisibility;
+  value_disclosure_mode: "hidden" | "institution_verified_only";
+  verification_route: string;
+  instruction_summary?: string;
+};
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -76,6 +88,68 @@ function extractClientIp(req: Request): string {
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function routeForKind(kind: string): string {
+  const normalized = kind.trim().toLowerCase();
+  if (normalized === "self_recovery") {
+    return "Verify the recovery path directly with the designated provider or recovery service.";
+  }
+  if (normalized === "legacy") {
+    return "Verify holdings, legal status, or account details directly with the relevant partner, institution, or law office.";
+  }
+  return "Verify status directly with the relevant partner, institution, or professional advisor.";
+}
+
+function parseReleaseInstruction(raw: string | null): string | undefined {
+  if (!raw || !raw.trim()) return undefined;
+  const trimmed = raw.trim();
+  try {
+    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+    const instruction = parsed["instruction_summary"] ?? parsed["beneficiary_instruction"];
+    if (typeof instruction === "string" && instruction.trim()) {
+      return instruction.trim();
+    }
+  } catch {
+    // Non-JSON release notes are treated as plain instruction text.
+  }
+  return trimmed;
+}
+
+function normalizeVisibility(value: string | null | undefined): ReceiptVisibility {
+  if (value === "existence_only" || value === "route_only" || value === "route_and_instructions") {
+    return value;
+  }
+  return "route_only";
+}
+
+function normalizeValueDisclosure(value: string | null | undefined): "hidden" | "institution_verified_only" {
+  if (value === "hidden") {
+    return "hidden";
+  }
+  return "institution_verified_only";
+}
+
+function buildReceiptItems(items: Array<Record<string, unknown>>): DeliveryReceiptItem[] {
+  return items.map((item) => {
+    const kind = String(item.kind ?? "legacy");
+    const visibility = normalizeVisibility(item.post_trigger_visibility as string | undefined);
+    const instruction = parseReleaseInstruction(item.release_notes as string | null);
+    const receiptItem: DeliveryReceiptItem = {
+      id: String(item.id ?? ""),
+      kind,
+      title: String(item.title ?? "Untitled delivery item"),
+      visibility_policy: visibility,
+      value_disclosure_mode: normalizeValueDisclosure(item.value_disclosure_mode as string | undefined),
+      verification_route: routeForKind(kind),
+    };
+
+    if (visibility === "route_and_instructions" && instruction) {
+      receiptItem.instruction_summary = instruction;
+    }
+
+    return receiptItem;
+  });
 }
 
 function normalizeIdentityText(value: string): string {
@@ -515,11 +589,12 @@ async function unlock(
 
   const { data: items, error: itemsError } = await supabase
     .from("recovery_items")
-    .select("id, kind, title, encrypted_payload, release_notes")
+    .select("id, kind, title, release_notes, post_trigger_visibility, value_disclosure_mode")
     .eq("owner_id", valid.owner_id)
     .eq("kind", valid.mode)
     .eq("is_active", true);
   if (itemsError) throw new Error(itemsError.message);
+  const receiptItems = buildReceiptItems((items ?? []) as Array<Record<string, unknown>>);
 
   await supabase.from("trigger_logs").insert({
     owner_id: valid.owner_id,
@@ -544,7 +619,7 @@ async function unlock(
   return {
     ok: true,
     mode: valid.mode,
-    items: items ?? [],
+    items: receiptItems,
   };
 }
 

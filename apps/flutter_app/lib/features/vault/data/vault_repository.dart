@@ -23,6 +23,8 @@ class VaultRepository {
     required String title,
     required String encryptedPayload,
     String? releaseNotes,
+    required String postTriggerVisibility,
+    required String valueDisclosureMode,
   }) async {
     final user = _client.auth.currentUser;
     if (user == null) {
@@ -34,6 +36,8 @@ class VaultRepository {
       "title": title,
       "encrypted_payload": encryptedPayload,
       "release_notes": releaseNotes,
+      "post_trigger_visibility": postTriggerVisibility,
+      "value_disclosure_mode": valueDisclosureMode,
       "is_active": true,
     });
   }

@@ -16,6 +16,8 @@ class RecoveryItemModel {
     required this.title,
     required this.encryptedPayload,
     required this.releaseNotes,
+    required this.postTriggerVisibility,
+    required this.valueDisclosureMode,
     required this.isActive,
   });
 
@@ -24,6 +26,8 @@ class RecoveryItemModel {
   final String title;
   final String encryptedPayload;
   final String? releaseNotes;
+  final String postTriggerVisibility;
+  final String valueDisclosureMode;
   final bool isActive;
 
   factory RecoveryItemModel.fromMap(Map<String, dynamic> map) {
@@ -33,6 +37,8 @@ class RecoveryItemModel {
       title: map["title"] as String,
       encryptedPayload: map["encrypted_payload"] as String,
       releaseNotes: map["release_notes"] as String?,
+      postTriggerVisibility: map["post_trigger_visibility"] as String? ?? "route_only",
+      valueDisclosureMode: map["value_disclosure_mode"] as String? ?? "institution_verified_only",
       isActive: map["is_active"] as bool? ?? true,
     );
   }

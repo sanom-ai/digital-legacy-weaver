@@ -22,6 +22,8 @@ class VaultItemsController extends AsyncNotifier<List<RecoveryItemModel>> {
     required String title,
     required String encryptedPayload,
     String? releaseNotes,
+    required String postTriggerVisibility,
+    required String valueDisclosureMode,
   }) async {
     final repo = ref.read(vaultRepositoryProvider);
     await repo.addItem(
@@ -29,6 +31,8 @@ class VaultItemsController extends AsyncNotifier<List<RecoveryItemModel>> {
       title: title,
       encryptedPayload: encryptedPayload,
       releaseNotes: releaseNotes,
+      postTriggerVisibility: postTriggerVisibility,
+      valueDisclosureMode: valueDisclosureMode,
     );
     state = AsyncData(await repo.listItems());
   }

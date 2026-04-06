@@ -7,12 +7,16 @@ class RecoveryItemDraft {
     required this.title,
     required this.encryptedPayload,
     required this.releaseNotes,
+    required this.postTriggerVisibility,
+    required this.valueDisclosureMode,
   });
 
   final RecoveryKind kind;
   final String title;
   final String encryptedPayload;
   final String? releaseNotes;
+  final String postTriggerVisibility;
+  final String valueDisclosureMode;
 }
 
 class RecoveryItemFormDialog extends StatefulWidget {
@@ -27,6 +31,8 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
   final _payloadController = TextEditingController();
   final _notesController = TextEditingController();
   RecoveryKind _kind = RecoveryKind.legacy;
+  String _postTriggerVisibility = "route_only";
+  String _valueDisclosureMode = "institution_verified_only";
 
   @override
   void dispose() {
@@ -47,6 +53,8 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
         title: title,
         encryptedPayload: payload,
         releaseNotes: notes.isEmpty ? null : notes,
+        postTriggerVisibility: _postTriggerVisibility,
+        valueDisclosureMode: _valueDisclosureMode,
       ),
     );
   }
@@ -91,6 +99,41 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
             TextField(
               controller: _notesController,
               decoration: const InputDecoration(labelText: "Release notes (optional)"),
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              initialValue: _postTriggerVisibility,
+              items: const [
+                DropdownMenuItem(value: "existence_only", child: Text("Post-trigger: existence only")),
+                DropdownMenuItem(value: "route_only", child: Text("Post-trigger: route only")),
+                DropdownMenuItem(
+                  value: "route_and_instructions",
+                  child: Text("Post-trigger: route and instructions"),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _postTriggerVisibility = value);
+                }
+              },
+              decoration: const InputDecoration(labelText: "Visibility after trigger"),
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              initialValue: _valueDisclosureMode,
+              items: const [
+                DropdownMenuItem(value: "hidden", child: Text("Value disclosure: hidden")),
+                DropdownMenuItem(
+                  value: "institution_verified_only",
+                  child: Text("Value disclosure: institution verified only"),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _valueDisclosureMode = value);
+                }
+              },
+              decoration: const InputDecoration(labelText: "Value disclosure mode"),
             ),
           ],
         ),

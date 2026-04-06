@@ -36,6 +36,8 @@ class RecoveryVaultSection extends ConsumerWidget {
                           title: draft.title,
                           encryptedPayload: draft.encryptedPayload,
                           releaseNotes: draft.releaseNotes,
+                          postTriggerVisibility: draft.postTriggerVisibility,
+                          valueDisclosureMode: draft.valueDisclosureMode,
                         );
                   },
                   child: const Text("Add"),
@@ -53,7 +55,9 @@ class RecoveryVaultSection extends ConsumerWidget {
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(item.title),
-                      subtitle: Text(item.releaseNotes ?? "Encrypted vault item"),
+                      subtitle: Text(
+                        "${item.releaseNotes ?? "Encrypted vault item"}\nVisibility: ${item.postTriggerVisibility} · Value: ${item.valueDisclosureMode}",
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
