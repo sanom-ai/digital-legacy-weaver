@@ -17,6 +17,13 @@ class SafetySettingsModel {
     this.emergencyAccessRequiresBeneficiaryRequest = true,
     this.emergencyAccessRequiresGuardianQuorum = true,
     this.emergencyAccessGraceHours = 48,
+    this.deviceRebindInProgress = false,
+    this.deviceRebindStartedAt,
+    this.deviceRebindGraceHours = 72,
+    this.recoveryKeyEnabled = true,
+    this.deliveryAccessTtlHours = 72,
+    this.payloadRetentionDays = 30,
+    this.auditLogRetentionDays = 30,
     required this.privateFirstMode,
     required this.tracePrivacyProfile,
   });
@@ -38,6 +45,13 @@ class SafetySettingsModel {
   final bool emergencyAccessRequiresBeneficiaryRequest;
   final bool emergencyAccessRequiresGuardianQuorum;
   final int emergencyAccessGraceHours;
+  final bool deviceRebindInProgress;
+  final DateTime? deviceRebindStartedAt;
+  final int deviceRebindGraceHours;
+  final bool recoveryKeyEnabled;
+  final int deliveryAccessTtlHours;
+  final int payloadRetentionDays;
+  final int auditLogRetentionDays;
   final bool privateFirstMode;
   final String tracePrivacyProfile;
 
@@ -65,6 +79,15 @@ class SafetySettingsModel {
       emergencyAccessRequiresGuardianQuorum:
           map["emergency_access_requires_guardian_quorum"] as bool? ?? true,
       emergencyAccessGraceHours: map["emergency_access_grace_hours"] as int? ?? 48,
+      deviceRebindInProgress: map["device_rebind_in_progress"] as bool? ?? false,
+      deviceRebindStartedAt: map["device_rebind_started_at"] != null
+          ? DateTime.parse(map["device_rebind_started_at"] as String)
+          : null,
+      deviceRebindGraceHours: map["device_rebind_grace_hours"] as int? ?? 72,
+      recoveryKeyEnabled: map["recovery_key_enabled"] as bool? ?? true,
+      deliveryAccessTtlHours: map["delivery_access_ttl_hours"] as int? ?? 72,
+      payloadRetentionDays: map["payload_retention_days"] as int? ?? 30,
+      auditLogRetentionDays: map["audit_log_retention_days"] as int? ?? 30,
       privateFirstMode: map["private_first_mode"] as bool? ?? true,
       tracePrivacyProfile: map["trace_privacy_profile"] as String? ?? "minimal",
     );

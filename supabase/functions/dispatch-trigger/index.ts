@@ -33,6 +33,13 @@ type SafetySettings = {
   emergency_access_requires_beneficiary_request: boolean;
   emergency_access_requires_guardian_quorum: boolean;
   emergency_access_grace_hours: number;
+  device_rebind_in_progress: boolean;
+  device_rebind_started_at: string | null;
+  device_rebind_grace_hours: number;
+  recovery_key_enabled: boolean;
+  delivery_access_ttl_hours: number;
+  payload_retention_days: number;
+  audit_log_retention_days: number;
   private_first_mode: boolean;
   minimize_trace_metadata: boolean;
   trace_retention_days: number;
@@ -165,7 +172,7 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
   const { data, error } = await supabase
     .from("user_safety_settings")
     .select(
-      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, proof_of_life_check_mode, proof_of_life_fallback_channels, server_heartbeat_fallback_enabled, ios_background_risk_acknowledged, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, guardian_quorum_enabled, guardian_quorum_required, guardian_quorum_pool_size, emergency_access_enabled, emergency_access_requires_beneficiary_request, emergency_access_requires_guardian_quorum, emergency_access_grace_hours, private_first_mode, minimize_trace_metadata, trace_retention_days, trace_privacy_profile",
+      "reminders_enabled, reminder_channels, reminder_offsets_days, grace_period_days, proof_of_life_check_mode, proof_of_life_fallback_channels, server_heartbeat_fallback_enabled, ios_background_risk_acknowledged, legal_disclaimer_accepted, emergency_pause_until, require_multisignal_before_release, recent_signal_window_hours, minimum_recent_signal_types, require_guardian_approval_legacy, guardian_grace_hours, guardian_quorum_enabled, guardian_quorum_required, guardian_quorum_pool_size, emergency_access_enabled, emergency_access_requires_beneficiary_request, emergency_access_requires_guardian_quorum, emergency_access_grace_hours, device_rebind_in_progress, device_rebind_started_at, device_rebind_grace_hours, recovery_key_enabled, delivery_access_ttl_hours, payload_retention_days, audit_log_retention_days, private_first_mode, minimize_trace_metadata, trace_retention_days, trace_privacy_profile",
     )
     .eq("owner_id", ownerId)
     .maybeSingle();
@@ -194,6 +201,13 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
       emergency_access_requires_beneficiary_request: true,
       emergency_access_requires_guardian_quorum: true,
       emergency_access_grace_hours: 48,
+      device_rebind_in_progress: false,
+      device_rebind_started_at: null,
+      device_rebind_grace_hours: 72,
+      recovery_key_enabled: true,
+      delivery_access_ttl_hours: 72,
+      payload_retention_days: 30,
+      audit_log_retention_days: 30,
       private_first_mode: true,
       minimize_trace_metadata: true,
       trace_retention_days: 14,
@@ -457,7 +471,9 @@ async function createSecureDeliveryLink(ownerId: string, mode: "legacy" | "self_
   const rawAccessKey = [...accessKeyBytes].map((b) => b.toString(16).padStart(2, "0")).join("");
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawAccessKey));
   const accessKeyHash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
-  const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+  const safety = await getSafetySettings(ownerId);
+  const ttlHours = Math.max(24, Math.min(168, Number(safety.delivery_access_ttl_hours ?? 72)));
+  const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString();
 
   const { data, error } = await supabase
     .from("delivery_access_keys")
@@ -466,7 +482,10 @@ async function createSecureDeliveryLink(ownerId: string, mode: "legacy" | "self_
       mode,
       access_key_hash: accessKeyHash,
       expires_at: expiresAt,
-      metadata: { note: "one-time delivery access link; requires second factor in unlock flow" },
+      metadata: {
+        note: "one-time delivery access link; requires second factor in unlock flow",
+        ttlHours,
+      },
     })
     .select("id")
     .single();
@@ -537,6 +556,43 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       pauseUntil: safety.emergency_pause_until,
     });
     return;
+  }
+  if (safety.device_rebind_in_progress) {
+    const startedAt = safety.device_rebind_started_at
+      ? new Date(safety.device_rebind_started_at).getTime()
+      : Date.now();
+    const graceMs = Math.max(safety.device_rebind_grace_hours, 24) * 60 * 60 * 1000;
+    const rebindUntil = startedAt + graceMs;
+    if (Date.now() < rebindUntil) {
+      await insertDispatchEvent(
+        profile.id,
+        mode,
+        "final_release",
+        "skipped",
+        "device rebind window active",
+        {
+          deviceRebindStartedAt: safety.device_rebind_started_at,
+          deviceRebindGraceHours: safety.device_rebind_grace_hours,
+          deviceRebindUntil: new Date(rebindUntil).toISOString(),
+          recoveryKeyEnabled: safety.recovery_key_enabled,
+        },
+      );
+      await supabase.from("trigger_logs").insert({
+        owner_id: profile.id,
+        mode,
+        action: actionFor(mode),
+        status: "skipped",
+        reason: "device rebind window active",
+        metadata: {
+          deviceRebindStartedAt: safety.device_rebind_started_at,
+          deviceRebindGraceHours: safety.device_rebind_grace_hours,
+          deviceRebindUntil: new Date(rebindUntil).toISOString(),
+          recoveryKeyEnabled: safety.recovery_key_enabled,
+        },
+        processed_at: new Date().toISOString(),
+      });
+      return;
+    }
   }
   if (!safety.legal_disclaimer_accepted) {
     await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "legal consent missing", {});

@@ -272,6 +272,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             emergencyAccessRequiresGuardianQuorum:
                 widget.initialSettings.emergencyAccessRequiresGuardianQuorum,
             emergencyAccessGraceHours: widget.initialSettings.emergencyAccessGraceHours,
+            deviceRebindInProgress: widget.initialSettings.deviceRebindInProgress,
+            deviceRebindStartedAt: widget.initialSettings.deviceRebindStartedAt,
+            deviceRebindGraceHours: widget.initialSettings.deviceRebindGraceHours,
+            recoveryKeyEnabled: widget.initialSettings.recoveryKeyEnabled,
+            deliveryAccessTtlHours: widget.initialSettings.deliveryAccessTtlHours,
+            payloadRetentionDays: widget.initialSettings.payloadRetentionDays,
+            auditLogRetentionDays: widget.initialSettings.auditLogRetentionDays,
             privateFirstMode: _privateFirstMode,
             tracePrivacyProfile: presetById(_selectedPresetId).tracePrivacyProfile,
           );

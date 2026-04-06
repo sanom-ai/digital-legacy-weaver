@@ -234,6 +234,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         emergencyAccessRequiresGuardianQuorum:
             widget.settings.emergencyAccessRequiresGuardianQuorum,
         emergencyAccessGraceHours: widget.settings.emergencyAccessGraceHours,
+        deviceRebindInProgress: widget.settings.deviceRebindInProgress,
+        deviceRebindGraceHours: widget.settings.deviceRebindGraceHours,
+        recoveryKeyEnabled: widget.settings.recoveryKeyEnabled,
+        deliveryAccessTtlHours: widget.settings.deliveryAccessTtlHours,
+        payloadRetentionDays: widget.settings.payloadRetentionDays,
+        auditLogRetentionDays: widget.settings.auditLogRetentionDays,
         proofOfLifeCheckMode: widget.settings.proofOfLifeCheckMode,
         proofOfLifeFallbackChannels: widget.settings.proofOfLifeFallbackChannels,
         serverHeartbeatFallbackEnabled: widget.settings.serverHeartbeatFallbackEnabled,

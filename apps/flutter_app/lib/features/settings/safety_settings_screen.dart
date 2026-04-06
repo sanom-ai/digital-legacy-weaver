@@ -27,6 +27,13 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   bool _emergencyAccessRequiresBeneficiaryRequest = true;
   bool _emergencyAccessRequiresGuardianQuorum = true;
   int _emergencyAccessGraceHours = 48;
+  bool _deviceRebindInProgress = false;
+  DateTime? _deviceRebindStartedAt;
+  int _deviceRebindGraceHours = 72;
+  bool _recoveryKeyEnabled = true;
+  int _deliveryAccessTtlHours = 72;
+  int _payloadRetentionDays = 30;
+  int _auditLogRetentionDays = 30;
   bool _privateFirstMode = true;
   String _proofOfLifeCheckMode = "biometric_tap";
   bool _fallbackEmail = true;
@@ -88,6 +95,13 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
             _emergencyAccessRequiresGuardianQuorum =
                 settings.emergencyAccessRequiresGuardianQuorum;
             _emergencyAccessGraceHours = settings.emergencyAccessGraceHours;
+            _deviceRebindInProgress = settings.deviceRebindInProgress;
+            _deviceRebindStartedAt = settings.deviceRebindStartedAt;
+            _deviceRebindGraceHours = settings.deviceRebindGraceHours;
+            _recoveryKeyEnabled = settings.recoveryKeyEnabled;
+            _deliveryAccessTtlHours = settings.deliveryAccessTtlHours;
+            _payloadRetentionDays = settings.payloadRetentionDays;
+            _auditLogRetentionDays = settings.auditLogRetentionDays;
             _privateFirstMode = settings.privateFirstMode;
             _selectedPresetId = settings.tracePrivacyProfile;
             _seeded = true;
@@ -340,6 +354,82 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                           onChanged: (v) => setState(() => _emergencyAccessGraceHours = v.round()),
                         ),
                       ],
+                      const SizedBox(height: 12),
+                      const Text("Cross-device rebind & recovery", style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      const Text(
+                        "Start a temporary rebind window before device migration. Dispatch will avoid final release during this window to reduce false triggers.",
+                      ),
+                      SwitchListTile(
+                        value: _deviceRebindInProgress,
+                        onChanged: (v) {
+                          setState(() {
+                            _deviceRebindInProgress = v;
+                            _deviceRebindStartedAt = v ? DateTime.now() : null;
+                          });
+                        },
+                        title: const Text("Device rebind in progress"),
+                        subtitle: const Text("Enable before changing phone, passkey, or biometric setup."),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      if (_deviceRebindStartedAt != null)
+                        Text(
+                          "Rebind started: ${_deviceRebindStartedAt!.toLocal()}",
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      const SizedBox(height: 8),
+                      const Text("Rebind grace window (hours)"),
+                      Slider(
+                        value: _deviceRebindGraceHours.toDouble(),
+                        min: 24,
+                        max: 168,
+                        divisions: 6,
+                        label: "$_deviceRebindGraceHours",
+                        onChanged: (v) => setState(() => _deviceRebindGraceHours = v.round()),
+                      ),
+                      SwitchListTile(
+                        value: _recoveryKeyEnabled,
+                        onChanged: (v) => setState(() => _recoveryKeyEnabled = v),
+                        title: const Text("Enable recovery key fallback"),
+                        subtitle: const Text("Keep an offline recovery key path for proof-of-life disruptions."),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 12),
+                      const Text("Retention policy", style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      const Text(
+                        "Set how long delivery links, payload references, and audit traces should remain retained.",
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Delivery access link TTL (hours)"),
+                      Slider(
+                        value: _deliveryAccessTtlHours.toDouble(),
+                        min: 24,
+                        max: 168,
+                        divisions: 6,
+                        label: "$_deliveryAccessTtlHours",
+                        onChanged: (v) => setState(() => _deliveryAccessTtlHours = v.round()),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Payload retention (days)"),
+                      Slider(
+                        value: _payloadRetentionDays.toDouble(),
+                        min: 7,
+                        max: 180,
+                        divisions: 173,
+                        label: "$_payloadRetentionDays",
+                        onChanged: (v) => setState(() => _payloadRetentionDays = v.round()),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text("Audit log retention (days)"),
+                      Slider(
+                        value: _auditLogRetentionDays.toDouble(),
+                        min: 7,
+                        max: 365,
+                        divisions: 358,
+                        label: "$_auditLogRetentionDays",
+                        onChanged: (v) => setState(() => _auditLogRetentionDays = v.round()),
+                      ),
                     ],
                   ),
                 ),
@@ -459,6 +549,13 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         emergencyAccessRequiresGuardianQuorum:
                             _emergencyAccessRequiresGuardianQuorum,
                         emergencyAccessGraceHours: _emergencyAccessGraceHours,
+                        deviceRebindInProgress: _deviceRebindInProgress,
+                        deviceRebindStartedAt: _deviceRebindStartedAt,
+                        deviceRebindGraceHours: _deviceRebindGraceHours,
+                        recoveryKeyEnabled: _recoveryKeyEnabled,
+                        deliveryAccessTtlHours: _deliveryAccessTtlHours,
+                        payloadRetentionDays: _payloadRetentionDays,
+                        auditLogRetentionDays: _auditLogRetentionDays,
                         privateFirstMode: _privateFirstMode,
                         tracePrivacyProfile: selectedPreset.tracePrivacyProfile,
                       );

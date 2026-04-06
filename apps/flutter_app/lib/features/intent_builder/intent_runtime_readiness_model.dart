@@ -42,6 +42,9 @@ class IntentRuntimeReadinessModel {
   bool get emergencyAccessEnabled =>
       currentDraft?.globalSafeguards.emergencyAccessEnabled ?? false;
 
+  bool get deviceRebindInProgress =>
+      currentDraft?.globalSafeguards.deviceRebindInProgress ?? false;
+
   String? get currentScenarioId => currentDraft?.metadata["demo_scenario"] as String?;
 
   String? get currentScenarioTitle => currentDraft?.metadata["demo_title"] as String?;
@@ -82,6 +85,9 @@ class IntentRuntimeReadinessModel {
     if (!hasArtifact) {
       return "Next step: export a canonical PTN artifact from the current draft.";
     }
+    if (deviceRebindInProgress) {
+      return "Next step: complete cross-device rebind first, then refresh proof-of-life before runtime release.";
+    }
     if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
             (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
@@ -111,6 +117,9 @@ class IntentRuntimeReadinessModel {
   String get primaryActionLabel {
     if (!hasArtifact) {
       return "Export first artifact";
+    }
+    if (deviceRebindInProgress) {
+      return "Complete device rebind";
     }
     if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
@@ -142,6 +151,9 @@ class IntentRuntimeReadinessModel {
     if (!hasArtifact) {
       return "export_first_artifact";
     }
+    if (deviceRebindInProgress) {
+      return "complete_device_rebind";
+    }
     if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
             (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
@@ -172,6 +184,8 @@ class IntentRuntimeReadinessModel {
     final steps = <String>[];
     if (!hasArtifact) {
       steps.add("Open Intent Builder and export the first canonical PTN artifact.");
+    } else if (deviceRebindInProgress) {
+      steps.add("Cross-device rebind is in progress. Finish migration and confirm proof-of-life before any final release.");
     } else if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
             (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
@@ -220,6 +234,17 @@ class IntentRuntimeReadinessModel {
       );
     }
 
+    if (currentDraft?.globalSafeguards.recoveryKeyEnabled == true) {
+      steps.add("Recovery key fallback is enabled for proof-of-life disruptions during device migration.");
+    }
+
+    final safeguards = currentDraft?.globalSafeguards;
+    if (safeguards != null) {
+      steps.add(
+        "Retention policy: delivery link TTL ${safeguards.deliveryAccessTtlHours}h, payload ${safeguards.payloadRetentionDays}d, audit ${safeguards.auditLogRetentionDays}d.",
+      );
+    }
+
     return steps;
   }
 
@@ -257,6 +282,9 @@ class IntentRuntimeReadinessModel {
 
     final safeguards = currentDraft?.globalSafeguards;
     if (safeguards != null) {
+      if (safeguards.deviceRebindInProgress) {
+        blockers.add("Cross-device rebind window is active");
+      }
       if (safeguards.guardianQuorumEnabled &&
           safeguards.guardianQuorumRequired > safeguards.guardianQuorumPoolSize) {
         blockers.add("Guardian quorum requirement exceeds guardian pool");

@@ -574,6 +574,12 @@ class IntentGlobalSafeguardsModel {
     this.emergencyAccessRequiresBeneficiaryRequest = true,
     this.emergencyAccessRequiresGuardianQuorum = true,
     this.emergencyAccessGraceHours = 48,
+    this.deviceRebindInProgress = false,
+    this.deviceRebindGraceHours = 72,
+    this.recoveryKeyEnabled = true,
+    this.deliveryAccessTtlHours = 72,
+    this.payloadRetentionDays = 30,
+    this.auditLogRetentionDays = 30,
     this.proofOfLifeCheckMode = "biometric_tap",
     this.proofOfLifeFallbackChannels = const ["email", "sms"],
     this.serverHeartbeatFallbackEnabled = true,
@@ -592,6 +598,12 @@ class IntentGlobalSafeguardsModel {
   final bool emergencyAccessRequiresBeneficiaryRequest;
   final bool emergencyAccessRequiresGuardianQuorum;
   final int emergencyAccessGraceHours;
+  final bool deviceRebindInProgress;
+  final int deviceRebindGraceHours;
+  final bool recoveryKeyEnabled;
+  final int deliveryAccessTtlHours;
+  final int payloadRetentionDays;
+  final int auditLogRetentionDays;
   final String proofOfLifeCheckMode;
   final List<String> proofOfLifeFallbackChannels;
   final bool serverHeartbeatFallbackEnabled;
@@ -611,6 +623,12 @@ class IntentGlobalSafeguardsModel {
       "emergency_access_requires_beneficiary_request": emergencyAccessRequiresBeneficiaryRequest,
       "emergency_access_requires_guardian_quorum": emergencyAccessRequiresGuardianQuorum,
       "emergency_access_grace_hours": emergencyAccessGraceHours,
+      "device_rebind_in_progress": deviceRebindInProgress,
+      "device_rebind_grace_hours": deviceRebindGraceHours,
+      "recovery_key_enabled": recoveryKeyEnabled,
+      "delivery_access_ttl_hours": deliveryAccessTtlHours,
+      "payload_retention_days": payloadRetentionDays,
+      "audit_log_retention_days": auditLogRetentionDays,
       "proof_of_life_check_mode": proofOfLifeCheckMode,
       "proof_of_life_fallback_channels": proofOfLifeFallbackChannels,
       "server_heartbeat_fallback_enabled": serverHeartbeatFallbackEnabled,
@@ -636,6 +654,12 @@ class IntentGlobalSafeguardsModel {
       emergencyAccessRequiresGuardianQuorum:
           map["emergency_access_requires_guardian_quorum"] as bool? ?? true,
       emergencyAccessGraceHours: map["emergency_access_grace_hours"] as int? ?? 48,
+      deviceRebindInProgress: map["device_rebind_in_progress"] as bool? ?? false,
+      deviceRebindGraceHours: map["device_rebind_grace_hours"] as int? ?? 72,
+      recoveryKeyEnabled: map["recovery_key_enabled"] as bool? ?? true,
+      deliveryAccessTtlHours: map["delivery_access_ttl_hours"] as int? ?? 72,
+      payloadRetentionDays: map["payload_retention_days"] as int? ?? 30,
+      auditLogRetentionDays: map["audit_log_retention_days"] as int? ?? 30,
       proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
       proofOfLifeFallbackChannels: (map["proof_of_life_fallback_channels"] as List<dynamic>? ?? const ["email", "sms"])
           .whereType<String>()

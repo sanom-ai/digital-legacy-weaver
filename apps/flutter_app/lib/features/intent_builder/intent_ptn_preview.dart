@@ -75,6 +75,19 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
       '${document.globalSafeguards.emergencyAccessRequiresGuardianQuorum ? ", guardian_quorum" : ""}',
     );
   }
+  if (document.globalSafeguards.deviceRebindInProgress) {
+    lines.add(
+      '# device rebind window active ${document.globalSafeguards.deviceRebindGraceHours}h',
+    );
+  }
+  if (document.globalSafeguards.recoveryKeyEnabled) {
+    lines.add('# recovery key fallback enabled');
+  }
+  lines.add(
+    '# retention delivery_ttl:${document.globalSafeguards.deliveryAccessTtlHours}h'
+    ' payload:${document.globalSafeguards.payloadRetentionDays}d'
+    ' audit:${document.globalSafeguards.auditLogRetentionDays}d',
+  );
   if (document.globalSafeguards.serverHeartbeatFallbackEnabled) {
     lines.add(
       _requireLine(

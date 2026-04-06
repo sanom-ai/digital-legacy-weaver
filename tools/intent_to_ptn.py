@@ -148,6 +148,22 @@ def collect_intent_warnings(intent: Dict[str, Any]) -> List[str]:
                 "global: emergency access does not require an explicit beneficiary request; override risk will increase for incapacity scenarios"
             )
 
+    if global_safeguards.get("device_rebind_in_progress", False):
+        warnings.append("global: device rebind window is active; final release should remain paused until rebind is completed")
+
+    if not global_safeguards.get("recovery_key_enabled", True):
+        warnings.append(
+            "global: recovery key fallback is disabled; cross-device proof-of-life recovery may be weaker during device migration"
+        )
+    if int(global_safeguards.get("delivery_access_ttl_hours", 72)) > 120:
+        warnings.append(
+            "global: delivery access link TTL is longer than 120 hours; shorter links reduce replay and interception risk"
+        )
+    if int(global_safeguards.get("payload_retention_days", 30)) > int(global_safeguards.get("audit_log_retention_days", 30)):
+        warnings.append(
+            "global: payload retention exceeds audit retention; sensitive payload artifacts should usually be deleted earlier than audit metadata"
+        )
+
     for index, entry in enumerate(intent.get("entries", [])):
         label = f"entry[{index}]"
         entry_id = entry.get("entry_id") or label
@@ -257,6 +273,14 @@ def build_intent_compiler_report(intent: Dict[str, Any]) -> Dict[str, Any]:
             code = "emergency_access_without_guardian_quorum"
         elif "emergency access does not require an explicit beneficiary request" in warning:
             code = "emergency_access_without_beneficiary_request"
+        elif "device rebind window is active" in warning:
+            code = "device_rebind_window_active"
+        elif "recovery key fallback is disabled" in warning:
+            code = "recovery_key_fallback_disabled"
+        elif "delivery access link TTL is longer than 120 hours" in warning:
+            code = "delivery_access_ttl_too_long"
+        elif "payload retention exceeds audit retention" in warning:
+            code = "payload_retention_exceeds_audit_retention"
         issues.append(_make_issue("warning", code, warning, entry_id))
 
     return {
@@ -356,6 +380,12 @@ def compile_intent_document(intent: Dict[str, Any]) -> str:
         lines.append(
             f"# emergency access override {global_safeguards.get('emergency_access_grace_hours', 48)}h{suffix}",
         )
+    if global_safeguards.get("device_rebind_in_progress", False):
+        lines.append(
+            f"# device rebind window active {global_safeguards.get('device_rebind_grace_hours', 72)}h",
+        )
+    if global_safeguards.get("recovery_key_enabled", True):
+        lines.append("# recovery key fallback enabled")
     if global_safeguards.get("server_heartbeat_fallback_enabled", True):
         lines.append(
             _require_line(

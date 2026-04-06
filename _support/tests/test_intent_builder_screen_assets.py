@@ -168,6 +168,12 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "emergency_access_requires_beneficiary_request" in model_src
     assert "emergency_access_requires_guardian_quorum" in model_src
     assert "emergency_access_grace_hours" in model_src
+    assert "device_rebind_in_progress" in model_src
+    assert "device_rebind_grace_hours" in model_src
+    assert "recovery_key_enabled" in model_src
+    assert "delivery_access_ttl_hours" in model_src
+    assert "payload_retention_days" in model_src
+    assert "audit_log_retention_days" in model_src
     assert "document: _document" in screen_src
     assert "missing_partner_path" in _read(ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_compiler_report_model.dart")
     assert "class IntentCanonicalArtifactModel" in artifact_model_src
@@ -250,6 +256,9 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "actionPlan" in readiness_model_src
     assert "Guardian quorum requirement exceeds guardian pool" in readiness_model_src
     assert "Emergency access should require an explicit beneficiary request" in readiness_model_src
+    assert "Cross-device rebind window is active" in readiness_model_src
+    assert "Recovery key fallback is enabled" in readiness_model_src
+    assert "Retention policy: delivery link TTL" in readiness_model_src
     assert "Draft sync: current draft still matches the latest exported artifact." in dashboard_src
     assert "Draft sync: current draft changed since the latest export." in dashboard_src
     assert 'child: const Text("Readiness details")' in dashboard_src
@@ -370,6 +379,14 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "Emergency access override" in settings_src
     assert "Enable emergency access override" in settings_src
     assert "Emergency access grace window (hours)" in settings_src
+    assert "Cross-device rebind & recovery" in settings_src
+    assert "Device rebind in progress" in settings_src
+    assert "Rebind grace window (hours)" in settings_src
+    assert "Enable recovery key fallback" in settings_src
+    assert "Retention policy" in settings_src
+    assert "Delivery access link TTL (hours)" in settings_src
+    assert "Payload retention (days)" in settings_src
+    assert "Audit log retention (days)" in settings_src
     assert "proofOfLifeCheckMode" in settings_src
     assert "beneficiaryName" in profile_model_src
     assert "beneficiaryVerificationPhraseHash" in profile_model_src
@@ -415,3 +432,7 @@ def test_intent_builder_screen_assets_exist() -> None:
     assert "guardian_quorum_weak" in compiler_report_src
     assert "emergency_access_without_guardian_quorum" in compiler_report_src
     assert "emergency_access_without_beneficiary_request" in compiler_report_src
+    assert "device_rebind_window_active" in compiler_report_src
+    assert "recovery_key_fallback_disabled" in compiler_report_src
+    assert "delivery_access_ttl_too_long" in compiler_report_src
+    assert "payload_retention_exceeds_audit_retention" in compiler_report_src

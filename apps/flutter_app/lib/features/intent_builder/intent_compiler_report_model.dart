@@ -368,6 +368,51 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
     );
   }
 
+  if (document.globalSafeguards.deviceRebindInProgress) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "device_rebind_window_active",
+        message:
+            "Device rebind window is active. Treat final release as temporarily paused until rebind is completed.",
+      ),
+    );
+  }
+
+  if (!document.globalSafeguards.recoveryKeyEnabled) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "recovery_key_fallback_disabled",
+        message:
+            "Recovery key fallback is disabled; cross-device proof-of-life recovery may be weaker during device loss or migration.",
+      ),
+    );
+  }
+
+  if (document.globalSafeguards.deliveryAccessTtlHours > 120) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "delivery_access_ttl_too_long",
+        message:
+            "Delivery access link TTL is longer than 120 hours. Shorter link lifetimes reduce replay and interception risk.",
+      ),
+    );
+  }
+
+  if (document.globalSafeguards.payloadRetentionDays >
+      document.globalSafeguards.auditLogRetentionDays) {
+    issues.add(
+      _issue(
+        severity: "warning",
+        code: "payload_retention_exceeds_audit_retention",
+        message:
+            "Payload retention exceeds audit retention. Consider deleting sensitive payload artifacts earlier than audit metadata.",
+      ),
+    );
+  }
+
   final safeguards = document.globalSafeguards;
   if (safeguards.guardianQuorumEnabled &&
       safeguards.guardianQuorumRequired > safeguards.guardianQuorumPoolSize) {
