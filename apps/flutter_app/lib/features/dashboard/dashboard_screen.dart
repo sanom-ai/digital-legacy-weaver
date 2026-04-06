@@ -44,8 +44,11 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           profileAsync.when(
             data: (profile) {
-              final inactiveDays = DateTime.now().difference(profile.lastActiveAt).inDays;
-              final daysLeft = (profile.legacyInactivityDays - inactiveDays).clamp(0, 9999);
+              final inactiveDays = DateTime.now()
+                  .difference(profile.lastActiveAt)
+                  .inDays;
+              final daysLeft = (profile.legacyInactivityDays - inactiveDays)
+                  .clamp(0, 9999);
               return Column(
                 children: [
                   _HeroCard(
@@ -58,8 +61,10 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   safetyAsync.when(
                     data: (settings) => _OwnerJourneyStatusCard(
-                      beneficiaryIdentityReady: profile.hasBeneficiaryIdentityKit,
-                      proofOfLifeFallbackReady: settings.serverHeartbeatFallbackEnabled,
+                      beneficiaryIdentityReady:
+                          profile.hasBeneficiaryIdentityKit,
+                      proofOfLifeFallbackReady:
+                          settings.serverHeartbeatFallbackEnabled,
                       legalConsentReady: settings.legalDisclaimerAccepted,
                     ),
                     loading: () => const _InlineStateCard(
@@ -74,7 +79,8 @@ class DashboardScreen extends ConsumerWidget {
                   safetyAsync.when(
                     data: (settings) {
                       final setupComplete =
-                          (profile.beneficiaryEmail?.trim().isNotEmpty ?? false) &&
+                          (profile.beneficiaryEmail?.trim().isNotEmpty ??
+                              false) &&
                           profile.hasBeneficiaryIdentityKit &&
                           settings.serverHeartbeatFallbackEnabled &&
                           settings.iosBackgroundRiskAcknowledged &&
@@ -88,18 +94,19 @@ class DashboardScreen extends ConsumerWidget {
                           leading: const Icon(Icons.auto_fix_high_rounded),
                           title: const Text("Complete setup for beta"),
                           subtitle: const Text(
-                            "Add beneficiary identity, fallback posture, consent, and private-first defaults. This product is a technical companion, not a legal will.",
+                            "Add beneficiary identity, fallback channels, consent, and private-first defaults. This product coordinates secure handoff and does not replace a legal will.",
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () async {
-                            final changed = await Navigator.of(context).push<bool>(
-                              MaterialPageRoute(
-                                builder: (_) => OnboardingSetupScreen(
-                                  initialProfile: profile,
-                                  initialSettings: settings,
-                                ),
-                              ),
-                            );
+                            final changed = await Navigator.of(context)
+                                .push<bool>(
+                                  MaterialPageRoute(
+                                    builder: (_) => OnboardingSetupScreen(
+                                      initialProfile: profile,
+                                      initialSettings: settings,
+                                    ),
+                                  ),
+                                );
                             if (changed == true) {
                               ref.invalidate(profileProvider);
                               ref.invalidate(safetySettingsProvider);
@@ -123,10 +130,12 @@ class DashboardScreen extends ConsumerWidget {
               message: "Loading your profile and current policy state...",
               showSpinner: true,
             ),
-            error: (error, _) => Card(
+            error: (_, __) => const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Profile load error: $error. Please refresh and try again."),
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  "We could not load your profile right now. Please refresh and try again.",
+                ),
               ),
             ),
           ),
@@ -134,9 +143,15 @@ class DashboardScreen extends ConsumerWidget {
           profileAsync.when(
             data: (profile) => safetyAsync.when(
               data: (settings) {
-                final artifactAsync = ref.watch(intentCanonicalArtifactProvider(profile.id));
-                final artifactHistoryAsync = ref.watch(intentCanonicalArtifactHistoryProvider(profile.id));
-                final readinessAsync = ref.watch(intentRuntimeReadinessProvider(profile.id));
+                final artifactAsync = ref.watch(
+                  intentCanonicalArtifactProvider(profile.id),
+                );
+                final artifactHistoryAsync = ref.watch(
+                  intentCanonicalArtifactHistoryProvider(profile.id),
+                );
+                final readinessAsync = ref.watch(
+                  intentRuntimeReadinessProvider(profile.id),
+                );
                 final setupComplete =
                     (profile.beneficiaryEmail?.trim().isNotEmpty ?? false) &&
                     profile.hasBeneficiaryIdentityKit &&
@@ -169,14 +184,15 @@ class DashboardScreen extends ConsumerWidget {
                         }
 
                         Future<void> openSetup() async {
-                          final changed = await Navigator.of(context).push<bool>(
-                            MaterialPageRoute(
-                              builder: (_) => OnboardingSetupScreen(
-                                initialProfile: profile,
-                                initialSettings: settings,
-                              ),
-                            ),
-                          );
+                          final changed = await Navigator.of(context)
+                              .push<bool>(
+                                MaterialPageRoute(
+                                  builder: (_) => OnboardingSetupScreen(
+                                    initialProfile: profile,
+                                    initialSettings: settings,
+                                  ),
+                                ),
+                              );
                           if (changed == true) {
                             ref.invalidate(profileProvider);
                             ref.invalidate(safetySettingsProvider);
@@ -211,25 +227,45 @@ class DashboardScreen extends ConsumerWidget {
                                 artifactHistory: history,
                                 onPromote: (selected) async {
                                   await ref
-                                      .read(intentCanonicalArtifactRepositoryProvider)
+                                      .read(
+                                        intentCanonicalArtifactRepositoryProvider,
+                                      )
                                       .promoteArtifactVersion(
                                         ownerRef: profile.id,
                                         artifactId: selected.artifactId,
                                       );
-                                  ref.invalidate(intentCanonicalArtifactProvider(profile.id));
-                                  ref.invalidate(intentCanonicalArtifactHistoryProvider(profile.id));
-                                  ref.invalidate(intentRuntimeReadinessProvider(profile.id));
+                                  ref.invalidate(
+                                    intentCanonicalArtifactProvider(profile.id),
+                                  );
+                                  ref.invalidate(
+                                    intentCanonicalArtifactHistoryProvider(
+                                      profile.id,
+                                    ),
+                                  );
+                                  ref.invalidate(
+                                    intentRuntimeReadinessProvider(profile.id),
+                                  );
                                 },
                                 onRemove: (selected) async {
                                   await ref
-                                      .read(intentCanonicalArtifactRepositoryProvider)
+                                      .read(
+                                        intentCanonicalArtifactRepositoryProvider,
+                                      )
                                       .clearArtifactVersion(
                                         ownerRef: profile.id,
                                         artifactId: selected.artifactId,
                                       );
-                                  ref.invalidate(intentCanonicalArtifactProvider(profile.id));
-                                  ref.invalidate(intentCanonicalArtifactHistoryProvider(profile.id));
-                                  ref.invalidate(intentRuntimeReadinessProvider(profile.id));
+                                  ref.invalidate(
+                                    intentCanonicalArtifactProvider(profile.id),
+                                  );
+                                  ref.invalidate(
+                                    intentCanonicalArtifactHistoryProvider(
+                                      profile.id,
+                                    ),
+                                  );
+                                  ref.invalidate(
+                                    intentRuntimeReadinessProvider(profile.id),
+                                  );
                                 },
                               ),
                             ),
@@ -261,7 +297,10 @@ class DashboardScreen extends ConsumerWidget {
                               onOpenBuilder: openBuilder,
                               onOpenReceipt: () {
                                 Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const UnlockDeliveryScreen()),
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const UnlockDeliveryScreen(),
+                                  ),
                                 );
                               },
                             ),
@@ -284,7 +323,8 @@ class DashboardScreen extends ConsumerWidget {
                         message: "Loading control room status...",
                       ),
                       error: (_, __) => const _InlineStateCard(
-                        message: "Control room status is temporarily unavailable.",
+                        message:
+                            "Control room status is temporarily unavailable.",
                         isError: true,
                       ),
                     ),
@@ -308,7 +348,9 @@ class DashboardScreen extends ConsumerWidget {
                     Card(
                       child: ListTile(
                         title: const Text("Intent Builder"),
-                        subtitle: const Text("Draft user-defined legacy intent before compiling it into PTN"),
+                        subtitle: const Text(
+                          "Shape recovery and handoff routes in plain language before export",
+                        ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           Navigator.of(context).push(
@@ -357,7 +399,9 @@ class DashboardScreen extends ConsumerWidget {
                     artifactAsync.when(
                       data: (artifact) => artifactHistoryAsync.when(
                         data: (history) => Card(
-                          color: artifact == null ? const Color(0xFFFFF7ED) : null,
+                          color: artifact == null
+                              ? const Color(0xFFFFF7ED)
+                              : null,
                           child: Column(
                             children: [
                               ListTile(
@@ -365,8 +409,8 @@ class DashboardScreen extends ConsumerWidget {
                                 title: const Text("Canonical artifact status"),
                                 subtitle: Text(
                                   artifact == null
-                                      ? "No local canonical PTN artifact exported yet."
-                                      : "State ${artifact.artifactState.name}. Contract ${artifact.contractVersion} with ${artifact.activeEntryCount} active entries across ${history.length} artifact versions.${artifact.promotedFromArtifactId != null ? " Latest artifact was promoted from history." : ""} Reviewed artifacts must stay in sync before they can be treated as ready.",
+                                      ? "No exported handoff version yet."
+                                      : "Current status: ${artifact.artifactState.name}. Version ${artifact.contractVersion} with ${artifact.activeEntryCount} active routes across ${history.length} saved versions.${artifact.promotedFromArtifactId != null ? " Latest version came from history promotion." : ""} Keep draft and exported version aligned before treating this as release-ready.",
                                 ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
@@ -383,39 +427,57 @@ class DashboardScreen extends ConsumerWidget {
                                   }
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) => IntentArtifactReviewScreen(artifact: artifact),
+                                      builder: (_) =>
+                                          IntentArtifactReviewScreen(
+                                            artifact: artifact,
+                                          ),
                                     ),
                                   );
                                 },
                               ),
                               if (artifact != null && history.length > 1)
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    16,
+                                  ),
                                   child: Align(
                                     alignment: Alignment.centerLeft,
                                     child: OutlinedButton(
                                       onPressed: () {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
-                                            builder: (_) => IntentArtifactCompareScreen(
-                                              currentArtifact: artifact,
-                                              compareArtifact: history[1],
-                                            ),
+                                            builder: (_) =>
+                                                IntentArtifactCompareScreen(
+                                                  currentArtifact: artifact,
+                                                  compareArtifact: history[1],
+                                                ),
                                           ),
                                         );
                                       },
-                                      child: const Text("Compare latest with previous"),
+                                      child: const Text(
+                                        "Compare latest with previous",
+                                      ),
                                     ),
                                   ),
                                 ),
                               if (artifact != null && history.length > 1)
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    16,
+                                  ),
                                   child: Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
                                       "Older versions can also be promoted again from Intent Builder without deleting history.",
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
                                     ),
                                   ),
                                 ),
@@ -441,17 +503,15 @@ class DashboardScreen extends ConsumerWidget {
                   ],
                 );
               },
-              loading: () => const _InlineStateCard(
-                message: "Loading safety settings...",
-              ),
+              loading: () =>
+                  const _InlineStateCard(message: "Loading safety settings..."),
               error: (_, __) => const _InlineStateCard(
                 message: "Could not load safety settings for this workspace.",
                 isError: true,
               ),
             ),
-            loading: () => const _InlineStateCard(
-              message: "Preparing workspace...",
-            ),
+            loading: () =>
+                const _InlineStateCard(message: "Preparing workspace..."),
             error: (_, __) => const _InlineStateCard(
               message: "Workspace data is temporarily unavailable.",
               isError: true,
@@ -462,9 +522,8 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           safetyAsync.when(
             data: (settings) => _PolicySelectorCard(settings: settings),
-            loading: () => const _InlineStateCard(
-              message: "Loading privacy preset...",
-            ),
+            loading: () =>
+                const _InlineStateCard(message: "Loading privacy preset..."),
             error: (_, __) => const _InlineStateCard(
               message: "Could not load privacy preset.",
               isError: true,
@@ -474,7 +533,9 @@ class DashboardScreen extends ConsumerWidget {
           Card(
             child: ListTile(
               title: const Text("Partner-ready Paths"),
-              subtitle: const Text("Prepare destination references and optional handoff routes"),
+              subtitle: const Text(
+                "Prepare destination references and optional handoff routes",
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
@@ -487,11 +548,15 @@ class DashboardScreen extends ConsumerWidget {
           Card(
             child: ListTile(
               title: const Text("Risk Controls"),
-              subtitle: const Text("Legal consent, reminders, grace period, private-first mode, emergency pause"),
+              subtitle: const Text(
+                "Legal consent, reminders, grace period, private-first mode, emergency pause",
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SafetySettingsScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const SafetySettingsScreen(),
+                  ),
                 );
               },
             ),
@@ -500,11 +565,15 @@ class DashboardScreen extends ConsumerWidget {
           Card(
             child: ListTile(
               title: const Text("Beneficiary Receipt"),
-              subtitle: const Text("Secure link, receipt code, and pre-registered identity flow"),
+              subtitle: const Text(
+                "Secure link, receipt code, and pre-registered identity flow",
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const UnlockDeliveryScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const UnlockDeliveryScreen(),
+                  ),
                 );
               },
             ),
@@ -513,7 +582,9 @@ class DashboardScreen extends ConsumerWidget {
           Card(
             child: ListTile(
               title: const Text("Beta Feedback"),
-              subtitle: const Text("Report bug, reliability issue, or UX feedback"),
+              subtitle: const Text(
+                "Report bug, reliability issue, or UX feedback",
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
@@ -531,10 +602,7 @@ class DashboardScreen extends ConsumerWidget {
 }
 
 class _HeroCard extends StatelessWidget {
-  const _HeroCard({
-    required this.daysLeft,
-    required this.onAliveCheck,
-  });
+  const _HeroCard({required this.daysLeft, required this.onAliveCheck});
 
   final int daysLeft;
   final VoidCallback onAliveCheck;
@@ -609,15 +677,21 @@ class _OwnerJourneyStatusCard extends StatelessWidget {
               "This workspace is built for real user outcomes: secure self-recovery while alive, and secure beneficiary delivery only when policy conditions are met.",
             ),
             const SizedBox(height: 10),
-            Text(beneficiaryIdentityReady
-                ? "1. Beneficiary identity kit: ready"
-                : "1. Beneficiary identity kit: still missing"),
-            Text(proofOfLifeFallbackReady
-                ? "2. Proof-of-life fallback: ready"
-                : "2. Proof-of-life fallback: still missing"),
-            Text(legalConsentReady
-                ? "3. Safety/legal consent: ready"
-                : "3. Safety/legal consent: still missing"),
+            Text(
+              beneficiaryIdentityReady
+                  ? "1. Beneficiary identity kit: ready"
+                  : "1. Beneficiary identity kit: still missing",
+            ),
+            Text(
+              proofOfLifeFallbackReady
+                  ? "2. Proof-of-life fallback: ready"
+                  : "2. Proof-of-life fallback: still missing",
+            ),
+            Text(
+              legalConsentReady
+                  ? "3. Safety/legal consent: ready"
+                  : "3. Safety/legal consent: still missing",
+            ),
           ],
         ),
       ),
@@ -643,9 +717,13 @@ class _DeliveryModeCard extends StatelessWidget {
             SizedBox(height: 8),
             Text('1) Legacy delivery to beneficiary after long inactivity'),
             SizedBox(height: 4),
-            Text('2) Self-recovery delivery to backup email for password recovery'),
+            Text(
+              '2) Self-recovery delivery to backup email for password recovery',
+            ),
             SizedBox(height: 10),
-            Text('Technical companion only: beneficiaries complete any required legal verification in the appropriate legal or service context.'),
+            Text(
+              'Technical companion only: beneficiaries complete any required legal verification in the appropriate legal or service context.',
+            ),
           ],
         ),
       ),
@@ -686,15 +764,21 @@ class _UserOutcomeCard extends StatelessWidget {
               "Use this app like a product, not a config panel: set up once, verify readiness, then keep your recovery and delivery path healthy.",
             ),
             const SizedBox(height: 10),
-            Text(setupComplete
-                ? "1. Setup baseline is complete."
-                : "1. Setup baseline is incomplete."),
-            Text(readiness.readyForRuntime
-                ? "2. Delivery policy is runtime-ready."
-                : "2. Delivery policy still needs action."),
-            Text(canDeliver
-                ? "3. Beneficiary receipt path can be exercised safely."
-                : "3. Beneficiary receipt path should wait until setup and readiness are complete."),
+            Text(
+              setupComplete
+                  ? "1. Setup baseline is complete."
+                  : "1. Setup baseline is incomplete.",
+            ),
+            Text(
+              readiness.readyForRuntime
+                  ? "2. Delivery policy is runtime-ready."
+                  : "2. Delivery policy still needs action.",
+            ),
+            Text(
+              canDeliver
+                  ? "3. Beneficiary receipt path can be exercised safely."
+                  : "3. Beneficiary receipt path should wait until setup and readiness are complete.",
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 10,
@@ -739,7 +823,8 @@ class _ProductConcretenessCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final artifact = readiness.currentArtifact;
     final hasActiveRoute = (artifact?.activeEntryCount ?? 0) > 0;
-    final secureLinkReceiptReady = settings.serverHeartbeatFallbackEnabled &&
+    final secureLinkReceiptReady =
+        settings.serverHeartbeatFallbackEnabled &&
         profile.hasBeneficiaryIdentityKit;
 
     return Card(
@@ -763,16 +848,26 @@ class _ProductConcretenessCard extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
-            Text(setupComplete ? "1. Owner setup baseline is complete." : "1. Owner setup baseline is still incomplete."),
-            Text(readiness.hasArtifact
-                ? "2. Canonical artifact export and history are active."
-                : "2. Canonical artifact export is not started yet."),
-            Text(hasActiveRoute
-                ? "3. At least one active delivery route exists."
-                : "3. No active delivery route yet."),
-            Text(secureLinkReceiptReady
-                ? "4. Beneficiary secure-link receipt flow is ready."
-                : "4. Beneficiary secure-link receipt flow still needs identity/fallback setup."),
+            Text(
+              setupComplete
+                  ? "1. Owner setup baseline is complete."
+                  : "1. Owner setup baseline is still incomplete.",
+            ),
+            Text(
+              readiness.hasArtifact
+                  ? "2. Canonical artifact export and history are active."
+                  : "2. Canonical artifact export is not started yet.",
+            ),
+            Text(
+              hasActiveRoute
+                  ? "3. At least one active delivery route exists."
+                  : "3. No active delivery route yet.",
+            ),
+            Text(
+              secureLinkReceiptReady
+                  ? "4. Beneficiary secure-link receipt flow is ready."
+                  : "4. Beneficiary secure-link receipt flow still needs identity/fallback setup.",
+            ),
             const SizedBox(height: 10),
             const Text(
               "Next milestone",
@@ -800,11 +895,23 @@ class _ProductConcretenessCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _MetricChip(label: setupComplete ? "Setup complete: Yes" : "Setup complete: No"),
+                _MetricChip(
+                  label: setupComplete
+                      ? "Setup complete: Yes"
+                      : "Setup complete: No",
+                ),
                 _MetricChip(label: "Readiness: ${readiness.readinessLabel}"),
-                _MetricChip(label: "Artifact versions: ${readiness.historyCount}"),
-                _MetricChip(label: "Active routes: ${artifact?.activeEntryCount ?? 0}"),
-                _MetricChip(label: secureLinkReceiptReady ? "Receipt path: Ready" : "Receipt path: Pending"),
+                _MetricChip(
+                  label: "Artifact versions: ${readiness.historyCount}",
+                ),
+                _MetricChip(
+                  label: "Active routes: ${artifact?.activeEntryCount ?? 0}",
+                ),
+                _MetricChip(
+                  label: secureLinkReceiptReady
+                      ? "Receipt path: Ready"
+                      : "Receipt path: Pending",
+                ),
               ],
             ),
           ],
@@ -841,7 +948,7 @@ class _ControlRoomCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final artifact = readiness.currentArtifact;
     final currentState = artifact?.artifactState.name ?? "draft";
-    final modeLabel = setupComplete ? "Live backend mode" : "Setup still incomplete";
+    final modeLabel = setupComplete ? "Connected mode" : "Finish setup mode";
     final helperCards = _buildHelperCards();
 
     return Card(
@@ -875,10 +982,16 @@ class _ControlRoomCard extends StatelessWidget {
               children: [
                 _MetricChip(label: "Artifacts ${readiness.historyCount}"),
                 _MetricChip(label: "Ready ${readiness.readyArtifactCount}"),
-                _MetricChip(label: "Reviewed ${readiness.reviewedArtifactCount}"),
-                _MetricChip(label: "Promoted ${readiness.promotedArtifactCount}"),
                 _MetricChip(
-                  label: readiness.draftInSync ? "Draft in sync" : "Draft changed",
+                  label: "Reviewed ${readiness.reviewedArtifactCount}",
+                ),
+                _MetricChip(
+                  label: "Promoted ${readiness.promotedArtifactCount}",
+                ),
+                _MetricChip(
+                  label: readiness.draftInSync
+                      ? "Draft in sync"
+                      : "Draft changed",
                 ),
               ],
             ),
@@ -932,7 +1045,7 @@ class _ControlRoomCard extends StatelessWidget {
             if (!setupComplete) ...[
               const SizedBox(height: 8),
               const Text(
-                "Setup is still incomplete. Finish beneficiary and consent defaults before treating this workspace as operational.",
+                "Setup is not complete yet. Finish beneficiary identity and consent defaults before relying on this workspace.",
               ),
             ],
             if (helperCards.isNotEmpty) ...[
@@ -976,8 +1089,9 @@ class _ControlRoomCard extends StatelessWidget {
         _StateHelperCard(
           title: "Draft workspace only",
           body:
-              "You have a working draft but no canonical artifact yet. Export the first PTN artifact so review, history, and readiness can start tracking a concrete runtime candidate.",
-          cue: "Best next move: export the first canonical artifact from Intent Builder.",
+              "You have a working draft but no exported handoff version yet. Export the first version so review, history, and readiness can track a concrete release path.",
+          cue:
+              "Best next move: export the first handoff version from Intent Builder.",
           actionLabel: "Open builder",
           onTap: onOpenBuilder,
         ),
@@ -1016,7 +1130,7 @@ class _ControlRoomCard extends StatelessWidget {
         _StateHelperCard(
           title: "Export completed",
           body:
-              "The artifact exists and is now waiting for review. This is the right moment to inspect the PTN, compiler report, and trace before advancing the state.",
+              "The exported version is waiting for review. This is the best moment to inspect issues and safety posture before moving forward.",
           cue: "Best next move: review the exported artifact now.",
           actionLabel: "Open review",
           onTap: onOpenArtifactReview,
@@ -1024,13 +1138,15 @@ class _ControlRoomCard extends StatelessWidget {
       ];
     }
 
-    if (artifact.artifactState == IntentArtifactState.reviewed && !readiness.draftInSync) {
+    if (artifact.artifactState == IntentArtifactState.reviewed &&
+        !readiness.draftInSync) {
       return [
         _StateHelperCard(
           title: "Reviewed but stale",
           body:
-              "The artifact was reviewed, but the draft changed afterward. Treat the review as outdated until a fresh export captures the current draft again.",
-          cue: "Best next move: re-export from the latest draft before marking anything ready.",
+              "This version was reviewed, but the draft changed afterward. Treat that review as outdated until a fresh export captures the latest draft.",
+          cue:
+              "Best next move: re-export from the latest draft before marking anything ready.",
           actionLabel: "Open history",
           onTap: onOpenArtifactHistory,
         ),
@@ -1042,21 +1158,24 @@ class _ControlRoomCard extends StatelessWidget {
         _StateHelperCard(
           title: "Reviewed and in sync",
           body:
-              "The artifact has been reviewed and still matches the current draft. This is the cleanest moment to mark it ready for runtime use.",
-          cue: "Best next move: mark the reviewed artifact ready while sync still holds.",
+              "The reviewed version still matches your current draft. This is the cleanest moment to mark it ready for real use.",
+          cue:
+              "Best next move: mark the reviewed artifact ready while sync still holds.",
           actionLabel: "Open builder",
           onTap: onOpenBuilder,
         ),
       ];
     }
 
-    if (artifact.artifactState == IntentArtifactState.ready && !readiness.draftInSync) {
+    if (artifact.artifactState == IntentArtifactState.ready &&
+        !readiness.draftInSync) {
       return [
         _StateHelperCard(
           title: "Ready artifact drifted",
           body:
-              "The latest artifact was ready, but the draft changed later. Keep the ready state as historical context only until you export a fresh runtime candidate.",
-          cue: "Best next move: re-export the latest draft to restore runtime confidence.",
+              "The latest ready version drifted because the draft changed later. Keep it as history only until you export a fresh ready candidate.",
+          cue:
+              "Best next move: re-export the latest draft to restore runtime confidence.",
           actionLabel: "Open history",
           onTap: onOpenArtifactHistory,
         ),
@@ -1068,8 +1187,9 @@ class _ControlRoomCard extends StatelessWidget {
         _StateHelperCard(
           title: "Runtime candidate is healthy",
           body:
-              "The latest artifact is ready, in sync, and suitable to treat as the current runtime candidate. From here the main job is to keep the workspace stable as changes happen.",
-          cue: "Best next move: use review and history tools only when you intentionally change the draft.",
+              "The latest version is ready and in sync. From here the main job is to keep the workspace stable as intentional changes happen.",
+          cue:
+              "Best next move: use review and history tools only when you intentionally change the draft.",
           actionLabel: "Review artifact",
           onTap: onOpenArtifactReview,
         ),
@@ -1096,8 +1216,8 @@ class _RuntimeReadinessCard extends StatelessWidget {
     final statusColor = readiness.readyForRuntime
         ? const Color(0xFFE9F6EF)
         : readiness.hasArtifact
-            ? const Color(0xFFFFF7ED)
-            : const Color(0xFFF7F1E8);
+        ? const Color(0xFFFFF7ED)
+        : const Color(0xFFF7F1E8);
 
     return Card(
       color: statusColor,
@@ -1272,24 +1392,15 @@ class _StateHelperCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Text(body),
           const SizedBox(height: 8),
-          Text(
-            cue,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
+          Text(cue, style: const TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerLeft,
-            child: OutlinedButton(
-              onPressed: onTap,
-              child: Text(actionLabel),
-            ),
+            child: OutlinedButton(onPressed: onTap, child: Text(actionLabel)),
           ),
         ],
       ),
@@ -1310,7 +1421,7 @@ class _PolicySelectorCard extends StatelessWidget {
         leading: const Icon(Icons.privacy_tip_outlined),
         title: Text('Privacy Preset: ${preset.title}'),
         subtitle: Text(
-          '${preset.summary}\nTechnical companion only. Change this in Risk Controls.',
+          '${preset.summary}\nProduct boundary: this app coordinates secure handoff and does not replace legal will workflows.',
         ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_right),
@@ -1323,4 +1434,3 @@ class _PolicySelectorCard extends StatelessWidget {
     );
   }
 }
-

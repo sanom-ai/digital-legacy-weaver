@@ -62,11 +62,43 @@ class ConfigLandingScreen extends StatelessWidget {
     );
   }
 
-  void _showSetupReminder(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Use the displayed --dart-define values when you are ready to connect a real backend.',
+  void _showBackendSetupSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Connect a live backend (optional)',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'You can keep using local mode now. Connect a live backend only when your team is ready for account sync and cloud runtime services.',
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: const Color(0xFFF7F1E8),
+                ),
+                child: const SelectableText(
+                  'flutter run --dart-define=SUPABASE_URL=<url> --dart-define=SUPABASE_ANON_KEY=<anon_key>',
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'After connecting, sign-in and cloud-backed flows will activate automatically.',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -76,11 +108,11 @@ class ConfigLandingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final title = unlockAttempt
-        ? 'Backend setup required'
-        : 'Finish backend setup or start a guided demo';
+        ? 'Continue safely in local mode'
+        : 'Start now with private-first local mode';
     final summary = unlockAttempt
-        ? 'This bundle opened correctly, but unlock mode still needs Supabase runtime configuration before it can talk to a live backend.'
-        : 'This build works without a live backend. You can explore the local UX, artifact flow, and readiness journey through guided demo scenarios.';
+        ? 'This receipt link opened, but secure bundle unlock needs a connected runtime. You can still explore the full product flow locally right now.'
+        : 'No backend setup is required to start. Explore onboarding, intent shaping, and readiness journey first, then connect cloud services later if needed.';
 
     return Scaffold(
       body: Center(
@@ -106,12 +138,13 @@ class ConfigLandingScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE9DDCC),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text('Private-first demo entry'),
+                        child: const Text('Private-first product workspace'),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -133,9 +166,9 @@ class ConfigLandingScreen extends StatelessWidget {
                         spacing: 10,
                         runSpacing: 10,
                         children: [
-                          _LandingBadge(label: 'Intent -> PTN -> artifact'),
+                          _LandingBadge(label: 'Intent to artifact journey'),
                           _LandingBadge(label: 'Local encrypted drafts'),
-                          _LandingBadge(label: 'Technical companion only'),
+                          _LandingBadge(label: 'Start without backend setup'),
                         ],
                       ),
                     ],
@@ -154,12 +187,12 @@ class ConfigLandingScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Start with a guided scenario',
+                                'Choose your first real user journey',
                                 style: theme.textTheme.titleLarge,
                               ),
                               const SizedBox(height: 8),
                               const Text(
-                                'Pick a concrete starting point. Each demo seeds the Intent Builder with a preset use case so you can move straight into artifact export and runtime readiness.',
+                                'Pick a concrete path and continue immediately. Each journey starts with realistic defaults so you can move straight to outcomes, not technical setup.',
                               ),
                               const SizedBox(height: 16),
                               ...demoScenarios.map(
@@ -167,7 +200,8 @@ class ConfigLandingScreen extends StatelessWidget {
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: _ScenarioCard(
                                     scenario: scenario,
-                                    onOpen: () => _openScenario(context, scenario),
+                                    onOpen: () =>
+                                        _openScenario(context, scenario),
                                   ),
                                 ),
                               ),
@@ -188,21 +222,24 @@ class ConfigLandingScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'What happens in demo mode',
+                                    'What happens in local mode',
                                     style: theme.textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 10),
                                   const _StepLine(
                                     index: '1',
-                                    text: 'Open a preset intent scenario instead of starting from a blank screen.',
+                                    text:
+                                        'Start with a ready-to-use journey instead of a blank screen.',
                                   ),
                                   const _StepLine(
                                     index: '2',
-                                    text: 'Review entries, export a canonical PTN artifact, and inspect history locally.',
+                                    text:
+                                        'Review safety choices, export artifacts, and inspect history on this device.',
                                   ),
                                   const _StepLine(
                                     index: '3',
-                                    text: 'Check readiness, compare versions, and see the control-room flow without a backend.',
+                                    text:
+                                        'Check readiness and compare versions without waiting for backend setup.',
                                   ),
                                 ],
                               ),
@@ -215,25 +252,11 @@ class ConfigLandingScreen extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Backend setup',
-                                    style: theme.textTheme.titleMedium,
-                                  ),
+                                  Text('Need cloud sync later?',
+                                      style: theme.textTheme.titleMedium),
                                   const SizedBox(height: 8),
                                   const Text(
-                                    'When you are ready to connect a live Supabase project, run Flutter with these values:',
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(14),
-                                      color: const Color(0xFFF7F1E8),
-                                    ),
-                                    child: const SelectableText(
-                                      'flutter run --dart-define=SUPABASE_URL=<url> --dart-define=SUPABASE_ANON_KEY=<anon_key>',
-                                    ),
+                                    'Cloud runtime is optional for first use. Keep building in local mode, then connect backend only when your team is ready.',
                                   ),
                                   const SizedBox(height: 14),
                                   Wrap(
@@ -241,12 +264,16 @@ class ConfigLandingScreen extends StatelessWidget {
                                     runSpacing: 12,
                                     children: [
                                       FilledButton(
-                                        onPressed: () => _openScenario(context, demoScenarios.first),
-                                        child: const Text('Open demo workspace'),
+                                        onPressed: () => _openScenario(
+                                            context, demoScenarios.first),
+                                        child:
+                                            const Text('Start local workspace'),
                                       ),
                                       OutlinedButton(
-                                        onPressed: () => _showSetupReminder(context),
-                                        child: const Text('Show setup reminder'),
+                                        onPressed: () =>
+                                            _showBackendSetupSheet(context),
+                                        child: const Text(
+                                            'Show cloud setup steps'),
                                       ),
                                     ],
                                   ),
@@ -265,7 +292,7 @@ class ConfigLandingScreen extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.all(16),
                     child: Text(
-                      'Technical companion only: demo mode is local UX only and does not replace a live backend, legal process, or destination-side verification.',
+                      'Product boundary: this app coordinates secure access handoff. It does not replace legal processes or destination-side identity verification.',
                     ),
                   ),
                 ),
@@ -308,7 +335,8 @@ class _ScenarioCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
                   color: const Color(0xFFF7F1E8),

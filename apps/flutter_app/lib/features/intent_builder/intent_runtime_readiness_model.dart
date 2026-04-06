@@ -45,13 +45,17 @@ class IntentRuntimeReadinessModel {
   bool get deviceRebindInProgress =>
       currentDraft?.globalSafeguards.deviceRebindInProgress ?? false;
 
-  String? get currentScenarioId => currentDraft?.metadata["demo_scenario"] as String?;
+  String? get currentScenarioId =>
+      currentDraft?.metadata["demo_scenario"] as String?;
 
-  String? get currentScenarioTitle => currentDraft?.metadata["demo_title"] as String?;
+  String? get currentScenarioTitle =>
+      currentDraft?.metadata["demo_title"] as String?;
 
-  String? get currentScenarioSummary => currentDraft?.metadata["demo_summary"] as String?;
+  String? get currentScenarioSummary =>
+      currentDraft?.metadata["demo_summary"] as String?;
 
-  String? get currentScenarioNextStep => currentDraft?.metadata["demo_next_step"] as String?;
+  String? get currentScenarioNextStep =>
+      currentDraft?.metadata["demo_next_step"] as String?;
 
   bool get readyForRuntime =>
       currentArtifact != null &&
@@ -62,7 +66,7 @@ class IntentRuntimeReadinessModel {
 
   String get readinessLabel {
     if (readyForRuntime) {
-      return "Ready for runtime";
+      return "Ready for release";
     }
     if (!hasArtifact) {
       return "Draft only";
@@ -72,21 +76,21 @@ class IntentRuntimeReadinessModel {
 
   String get summary {
     if (!hasArtifact) {
-      return "No canonical artifact exported yet. Create and export one from Intent Builder before runtime can rely on it.";
+      return "No exported handoff version yet. Export one from Intent Builder before relying on release flow.";
     }
     final artifact = currentArtifact!;
     if (readyForRuntime) {
-      return "Latest artifact ${artifact.artifactId} is ready, in sync with the current draft, and has a sealed release candidate with ${artifact.sealedReleaseCandidate.entries.length} release entries.";
+      return "Latest version ${artifact.artifactId} is ready, in sync with the current draft, and has ${artifact.sealedReleaseCandidate.entries.length} sealed release entries.";
     }
-    return "Latest artifact ${artifact.artifactId} is ${artifact.artifactState.name} with ${artifact.activeEntryCount} active entries and ${artifact.sealedReleaseCandidate.entries.length} sealed release entries. Review blockers before treating it as runtime-ready.";
+    return "Latest version ${artifact.artifactId} is ${artifact.artifactState.name} with ${artifact.activeEntryCount} active routes and ${artifact.sealedReleaseCandidate.entries.length} sealed release entries. Review blockers before treating it as release-ready.";
   }
 
   String get nextStep {
     if (!hasArtifact) {
-      return "Next step: export a canonical PTN artifact from the current draft.";
+      return "Next step: export the first handoff version from the current draft.";
     }
     if (deviceRebindInProgress) {
-      return "Next step: complete cross-device rebind first, then refresh proof-of-life before runtime release.";
+      return "Next step: complete cross-device recovery first, then refresh proof-of-life before release.";
     }
     if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
@@ -94,29 +98,31 @@ class IntentRuntimeReadinessModel {
       return "Next step: fix guardian quorum because required approvals exceed the configured guardian pool.";
     }
     if (hasBlockingErrors) {
-      return "Next step: resolve compiler errors before moving this artifact forward.";
+      return "Next step: resolve blocking issues before moving this version forward.";
     }
     if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
-      return "Next step: activate at least one entry before using this artifact for runtime.";
+      return "Next step: activate at least one route before using this version for release.";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.exported) {
       return "Next step: review the exported artifact before marking it ready.";
     }
-    if (currentArtifact!.artifactState == IntentArtifactState.reviewed && !draftInSync) {
+    if (currentArtifact!.artifactState == IntentArtifactState.reviewed &&
+        !draftInSync) {
       return "Next step: re-export because the current draft changed after review.";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
       return "Next step: mark the reviewed artifact ready while the draft is still in sync.";
     }
-    if (currentArtifact!.artifactState == IntentArtifactState.ready && !draftInSync) {
+    if (currentArtifact!.artifactState == IntentArtifactState.ready &&
+        !draftInSync) {
       return "Next step: re-export to refresh the ready artifact from the latest draft.";
     }
-    return "Next step: review the latest artifact state in Intent Builder.";
+    return "Next step: review the latest version status in Intent Builder.";
   }
 
   String get primaryActionLabel {
     if (!hasArtifact) {
-      return "Export first artifact";
+      return "Export first version";
     }
     if (deviceRebindInProgress) {
       return "Complete device rebind";
@@ -135,13 +141,15 @@ class IntentRuntimeReadinessModel {
     if (currentArtifact!.artifactState == IntentArtifactState.exported) {
       return "Review exported artifact";
     }
-    if (currentArtifact!.artifactState == IntentArtifactState.reviewed && !draftInSync) {
+    if (currentArtifact!.artifactState == IntentArtifactState.reviewed &&
+        !draftInSync) {
       return "Refresh exported artifact";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
-      return "Mark artifact ready";
+      return "Mark version ready";
     }
-    if (currentArtifact!.artifactState == IntentArtifactState.ready && !draftInSync) {
+    if (currentArtifact!.artifactState == IntentArtifactState.ready &&
+        !draftInSync) {
       return "Re-export latest draft";
     }
     return "Inspect current workspace";
@@ -168,13 +176,15 @@ class IntentRuntimeReadinessModel {
     if (currentArtifact!.artifactState == IntentArtifactState.exported) {
       return "review_exported_artifact";
     }
-    if (currentArtifact!.artifactState == IntentArtifactState.reviewed && !draftInSync) {
+    if (currentArtifact!.artifactState == IntentArtifactState.reviewed &&
+        !draftInSync) {
       return "refresh_exported_artifact";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
       return "mark_artifact_ready";
     }
-    if (currentArtifact!.artifactState == IntentArtifactState.ready && !draftInSync) {
+    if (currentArtifact!.artifactState == IntentArtifactState.ready &&
+        !draftInSync) {
       return "reexport_latest_draft";
     }
     return "inspect_current_workspace";
@@ -183,27 +193,47 @@ class IntentRuntimeReadinessModel {
   List<String> get actionPlan {
     final steps = <String>[];
     if (!hasArtifact) {
-      steps.add("Open Intent Builder and export the first canonical PTN artifact.");
+      steps.add("Open Intent Builder and export the first handoff version.");
     } else if (deviceRebindInProgress) {
-      steps.add("Cross-device rebind is in progress. Finish migration and confirm proof-of-life before any final release.");
+      steps.add(
+        "Cross-device rebind is in progress. Finish migration and confirm proof-of-life before any final release.",
+      );
     } else if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
             (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
-      steps.add("Reduce required guardian approvals or increase the guardian pool so quorum is structurally valid.");
+      steps.add(
+        "Reduce required guardian approvals or increase the guardian pool so quorum is structurally valid.",
+      );
     } else if (hasBlockingErrors) {
-      steps.add("Resolve compiler errors before advancing the current artifact.");
+      steps.add(
+        "Resolve blocking issues before advancing the current version.",
+      );
     } else if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
-      steps.add("Activate at least one intent entry so runtime has a concrete route.");
+      steps.add(
+        "Activate at least one intent entry so release flow has a concrete route.",
+      );
     } else if (currentArtifact!.artifactState == IntentArtifactState.exported) {
-      steps.add("Review the exported artifact and confirm the PTN, trace, and report.");
-    } else if (currentArtifact!.artifactState == IntentArtifactState.reviewed && !draftInSync) {
-      steps.add("Re-export from the latest draft because the reviewed artifact is now stale.");
+      steps.add(
+        "Review the exported version and confirm report findings before release.",
+      );
+    } else if (currentArtifact!.artifactState == IntentArtifactState.reviewed &&
+        !draftInSync) {
+      steps.add(
+        "Re-export from the latest draft because the reviewed artifact is now stale.",
+      );
     } else if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
-      steps.add("Mark the reviewed artifact ready while the draft is still in sync.");
-    } else if (currentArtifact!.artifactState == IntentArtifactState.ready && !draftInSync) {
-      steps.add("Refresh the ready artifact from the latest draft to regain confidence.");
+      steps.add(
+        "Mark the reviewed artifact ready while the draft is still in sync.",
+      );
+    } else if (currentArtifact!.artifactState == IntentArtifactState.ready &&
+        !draftInSync) {
+      steps.add(
+        "Refresh the ready version from the latest draft to regain confidence.",
+      );
     } else {
-      steps.add("Keep the current ready artifact in sync as you refine the workspace.");
+      steps.add(
+        "Keep the current ready version in sync as you refine the workspace.",
+      );
     }
 
     if (currentScenarioNextStep != null) {
@@ -211,31 +241,43 @@ class IntentRuntimeReadinessModel {
     }
 
     if (!draftInSync && hasArtifact) {
-      steps.add("Compare the latest artifact with current draft changes before promotion or export.");
+      steps.add(
+        "Compare the latest exported version with current draft changes before promotion or export.",
+      );
     }
 
     if (deviceOnlySecretResidency) {
-      steps.add("Device-only secret residency is active; verify that the release path still remains usable if the owner device changes.");
+      steps.add(
+        "Device-only secret residency is active; verify the release path still works if the owner device changes.",
+      );
     }
 
     if (guardianQuorumEnabled) {
-      final required = currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0;
-      final poolSize = currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0;
-      steps.add("Guardian quorum is active at $required-of-$poolSize for high-impact legacy release.");
+      final required =
+          currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0;
+      final poolSize =
+          currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0;
+      steps.add(
+        "Guardian quorum is active at $required-of-$poolSize for high-impact legacy release.",
+      );
     }
 
     if (emergencyAccessEnabled) {
       final safeguards = currentDraft?.globalSafeguards;
       final graceHours = safeguards?.emergencyAccessGraceHours ?? 0;
-      final beneficiaryRequest = safeguards?.emergencyAccessRequiresBeneficiaryRequest ?? false;
-      final guardianRequirement = safeguards?.emergencyAccessRequiresGuardianQuorum ?? false;
+      final beneficiaryRequest =
+          safeguards?.emergencyAccessRequiresBeneficiaryRequest ?? false;
+      final guardianRequirement =
+          safeguards?.emergencyAccessRequiresGuardianQuorum ?? false;
       steps.add(
         "Emergency access override is enabled with a ${graceHours.toString()}-hour grace window${beneficiaryRequest ? ", beneficiary request" : ""}${guardianRequirement ? ", and guardian quorum" : ""}.",
       );
     }
 
     if (currentDraft?.globalSafeguards.recoveryKeyEnabled == true) {
-      steps.add("Recovery key fallback is enabled for proof-of-life disruptions during device migration.");
+      steps.add(
+        "Recovery key fallback is enabled for proof-of-life disruptions during device changes.",
+      );
     }
 
     final safeguards = currentDraft?.globalSafeguards;
@@ -253,30 +295,34 @@ class IntentRuntimeReadinessModel {
     required IntentDocumentModel? currentDraft,
     required List<IntentCanonicalArtifactModel> artifactHistory,
   }) {
-    final draftSignature =
-        currentDraft == null ? null : buildIntentDocumentSignature(currentDraft);
-    final draftInSync = currentArtifact == null ||
+    final draftSignature = currentDraft == null
+        ? null
+        : buildIntentDocumentSignature(currentDraft);
+    final draftInSync =
+        currentArtifact == null ||
         draftSignature == null ||
         currentArtifact.sourceDraftSignature == draftSignature;
 
     final blockers = <String>[];
     if (currentArtifact == null) {
-      blockers.add("No canonical artifact exported");
+      blockers.add("No exported handoff version");
     } else {
       if (currentArtifact.report.errorCount > 0) {
-        blockers.add("Compiler errors still present");
+        blockers.add("Blocking issues still present");
       }
       if (currentArtifact.activeEntryCount == 0) {
-        blockers.add("No active entries exported");
+        blockers.add("No active routes exported");
       }
       if (currentArtifact.artifactState == IntentArtifactState.exported) {
-        blockers.add("Artifact has not been reviewed");
+        blockers.add("Exported version has not been reviewed");
       }
-      if (currentArtifact.artifactState == IntentArtifactState.reviewed && !draftInSync) {
+      if (currentArtifact.artifactState == IntentArtifactState.reviewed &&
+          !draftInSync) {
         blockers.add("Draft changed after review");
       }
-      if (currentArtifact.artifactState == IntentArtifactState.ready && !draftInSync) {
-        blockers.add("Ready artifact is no longer in sync");
+      if (currentArtifact.artifactState == IntentArtifactState.ready &&
+          !draftInSync) {
+        blockers.add("Ready version is no longer in sync");
       }
     }
 
@@ -286,20 +332,28 @@ class IntentRuntimeReadinessModel {
         blockers.add("Cross-device rebind window is active");
       }
       if (safeguards.guardianQuorumEnabled &&
-          safeguards.guardianQuorumRequired > safeguards.guardianQuorumPoolSize) {
+          safeguards.guardianQuorumRequired >
+              safeguards.guardianQuorumPoolSize) {
         blockers.add("Guardian quorum requirement exceeds guardian pool");
       }
-      if (safeguards.guardianQuorumEnabled && safeguards.guardianQuorumRequired < 2) {
-        blockers.add("Guardian quorum is too weak for sensitive legacy release");
+      if (safeguards.guardianQuorumEnabled &&
+          safeguards.guardianQuorumRequired < 2) {
+        blockers.add(
+          "Guardian quorum is too weak for sensitive legacy release",
+        );
       }
       if (safeguards.emergencyAccessEnabled &&
           safeguards.emergencyAccessRequiresGuardianQuorum &&
           !safeguards.guardianQuorumEnabled) {
-        blockers.add("Emergency access requires guardian quorum but quorum is disabled");
+        blockers.add(
+          "Emergency access requires guardian quorum but quorum is disabled",
+        );
       }
       if (safeguards.emergencyAccessEnabled &&
           !safeguards.emergencyAccessRequiresBeneficiaryRequest) {
-        blockers.add("Emergency access should require an explicit beneficiary request");
+        blockers.add(
+          "Emergency access should require an explicit beneficiary request",
+        );
       }
     }
 
@@ -308,15 +362,22 @@ class IntentRuntimeReadinessModel {
       currentDraft: currentDraft,
       historyCount: artifactHistory.length,
       readyArtifactCount: artifactHistory
-          .where((artifact) => artifact.artifactState == IntentArtifactState.ready)
+          .where(
+            (artifact) => artifact.artifactState == IntentArtifactState.ready,
+          )
           .length,
       reviewedArtifactCount: artifactHistory
-          .where((artifact) => artifact.artifactState == IntentArtifactState.reviewed)
+          .where(
+            (artifact) =>
+                artifact.artifactState == IntentArtifactState.reviewed,
+          )
           .length,
       promotedArtifactCount: artifactHistory
-          .where((artifact) =>
-              artifact.promotedFromArtifactId != null &&
-              artifact.promotedFromArtifactId!.isNotEmpty)
+          .where(
+            (artifact) =>
+                artifact.promotedFromArtifactId != null &&
+                artifact.promotedFromArtifactId!.isNotEmpty,
+          )
           .length,
       draftInSync: draftInSync,
       blockers: blockers,

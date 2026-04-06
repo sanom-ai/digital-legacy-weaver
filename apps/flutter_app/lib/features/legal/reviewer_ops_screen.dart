@@ -41,12 +41,17 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       _message = null;
     });
     try {
-      final queue = await ref.read(reviewerOpsRepositoryProvider).loadQueue(status: _status);
+      final queue = await ref
+          .read(reviewerOpsRepositoryProvider)
+          .loadQueue(status: _status);
       if (!mounted) return;
       setState(() => _queue = queue);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Could not load reviewer queue right now. Please refresh.");
+      setState(
+        () => _message =
+            "We could not load the review queue right now. Please refresh.",
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -63,20 +68,28 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       _message = null;
     });
     try {
-      final result = await ref.read(reviewerOpsRepositoryProvider).applyDecision(
+      final result = await ref
+          .read(reviewerOpsRepositoryProvider)
+          .applyDecision(
             evidenceId: evidenceId,
             reviewerRef: reviewerRef,
             decision: decision,
-            notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+            notes: _notesController.text.trim().isEmpty
+                ? null
+                : _notesController.text.trim(),
           );
       if (!mounted) return;
       setState(() {
-        _message = "Updated ${result["evidence_id"]}: status=${result["review_status"]}, approvals=${result["approvals"]}";
+        _message =
+            "Updated ${result["evidence_id"]}: status=${result["review_status"]}, approvals=${result["approvals"]}.";
       });
       await _reload();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Review action could not be completed. Please retry.");
+      setState(
+        () => _message =
+            "We could not complete that review action. Please retry.",
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -88,7 +101,9 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       _message = null;
     });
     try {
-      final summary = await ref.read(reviewerOpsRepositoryProvider).loadSummary(evidenceId);
+      final summary = await ref
+          .read(reviewerOpsRepositoryProvider)
+          .loadSummary(evidenceId);
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -106,7 +121,10 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                   Text("document: ${summary.documentType}"),
                   Text("status: ${summary.reviewStatus}"),
                   const SizedBox(height: 12),
-                  const Text("Decisions", style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    "Decisions",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 8),
                   if (summary.reviews.isEmpty) const Text("No decisions yet."),
                   ...summary.reviews.map(
@@ -131,7 +149,9 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() => _message = "Could not load review timeline right now.");
+      setState(
+        () => _message = "We could not load the review timeline right now.",
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -140,7 +160,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Reviewer Ops")),
+      appBar: AppBar(title: const Text("Review Operations")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -150,35 +170,55 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Queue Controls", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                  const Text(
+                    "Queue Controls",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _reviewerRefController,
-                    decoration: const InputDecoration(labelText: "Reviewer Ref"),
+                    decoration: const InputDecoration(labelText: "Reviewer ID"),
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: _status,
-                    decoration: const InputDecoration(labelText: "Queue Status"),
+                    decoration: const InputDecoration(
+                      labelText: "Queue status",
+                    ),
                     items: const [
-                      DropdownMenuItem(value: "submitted", child: Text("submitted")),
-                      DropdownMenuItem(value: "under_review", child: Text("under_review")),
-                      DropdownMenuItem(value: "verified", child: Text("verified")),
-                      DropdownMenuItem(value: "rejected", child: Text("rejected")),
+                      DropdownMenuItem(
+                        value: "submitted",
+                        child: Text("Submitted"),
+                      ),
+                      DropdownMenuItem(
+                        value: "under_review",
+                        child: Text("Under review"),
+                      ),
+                      DropdownMenuItem(
+                        value: "verified",
+                        child: Text("Verified"),
+                      ),
+                      DropdownMenuItem(
+                        value: "rejected",
+                        child: Text("Rejected"),
+                      ),
                     ],
-                    onChanged: (v) => setState(() => _status = v ?? "under_review"),
+                    onChanged: (v) =>
+                        setState(() => _status = v ?? "under_review"),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _notesController,
-                    decoration: const InputDecoration(labelText: "Notes (optional)"),
+                    decoration: const InputDecoration(
+                      labelText: "Review notes (optional)",
+                    ),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
                       onPressed: _busy ? null : _reload,
-                      child: const Text("Refresh Queue"),
+                      child: const Text("Refresh queue"),
                     ),
                   ),
                 ],
@@ -204,14 +244,23 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Queue (${_queue.length})", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                  Text(
+                    "Queue (${_queue.length})",
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   if (_busy) const LinearProgressIndicator(),
-                  if (_queue.isEmpty && !_busy) const Text("No records in selected queue."),
+                  if (_queue.isEmpty && !_busy)
+                    const Text("No records in selected queue."),
                   ..._queue.map(
                     (item) => ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text("${item.documentType} - ${item.reviewStatus}"),
+                      title: Text(
+                        "${item.documentType} | ${item.reviewStatus}",
+                      ),
                       subtitle: Text(
                         "evidence: ${item.id}\nowner: ${item.ownerId}\nupdated: ${item.updatedAt.toIso8601String()}\napprovals: ${item.approvals}, rejections: ${item.rejections}, needs_info: ${item.needsInfoCount}",
                       ),
@@ -219,19 +268,27 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                         spacing: 6,
                         children: [
                           TextButton(
-                            onPressed: _busy ? null : () => _openTimeline(item.id),
+                            onPressed: _busy
+                                ? null
+                                : () => _openTimeline(item.id),
                             child: const Text("Timeline"),
                           ),
                           TextButton(
-                            onPressed: _busy ? null : () => _review(item.id, "approved"),
+                            onPressed: _busy
+                                ? null
+                                : () => _review(item.id, "approved"),
                             child: const Text("Approve"),
                           ),
                           TextButton(
-                            onPressed: _busy ? null : () => _review(item.id, "needs_info"),
+                            onPressed: _busy
+                                ? null
+                                : () => _review(item.id, "needs_info"),
                             child: const Text("Need Info"),
                           ),
                           TextButton(
-                            onPressed: _busy ? null : () => _review(item.id, "rejected"),
+                            onPressed: _busy
+                                ? null
+                                : () => _review(item.id, "rejected"),
                             child: const Text("Reject"),
                           ),
                         ],

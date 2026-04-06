@@ -46,7 +46,8 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message = "Could not load TOTP status right now. Please retry.";
+        _message =
+            "We could not load authenticator status right now. Please retry.";
         _messageIsError = true;
       });
     } finally {
@@ -65,13 +66,15 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       if (!mounted) return;
       setState(() {
         _setupBundle = bundle;
-        _message = "Scan OTP URI in authenticator app, then confirm with 6-digit code.";
+        _message =
+            "Scan this setup code in your authenticator app, then confirm with the 6-digit code.";
         _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message = "Could not start TOTP setup right now. Please retry.";
+        _message =
+            "We could not start authenticator setup right now. Please retry.";
         _messageIsError = true;
       });
     } finally {
@@ -93,22 +96,22 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       _message = null;
     });
     try {
-      final status = await ref.read(totpFactorRepositoryProvider).confirmSetup(
-            totpCode: code,
-            requireTotpUnlock: true,
-          );
+      final status = await ref
+          .read(totpFactorRepositoryProvider)
+          .confirmSetup(totpCode: code, requireTotpUnlock: true);
       if (!mounted) return;
       setState(() {
         _status = status;
         _setupBundle = null;
         _codeController.clear();
-        _message = "TOTP enabled successfully.";
+        _message = "Authenticator code enabled successfully.";
         _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message = "Could not confirm setup. Verify your 6-digit code and try again.";
+        _message =
+            "We could not confirm setup. Verify your 6-digit code and try again.";
         _messageIsError = true;
       });
     } finally {
@@ -127,13 +130,14 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       if (!mounted) return;
       setState(() {
         _status = status;
-        _message = "TOTP disabled.";
+        _message = "Authenticator code disabled.";
         _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message = "Could not disable TOTP right now. Please retry.";
+        _message =
+            "We could not disable authenticator code right now. Please retry.";
         _messageIsError = true;
       });
     } finally {
@@ -149,7 +153,9 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _messageIsError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF),
+        color: _messageIsError
+            ? const Color(0xFFFFF1F1)
+            : const Color(0xFFE9F6EF),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(_message!),
@@ -162,7 +168,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
     final enabled = status?.enabled ?? false;
     final configured = status?.configured ?? false;
     return Scaffold(
-      appBar: AppBar(title: const Text("TOTP Factor")),
+      appBar: AppBar(title: const Text("Authenticator Code")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -173,13 +179,15 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Second Factor",
+                    "Second-factor Protection",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Text("Configured: ${configured ? "yes" : "no"}"),
                   Text("Enabled: ${enabled ? "yes" : "no"}"),
-                  Text("Required at unlock: ${(status?.requireTotpUnlock ?? false) ? "yes" : "no"}"),
+                  Text(
+                    "Required before unlock: ${(status?.requireTotpUnlock ?? false) ? "yes" : "no"}",
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -193,7 +201,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                       Expanded(
                         child: FilledButton(
                           onPressed: _busy ? null : _beginSetup,
-                          child: const Text("Begin Setup"),
+                          child: const Text("Start Setup"),
                         ),
                       ),
                     ],
@@ -203,7 +211,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                     width: double.infinity,
                     child: TextButton(
                       onPressed: (_busy || !enabled) ? null : _disable,
-                      child: const Text("Disable Factor"),
+                      child: const Text("Disable"),
                     ),
                   ),
                 ],
@@ -219,27 +227,32 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Setup Bundle",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                      "Setup Details",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    const Text("Secret (Base32)"),
+                    const Text("Secret key (Base32)"),
                     SelectableText(_setupBundle!.secretBase32),
                     const SizedBox(height: 8),
-                    const Text("OTP URI"),
+                    const Text("Setup URI"),
                     SelectableText(_setupBundle!.otpauthUri),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _codeController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: "6-digit code"),
+                      decoration: const InputDecoration(
+                        labelText: "6-digit code",
+                      ),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: _busy ? null : _confirmSetup,
-                        child: const Text("Confirm Setup"),
+                        child: const Text("Confirm"),
                       ),
                     ),
                   ],

@@ -20,7 +20,8 @@ class OnboardingSetupScreen extends ConsumerStatefulWidget {
   final SafetySettingsModel initialSettings;
 
   @override
-  ConsumerState<OnboardingSetupScreen> createState() => _OnboardingSetupScreenState();
+  ConsumerState<OnboardingSetupScreen> createState() =>
+      _OnboardingSetupScreenState();
 }
 
 class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
@@ -52,24 +53,35 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   @override
   void initState() {
     super.initState();
-    _backupEmailController = TextEditingController(text: widget.initialProfile.backupEmail);
-    _beneficiaryEmailController = TextEditingController(text: widget.initialProfile.beneficiaryEmail ?? "");
-    _beneficiaryNameController = TextEditingController(text: widget.initialProfile.beneficiaryName ?? "");
-    _beneficiaryPhoneController = TextEditingController(text: widget.initialProfile.beneficiaryPhone ?? "");
-    _beneficiaryVerificationHintController = TextEditingController(text: widget.initialProfile.beneficiaryVerificationHint ?? "");
+    _backupEmailController =
+        TextEditingController(text: widget.initialProfile.backupEmail);
+    _beneficiaryEmailController = TextEditingController(
+        text: widget.initialProfile.beneficiaryEmail ?? "");
+    _beneficiaryNameController = TextEditingController(
+        text: widget.initialProfile.beneficiaryName ?? "");
+    _beneficiaryPhoneController = TextEditingController(
+        text: widget.initialProfile.beneficiaryPhone ?? "");
+    _beneficiaryVerificationHintController = TextEditingController(
+        text: widget.initialProfile.beneficiaryVerificationHint ?? "");
     _beneficiaryVerificationPhraseController = TextEditingController();
-    _legacyDaysController = TextEditingController(text: widget.initialProfile.legacyInactivityDays.toString());
-    _selfRecoveryDaysController = TextEditingController(text: widget.initialProfile.selfRecoveryInactivityDays.toString());
-    _graceDaysController = TextEditingController(text: widget.initialSettings.gracePeriodDays.toString());
+    _legacyDaysController = TextEditingController(
+        text: widget.initialProfile.legacyInactivityDays.toString());
+    _selfRecoveryDaysController = TextEditingController(
+        text: widget.initialProfile.selfRecoveryInactivityDays.toString());
+    _graceDaysController = TextEditingController(
+        text: widget.initialSettings.gracePeriodDays.toString());
     _remindersEnabled = widget.initialSettings.remindersEnabled;
     _legalAccepted = widget.initialSettings.legalDisclaimerAccepted;
     _privateFirstMode = widget.initialSettings.privateFirstMode;
     _proofOfLifeCheckMode = widget.initialSettings.proofOfLifeCheckMode;
-    final fallbackChannels = widget.initialSettings.proofOfLifeFallbackChannels.toSet();
+    final fallbackChannels =
+        widget.initialSettings.proofOfLifeFallbackChannels.toSet();
     _fallbackEmail = fallbackChannels.contains("email");
     _fallbackSms = fallbackChannels.contains("sms");
-    _serverHeartbeatFallbackEnabled = widget.initialSettings.serverHeartbeatFallbackEnabled;
-    _iosBackgroundRiskAcknowledged = widget.initialSettings.iosBackgroundRiskAcknowledged;
+    _serverHeartbeatFallbackEnabled =
+        widget.initialSettings.serverHeartbeatFallbackEnabled;
+    _iosBackgroundRiskAcknowledged =
+        widget.initialSettings.iosBackgroundRiskAcknowledged;
     _selectedPresetId = widget.initialSettings.tracePrivacyProfile;
   }
 
@@ -107,20 +119,65 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   String? _requiredText(String? value, {int minLength = 1}) {
     final text = (value ?? "").trim();
     if (text.length < minLength) {
-      return minLength <= 1 ? "Required" : "Must be at least $minLength characters";
+      return minLength <= 1
+          ? "Required"
+          : "Must be at least $minLength characters";
     }
     return null;
   }
 
   String? _verificationPhraseValidator(String? value) {
     final text = (value ?? "").trim();
-    if (widget.initialProfile.beneficiaryVerificationPhraseHash?.trim().isNotEmpty ?? false) {
+    if (widget.initialProfile.beneficiaryVerificationPhraseHash
+            ?.trim()
+            .isNotEmpty ??
+        false) {
       if (text.isEmpty) {
         return null;
       }
     }
     if (text.length < 8) {
       return "Must be at least 8 characters";
+    }
+    return null;
+  }
+
+  String _friendlySaveError(Object error) {
+    final lower = error.toString().toLowerCase();
+    if (lower.contains("socketexception") ||
+        lower.contains("failed host lookup") ||
+        lower.contains("network") ||
+        lower.contains("timed out")) {
+      return "We could not finish setup because your connection looks unstable. Please check internet and try again.";
+    }
+    if (lower.contains("unauthorized") || lower.contains("forbidden")) {
+      return "Your session may have expired. Please sign in again, then retry setup.";
+    }
+    return "We could not finish setup right now. Your inputs are still here, so please try again in a moment.";
+  }
+
+  String? _productionGuardrailMessage() {
+    final legacyDays = int.tryParse(_legacyDaysController.text) ?? 0;
+    final selfRecoveryDays = int.tryParse(_selfRecoveryDaysController.text) ?? 0;
+    final fallbackCount = <String>[
+      if (_fallbackEmail) "email",
+      if (_fallbackSms) "sms",
+    ].length;
+
+    if (selfRecoveryDays >= legacyDays) {
+      return "Self-recovery timing should be earlier than legacy release timing to avoid accidental handoff.";
+    }
+    if (fallbackCount < 2) {
+      return "Enable both email and SMS fallback channels before final setup so proof-of-life remains resilient.";
+    }
+    if (_fallbackSms && _beneficiaryPhoneController.text.trim().isEmpty) {
+      return "Add beneficiary fallback phone before enabling SMS fallback.";
+    }
+    if (!_serverHeartbeatFallbackEnabled) {
+      return "Enable server heartbeat fallback before final setup to reduce mobile background false triggers.";
+    }
+    if (!_iosBackgroundRiskAcknowledged) {
+      return "Acknowledge iOS/background execution limits before final setup.";
     }
     return null;
   }
@@ -201,6 +258,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   Future<void> _save() async {
     if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
+    final guardrailMessage = _productionGuardrailMessage();
+    if (guardrailMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(guardrailMessage)),
+      );
+      return;
+    }
     final selectedPreset = presetById(_selectedPresetId);
     final draftDocument = _buildDraftIntentDocument(selectedPreset);
     final draftReport = buildDraftIntentCompilerReport(
@@ -217,19 +281,24 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     );
     if (draftReport.errorCount > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Resolve blocking intent review items before saving.")),
+        const SnackBar(
+            content:
+                Text("Resolve blocking intent review items before saving.")),
       );
       return;
     }
     if (draftReport.warningCount > 0 && !_warningAcknowledged) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Acknowledge intent review warnings before saving.")),
+        const SnackBar(
+            content: Text("Acknowledge intent review warnings before saving.")),
       );
       return;
     }
     if (!_legalAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please accept legal companion consent to continue.")),
+        const SnackBar(
+            content:
+                Text("Please accept legal companion consent to continue.")),
       );
       return;
     }
@@ -240,10 +309,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             beneficiaryEmail: _beneficiaryEmailController.text,
             beneficiaryName: _beneficiaryNameController.text,
             beneficiaryPhone: _beneficiaryPhoneController.text,
-            beneficiaryVerificationHint: _beneficiaryVerificationHintController.text,
-            beneficiaryVerificationPhrase: _beneficiaryVerificationPhraseController.text,
+            beneficiaryVerificationHint:
+                _beneficiaryVerificationHintController.text,
+            beneficiaryVerificationPhrase:
+                _beneficiaryVerificationPhraseController.text,
             legacyInactivityDays: int.parse(_legacyDaysController.text),
-            selfRecoveryInactivityDays: int.parse(_selfRecoveryDaysController.text),
+            selfRecoveryInactivityDays:
+                int.parse(_selfRecoveryDaysController.text),
           );
       final fallbackChannels = <String>[
         if (_fallbackEmail) 'email',
@@ -264,36 +336,46 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             emergencyPauseUntil: null,
             requireTotpUnlock: widget.initialSettings.requireTotpUnlock,
             guardianQuorumEnabled: widget.initialSettings.guardianQuorumEnabled,
-            guardianQuorumRequired: widget.initialSettings.guardianQuorumRequired,
-            guardianQuorumPoolSize: widget.initialSettings.guardianQuorumPoolSize,
-            emergencyAccessEnabled: widget.initialSettings.emergencyAccessEnabled,
-            emergencyAccessRequiresBeneficiaryRequest:
-                widget.initialSettings.emergencyAccessRequiresBeneficiaryRequest,
+            guardianQuorumRequired:
+                widget.initialSettings.guardianQuorumRequired,
+            guardianQuorumPoolSize:
+                widget.initialSettings.guardianQuorumPoolSize,
+            emergencyAccessEnabled:
+                widget.initialSettings.emergencyAccessEnabled,
+            emergencyAccessRequiresBeneficiaryRequest: widget
+                .initialSettings.emergencyAccessRequiresBeneficiaryRequest,
             emergencyAccessRequiresGuardianQuorum:
                 widget.initialSettings.emergencyAccessRequiresGuardianQuorum,
-            emergencyAccessGraceHours: widget.initialSettings.emergencyAccessGraceHours,
-            deviceRebindInProgress: widget.initialSettings.deviceRebindInProgress,
+            emergencyAccessGraceHours:
+                widget.initialSettings.emergencyAccessGraceHours,
+            deviceRebindInProgress:
+                widget.initialSettings.deviceRebindInProgress,
             deviceRebindStartedAt: widget.initialSettings.deviceRebindStartedAt,
-            deviceRebindGraceHours: widget.initialSettings.deviceRebindGraceHours,
+            deviceRebindGraceHours:
+                widget.initialSettings.deviceRebindGraceHours,
             recoveryKeyEnabled: widget.initialSettings.recoveryKeyEnabled,
-            deliveryAccessTtlHours: widget.initialSettings.deliveryAccessTtlHours,
+            deliveryAccessTtlHours:
+                widget.initialSettings.deliveryAccessTtlHours.clamp(24, 120),
             payloadRetentionDays: widget.initialSettings.payloadRetentionDays,
             auditLogRetentionDays: widget.initialSettings.auditLogRetentionDays,
             privateFirstMode: _privateFirstMode,
-            tracePrivacyProfile: presetById(_selectedPresetId).tracePrivacyProfile,
+            tracePrivacyProfile:
+                presetById(_selectedPresetId).tracePrivacyProfile,
           );
 
       if (!mounted) return;
       ref.invalidate(profileProvider);
       ref.invalidate(safetySettingsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Setup completed.")),
+        const SnackBar(
+            content: Text(
+                "Setup complete. Your private-first defaults are now active.")),
       );
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Save failed: $error")),
+        SnackBar(content: Text(_friendlySaveError(error))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -319,7 +401,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     final canFinalize = draftReport.errorCount == 0 &&
         (draftReport.warningCount == 0 || _warningAcknowledged);
     return Scaffold(
-      appBar: AppBar(title: const Text("Complete Setup")),
+      appBar: AppBar(title: const Text("Finish Setup")),
       body: Form(
         key: _formKey,
         child: Stepper(
@@ -343,7 +425,9 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
             return Row(
               children: [
                 FilledButton(
-                  onPressed: _saving || (isFinalStep && !canFinalize) ? null : details.onStepContinue,
+                  onPressed: _saving || (isFinalStep && !canFinalize)
+                      ? null
+                      : details.onStepContinue,
                   child: Text(isFinalStep ? "Save setup" : "Continue"),
                 ),
                 const SizedBox(width: 12),
@@ -362,42 +446,48 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Step 1 of 3: confirm who should receive secure access when legacy delivery is triggered.",
+                    "Step 1 of 3: add trusted contact details for secure handoff and recovery.",
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
                     controller: _backupEmailController,
-                    decoration: const InputDecoration(labelText: "Backup email"),
+                    decoration:
+                        const InputDecoration(labelText: "Backup email"),
                     validator: (v) => _requiredEmail(v),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _beneficiaryEmailController,
-                    decoration: const InputDecoration(labelText: "Beneficiary email"),
+                    decoration:
+                        const InputDecoration(labelText: "Beneficiary email"),
                     validator: (v) => _requiredEmail(v),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _beneficiaryNameController,
-                    decoration: const InputDecoration(labelText: "Beneficiary legal name"),
+                    decoration: const InputDecoration(
+                        labelText: "Beneficiary legal name"),
                     validator: (v) => _requiredText(v, minLength: 3),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _beneficiaryPhoneController,
                     keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: "Beneficiary fallback phone (optional)"),
+                    decoration: const InputDecoration(
+                        labelText: "Beneficiary fallback phone (optional)"),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _beneficiaryVerificationHintController,
-                    decoration: const InputDecoration(labelText: "Beneficiary verification hint"),
+                    decoration: const InputDecoration(
+                        labelText: "Beneficiary verification hint"),
                     validator: (v) => _requiredText(v, minLength: 4),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _beneficiaryVerificationPhraseController,
-                    decoration: const InputDecoration(labelText: "Beneficiary verification phrase"),
+                    decoration: const InputDecoration(
+                        labelText: "Beneficiary verification phrase"),
                     validator: _verificationPhraseValidator,
                   ),
                 ],
@@ -410,37 +500,46 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Step 2 of 3: choose when self-recovery and beneficiary delivery may run.",
+                    "Step 2 of 3: choose timing so recovery is safe and accidental release is less likely.",
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
                     controller: _legacyDaysController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Legacy inactivity days"),
+                    decoration: const InputDecoration(
+                        labelText: "Legacy inactivity days"),
                     validator: (v) => _requiredIntInRange(v, 90, 3650),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _selfRecoveryDaysController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Self-recovery inactivity days"),
+                    decoration: const InputDecoration(
+                        labelText: "Self-recovery inactivity days"),
                     validator: (v) => _requiredIntInRange(v, 30, 180),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _graceDaysController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Final grace period (days)"),
+                    decoration: const InputDecoration(
+                        labelText: "Final grace period (days)"),
                     validator: (v) => _requiredIntInRange(v, 7, 30),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: _proofOfLifeCheckMode,
-                    decoration: const InputDecoration(labelText: "Proof-of-life confirmation"),
+                    decoration: const InputDecoration(
+                        labelText: "Proof-of-life confirmation"),
                     items: const [
-                      DropdownMenuItem(value: 'biometric_tap', child: Text("Biometric tap")),
-                      DropdownMenuItem(value: 'single_tap', child: Text("Single tap fallback")),
-                      DropdownMenuItem(value: 'verification_code', child: Text("Verification code")),
+                      DropdownMenuItem(
+                          value: 'biometric_tap', child: Text("Biometric tap")),
+                      DropdownMenuItem(
+                          value: 'single_tap',
+                          child: Text("Single tap fallback")),
+                      DropdownMenuItem(
+                          value: 'verification_code',
+                          child: Text("Verification code")),
                     ],
                     onChanged: (value) {
                       if (value != null) {
@@ -455,14 +554,21 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                       FilterChip(
                         selected: _fallbackEmail,
                         label: const Text("Email fallback"),
-                        onSelected: (value) => setState(() => _fallbackEmail = value),
+                        onSelected: (value) =>
+                            setState(() => _fallbackEmail = value),
                       ),
                       FilterChip(
                         selected: _fallbackSms,
                         label: const Text("SMS fallback"),
-                        onSelected: (value) => setState(() => _fallbackSms = value),
+                        onSelected: (value) =>
+                            setState(() => _fallbackSms = value),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Production baseline: keep both fallback channels on, and add beneficiary phone when SMS fallback is enabled.",
+                    style: TextStyle(fontSize: 12),
                   ),
                 ],
               ),
@@ -481,7 +587,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
-                      "Final step: lock in safety defaults so delivery remains private-first and false-trigger resistant.",
+                      "Final step: confirm safety defaults so your workspace stays private-first and false-trigger resistant.",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -490,12 +596,14 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     value: _remindersEnabled,
                     onChanged: (v) => setState(() => _remindersEnabled = v),
                     title: const Text("Enable reminders"),
-                    subtitle: const Text("Send pre-trigger reminders to reduce accidental release."),
+                    subtitle: const Text(
+                        "Send reminders before trigger windows to reduce accidental release."),
                   ),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
                     value: _legalAccepted,
-                    onChanged: (v) => setState(() => _legalAccepted = v ?? false),
+                    onChanged: (v) =>
+                        setState(() => _legalAccepted = v ?? false),
                     title: const Text("I understand legal companion mode"),
                     subtitle: const Text(
                       "This app is a technical companion and does not replace legal will procedures or legal decision-making.",
@@ -506,24 +614,31 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     value: _privateFirstMode,
                     onChanged: (v) => setState(() => _privateFirstMode = v),
                     title: const Text("Keep private-first mode enabled"),
-                    subtitle: const Text("Prefer the stricter privacy posture between your app settings and active PTN policy."),
+                    subtitle: const Text(
+                        "Keep the stricter privacy posture between app settings and active policy."),
                   ),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     value: _serverHeartbeatFallbackEnabled,
-                    onChanged: (v) => setState(() => _serverHeartbeatFallbackEnabled = v),
+                    onChanged: (v) =>
+                        setState(() => _serverHeartbeatFallbackEnabled = v),
                     title: const Text("Enable server heartbeat fallback"),
-                    subtitle: const Text("Recommended for iOS and long background gaps so false triggers stay less likely."),
+                    subtitle: const Text(
+                        "Recommended for iOS and long background gaps so false triggers stay less likely."),
                   ),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
                     value: _iosBackgroundRiskAcknowledged,
-                    onChanged: (v) => setState(() => _iosBackgroundRiskAcknowledged = v ?? false),
-                    title: const Text("I understand iOS/background delivery limits"),
-                    subtitle: const Text("Mobile platforms may pause background execution, so fallback heartbeat is strongly recommended."),
+                    onChanged: (v) => setState(
+                        () => _iosBackgroundRiskAcknowledged = v ?? false),
+                    title: const Text(
+                        "I understand iOS/background delivery limits"),
+                    subtitle: const Text(
+                        "Mobile platforms may pause background execution, so fallback heartbeat is strongly recommended."),
                   ),
                   const SizedBox(height: 12),
-                  const Text("Privacy preset", style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text("Privacy preset",
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Column(
                     children: privacyProfilePresets.map((preset) {
@@ -540,10 +655,17 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
+                                color: selected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).dividerColor,
                                 width: selected ? 2 : 1,
                               ),
-                              color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.06) : null,
+                              color: selected
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.06)
+                                  : null,
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(14),
@@ -555,16 +677,22 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                                       Expanded(
                                         child: Text(
                                           preset.title,
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600),
                                         ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(999),
+                                          borderRadius:
+                                              BorderRadius.circular(999),
                                           color: _badgeColor(preset),
                                         ),
-                                        child: Text(preset.badgeLabel, style: const TextStyle(fontSize: 12)),
+                                        child: Text(preset.badgeLabel,
+                                            style:
+                                                const TextStyle(fontSize: 12)),
                                       ),
                                     ],
                                   ),
@@ -573,7 +701,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                                   const SizedBox(height: 6),
                                   Text(
                                     preset.detail,
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -591,8 +720,10 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       value: _warningAcknowledged,
-                      onChanged: (v) => setState(() => _warningAcknowledged = v ?? false),
-                      title: const Text("I reviewed these warnings and want to continue"),
+                      onChanged: (v) =>
+                          setState(() => _warningAcknowledged = v ?? false),
+                      title: const Text(
+                          "I reviewed these warnings and want to continue"),
                       subtitle: const Text(
                         "Warnings are allowed, but they must be acknowledged before activation.",
                       ),
@@ -600,7 +731,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                   ],
                   const SizedBox(height: 8),
                   const Text(
-                    "For closed beta, keep messaging clear: this app helps coordinate secure delivery. It does not replace a legal will.",
+                    "This product helps coordinate secure access handoff. It does not replace a legal will.",
                   ),
                 ],
               ),

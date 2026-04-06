@@ -113,7 +113,7 @@ class RecoveryVaultSection extends ConsumerWidget {
                   ],
                 ),
               ),
-              error: (error, _) => Container(
+              error: (_, __) => Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -128,7 +128,9 @@ class RecoveryVaultSection extends ConsumerWidget {
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 6),
-                    Text("$error"),
+                    const Text(
+                      "We could not open your vault items right now. Please retry.",
+                    ),
                     const SizedBox(height: 8),
                     OutlinedButton(
                       onPressed: () => ref.invalidate(vaultItemsProvider),
