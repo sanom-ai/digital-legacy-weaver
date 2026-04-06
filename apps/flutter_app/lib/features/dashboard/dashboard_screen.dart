@@ -9,6 +9,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_scr
 import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_screen.dart';
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
+import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
@@ -243,6 +244,19 @@ class DashboardScreen extends ConsumerWidget {
                           onOpenArtifactHistory: openHistory,
                         );
                       },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    readinessAsync.when(
+                      data: (readiness) => Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _ProductConcretenessCard(
+                          profile: profile,
+                          settings: settings,
+                          readiness: readiness,
+                          setupComplete: setupComplete,
+                        ),
+                      ),
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
                     ),
@@ -513,6 +527,98 @@ class _DeliveryModeCard extends StatelessWidget {
             Text('2) Self-recovery delivery to backup email for password recovery'),
             SizedBox(height: 10),
             Text('Technical companion only: beneficiaries complete any required legal verification in the appropriate legal or service context.'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductConcretenessCard extends StatelessWidget {
+  const _ProductConcretenessCard({
+    required this.profile,
+    required this.settings,
+    required this.readiness,
+    required this.setupComplete,
+  });
+
+  final ProfileModel profile;
+  final SafetySettingsModel settings;
+  final IntentRuntimeReadinessModel readiness;
+  final bool setupComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    final artifact = readiness.currentArtifact;
+    final hasActiveRoute = (artifact?.activeEntryCount ?? 0) > 0;
+    final secureLinkReceiptReady = settings.serverHeartbeatFallbackEnabled &&
+        profile.hasBeneficiaryIdentityKit;
+
+    return Card(
+      color: const Color(0xFFEFE4D6),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Most Concrete Product Status",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "An owner can define a private digital legacy plan, keep it controlled while alive, and let the right recipient move through a secure, humane handoff when the time comes.",
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Available now",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            Text(setupComplete ? "1. Owner setup baseline is complete." : "1. Owner setup baseline is still incomplete."),
+            Text(readiness.hasArtifact
+                ? "2. Canonical artifact export and history are active."
+                : "2. Canonical artifact export is not started yet."),
+            Text(hasActiveRoute
+                ? "3. At least one active delivery route exists."
+                : "3. No active delivery route yet."),
+            Text(secureLinkReceiptReady
+                ? "4. Beneficiary secure-link receipt flow is ready."
+                : "4. Beneficiary secure-link receipt flow still needs identity/fallback setup."),
+            const SizedBox(height: 10),
+            const Text(
+              "Next milestone",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              readiness.readyForRuntime
+                  ? "1. Run beta release pass (toolchain + smoke + controlled handoff drill)."
+                  : "1. Drive current artifact to ready state without blockers.",
+            ),
+            const Text(
+              "2. Harden proof-of-life cross-device recovery and keep false triggers low.",
+            ),
+            const Text(
+              "3. Continue wrong-recipient protection and partner verification route polish.",
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "KPI snapshot",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _MetricChip(label: setupComplete ? "Setup complete: Yes" : "Setup complete: No"),
+                _MetricChip(label: "Readiness: ${readiness.readinessLabel}"),
+                _MetricChip(label: "Artifact versions: ${readiness.historyCount}"),
+                _MetricChip(label: "Active routes: ${artifact?.activeEntryCount ?? 0}"),
+                _MetricChip(label: secureLinkReceiptReady ? "Receipt path: Ready" : "Receipt path: Pending"),
+              ],
+            ),
           ],
         ),
       ),
