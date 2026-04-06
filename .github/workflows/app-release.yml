@@ -95,7 +95,7 @@ jobs:
         run: flutter build apk --release
 
       - name: Upload Android artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-android-apk
           path: apps/flutter_app/build/app/outputs/flutter-apk/app-release.apk
@@ -137,7 +137,7 @@ jobs:
           Compress-Archive -Path $source -DestinationPath $dest -Force
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-windows-zip
           path: apps/flutter_app/build/windows/x64/runner/digital-legacy-weaver-windows.zip
