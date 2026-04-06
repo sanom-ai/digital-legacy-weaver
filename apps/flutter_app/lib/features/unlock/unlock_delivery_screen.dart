@@ -16,6 +16,10 @@ class UnlockDeliveryScreen extends StatefulWidget {
 }
 
 class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
+  static const int _maxCodeRequestsBeforeCooldown = 3;
+  static const int _maxUnlockFailuresBeforeCooldown = 3;
+  static const Duration _cooldownDuration = Duration(minutes: 10);
+
   final _accessIdController = TextEditingController();
   final _accessKeyController = TextEditingController();
   final _codeController = TextEditingController();
@@ -32,6 +36,10 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   bool _unlockAttempted = false;
   String _lastAction = "none";
   List<Map<String, dynamic>> _items = const [];
+  int _codeRequestAttempts = 0;
+  int _unlockFailures = 0;
+  DateTime? _lockedUntil;
+  bool _receiptOpened = false;
 
   bool get _hasAccessLink =>
       _accessIdController.text.trim().isNotEmpty &&
@@ -43,6 +51,65 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   bool get _hasVerificationCode => _codeController.text.trim().isNotEmpty;
 
+  bool get _isTemporarilyLocked =>
+      _lockedUntil != null && DateTime.now().isBefore(_lockedUntil!);
+
+  bool get _canRequestCode =>
+      !_busy && !_receiptOpened && !_isTemporarilyLocked && _hasAccessLink;
+
+  bool get _canUnlock =>
+      !_busy &&
+      !_receiptOpened &&
+      !_isTemporarilyLocked &&
+      _hasAccessLink &&
+      _hasIdentityKit &&
+      _hasVerificationCode;
+
+  String _cooldownRemainingLabel() {
+    final until = _lockedUntil;
+    if (until == null) {
+      return "a few minutes";
+    }
+    final remaining = until.difference(DateTime.now());
+    if (remaining.inSeconds <= 0) {
+      return "a few minutes";
+    }
+    final minutes = remaining.inMinutes;
+    if (minutes <= 1) {
+      return "under 1 minute";
+    }
+    return "$minutes minutes";
+  }
+
+  void _maybeClearCooldown() {
+    if (_lockedUntil != null && DateTime.now().isAfter(_lockedUntil!)) {
+      _lockedUntil = null;
+      _codeRequestAttempts = 0;
+      _unlockFailures = 0;
+    }
+  }
+
+  void _lockForCooldown({required String reason}) {
+    _lockedUntil = DateTime.now().add(_cooldownDuration);
+    _messageIsError = true;
+    _message =
+        "For your security, this receipt is temporarily locked for ${_cooldownDuration.inMinutes} minutes ($reason). Please pause and retry later.";
+  }
+
+  void _recordRiskyFailure(String action) {
+    if (action == "request_code") {
+      _codeRequestAttempts += 1;
+      if (_codeRequestAttempts >= _maxCodeRequestsBeforeCooldown) {
+        _lockForCooldown(reason: "too many receipt code requests");
+      }
+      return;
+    }
+    _unlockFailures += 1;
+    if (_unlockFailures >= _maxUnlockFailuresBeforeCooldown) {
+      _lockForCooldown(reason: "too many unlock attempts");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +120,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (initAccessKey.isNotEmpty) {
       _accessKeyController.text = initAccessKey;
-        _message = "Access link detected. Request the receipt code to continue.";
+      _message = "Access link detected. Request the receipt code to continue.";
     }
 
     final params = Uri.base.queryParameters;
@@ -80,6 +147,23 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   Future<void> _requestCode() async {
+    _maybeClearCooldown();
+    if (_isTemporarilyLocked) {
+      setState(() {
+        _messageIsError = true;
+        _message =
+            "This receipt is temporarily locked. Please wait ${_cooldownRemainingLabel()} before requesting a new code.";
+      });
+      return;
+    }
+    if (_receiptOpened) {
+      setState(() {
+        _messageIsError = true;
+        _message =
+            "This receipt has already been opened. Request a fresh handoff from the owner or operator if you need access again.";
+      });
+      return;
+    }
     setState(() {
       _busy = true;
       _message = null;
@@ -99,6 +183,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _message = (data?["message"] ?? "Receipt code requested.").toString();
         _messageIsError = false;
+        _codeRequestAttempts = 0;
         _requestedCode = true;
       });
     } catch (e) {
@@ -106,6 +191,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         _message = _friendlyActionError("requesting a receipt code", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
+        final lower = e.toString().toLowerCase();
+        if (lower.contains("invalid") ||
+            lower.contains("unauthorized") ||
+            lower.contains("forbidden")) {
+          _recordRiskyFailure("request_code");
+        }
       });
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -113,6 +204,23 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   Future<void> _unlock() async {
+    _maybeClearCooldown();
+    if (_isTemporarilyLocked) {
+      setState(() {
+        _messageIsError = true;
+        _message =
+            "This receipt is temporarily locked. Please wait ${_cooldownRemainingLabel()} before trying again.";
+      });
+      return;
+    }
+    if (_receiptOpened) {
+      setState(() {
+        _messageIsError = true;
+        _message =
+            "This receipt was already opened. For safety, request a new handoff session from the owner or operator.";
+      });
+      return;
+    }
     setState(() {
       _busy = true;
       _message = null;
@@ -129,13 +237,16 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           "access_id": _accessIdController.text.trim(),
           "access_key": _accessKeyController.text.trim(),
           "verification_code": _codeController.text.trim(),
-          "totp_code": _totpController.text.trim().isEmpty ? null : _totpController.text.trim(),
+          "totp_code": _totpController.text.trim().isEmpty
+              ? null
+              : _totpController.text.trim(),
           "beneficiary_name": _beneficiaryNameController.text.trim().isEmpty
               ? null
               : _beneficiaryNameController.text.trim(),
-          "verification_phrase": _verificationPhraseController.text.trim().isEmpty
-              ? null
-              : _verificationPhraseController.text.trim(),
+          "verification_phrase":
+              _verificationPhraseController.text.trim().isEmpty
+                  ? null
+                  : _verificationPhraseController.text.trim(),
         },
       );
       final data = response.data as Map<String, dynamic>?;
@@ -143,13 +254,23 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _message = "Delivery bundle opened successfully.";
         _messageIsError = false;
-        _items = rawItems.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _items =
+            rawItems.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _unlockFailures = 0;
+        _codeRequestAttempts = 0;
+        _receiptOpened = true;
       });
     } catch (e) {
       setState(() {
         _message = _friendlyActionError("opening the delivery bundle", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
+        final lower = e.toString().toLowerCase();
+        if (lower.contains("invalid") ||
+            lower.contains("unauthorized") ||
+            lower.contains("forbidden")) {
+          _recordRiskyFailure("unlock");
+        }
       });
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -173,9 +294,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             SizedBox(height: 4),
             Text("2. Do not forward the link, code, or verification phrase."),
             SizedBox(height: 4),
-            Text("3. Contact the owner, guardian, operator, or designated partner so the route can be re-verified."),
+            Text(
+                "3. Contact the owner, guardian, operator, or designated partner so the route can be re-verified."),
             SizedBox(height: 4),
-            Text("4. Treat this receipt as confidential until the rightful recipient is confirmed."),
+            Text(
+                "4. Treat this receipt as confidential until the rightful recipient is confirmed."),
           ],
         ),
         actions: [
@@ -261,7 +384,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           Row(
             children: [
               Icon(
-                complete ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+                complete
+                    ? Icons.check_circle_outline
+                    : Icons.radio_button_unchecked,
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -307,11 +432,22 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   String _friendlyActionError(String action, Object error) {
+    final lower = error.toString().toLowerCase();
+    if (lower.contains("temporarily locked")) {
+      return "This receipt is temporarily locked for safety after repeated invalid attempts. Please wait and try again later.";
+    }
+    if (lower.contains("already active for this receipt")) {
+      return "A verification code is already active for this receipt. Please use that code or wait for it to expire before requesting another one.";
+    }
+    if (lower.contains("already been used")) {
+      return "This one-time receipt has already been used. Please request a new handoff session from the owner or operator.";
+    }
     if (_looksLikeNetworkError(error.toString())) {
       return "We had trouble $action because the network looks unstable. Please check your connection and try again.";
     }
-    final lower = error.toString().toLowerCase();
-    if (lower.contains("invalid") || lower.contains("unauthorized") || lower.contains("forbidden")) {
+    if (lower.contains("invalid") ||
+        lower.contains("unauthorized") ||
+        lower.contains("forbidden")) {
       return "We could not continue $action. Please verify Access ID, Access Key, and beneficiary details, then try again.";
     }
     return "We could not continue $action right now. Please try again in a moment.";
@@ -325,7 +461,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     ].where((step) => step).length;
     final statusLabel = _busy
         ? "Working on your request..."
-        : _items.isNotEmpty
+        : _isTemporarilyLocked
+            ? "Temporarily locked"
+            : _items.isNotEmpty
             ? "Receipt opened"
             : _networkIssue
                 ? "Offline or unstable connection"
@@ -355,6 +493,10 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                 ? "Last action: no request sent yet"
                 : "Last action: ${_lastAction.replaceAll("_", " ")}",
           ),
+          if (_isTemporarilyLocked) ...[
+            const SizedBox(height: 6),
+            Text("Retry window: ${_cooldownRemainingLabel()}"),
+          ],
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: completedSteps / 3,
@@ -371,7 +513,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     if (_message == null) {
       return const SizedBox.shrink();
     }
-    final color = _messageIsError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
+    final color =
+        _messageIsError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -477,7 +620,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   int _countByVisibility(String visibility) {
-    return _items.where((item) => (item["visibility_policy"] ?? "route_only").toString() == visibility).length;
+    return _items
+        .where((item) =>
+            (item["visibility_policy"] ?? "route_only").toString() ==
+            visibility)
+        .length;
   }
 
   Widget _buildReceiptMetric(String label, String value) {
@@ -505,9 +652,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     final title = (item["title"] ?? "").toString();
     final kind = (item["kind"] ?? "").toString();
     final visibility = (item["visibility_policy"] ?? "route_only").toString();
-    final valueDisclosure = (item["value_disclosure_mode"] ?? "institution_verified_only")
-        .toString();
-    final instructionSummary = (item["instruction_summary"] ?? "").toString().trim();
+    final valueDisclosure =
+        (item["value_disclosure_mode"] ?? "institution_verified_only")
+            .toString();
+    final instructionSummary =
+        (item["instruction_summary"] ?? "").toString().trim();
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -540,11 +689,13 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             const Text(
               "This receipt confirms that a protected legacy route exists. Continue with recipient verification before route details are shown.",
             ),
-          if (visibility == "route_only" || visibility == "route_and_instructions")
+          if (visibility == "route_only" ||
+              visibility == "route_and_instructions")
             Text(
               "Verification route: ${item["verification_route"] ?? _verificationRoute(kind)}",
             ),
-          if (visibility == "route_and_instructions" && instructionSummary.isNotEmpty) ...[
+          if (visibility == "route_and_instructions" &&
+              instructionSummary.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text("Instruction summary: $instructionSummary"),
           ],
@@ -584,6 +735,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       _buildPill("Secure web-link default"),
                       _buildPill("App optional"),
                       _buildPill("Pre-registered identity"),
+                      _buildPill("Retry lock protection"),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -602,11 +754,14 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
-                        Text("1. The secure handoff link from the owner or operator."),
+                        Text(
+                            "1. The secure handoff link from the owner or operator."),
                         SizedBox(height: 4),
-                        Text("2. A one-time receipt code from the registered fallback channel."),
+                        Text(
+                            "2. A one-time receipt code from the registered fallback channel."),
                         SizedBox(height: 4),
-                        Text("3. The registered beneficiary name and private verification phrase."),
+                        Text(
+                            "3. The registered beneficiary name and private verification phrase."),
                       ],
                     ),
                   ),
@@ -684,7 +839,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       labelText: "Access ID",
-                      helperText: "Delivery link identifier from the owner handoff.",
+                      helperText:
+                          "Delivery link identifier from the owner handoff.",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -694,10 +850,14 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     obscureText: _obscureAccessKey,
                     decoration: InputDecoration(
                       labelText: "Access Key",
-                      helperText: "Keep this private. Treat it like a secure handoff token.",
+                      helperText:
+                          "Keep this private. Treat it like a secure handoff token.",
                       suffixIcon: IconButton(
-                        onPressed: () => setState(() => _obscureAccessKey = !_obscureAccessKey),
-                        icon: Icon(_obscureAccessKey ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(
+                            () => _obscureAccessKey = !_obscureAccessKey),
+                        icon: Icon(_obscureAccessKey
+                            ? Icons.visibility
+                            : Icons.visibility_off),
                       ),
                     ),
                   ),
@@ -706,7 +866,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: _busy || !_hasAccessLink ? null : _requestCode,
+                          onPressed: _canRequestCode ? _requestCode : null,
                           child: const Text("Request Receipt Code"),
                         ),
                       ),
@@ -732,7 +892,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       labelText: "Verification Code",
-                      helperText: "One-time code sent through the active fallback channel.",
+                      helperText:
+                          "One-time code sent through the active fallback channel.",
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -743,7 +904,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     autofillHints: const [AutofillHints.name],
                     decoration: const InputDecoration(
                       labelText: "Registered beneficiary name",
-                      helperText: "Must match the owner-prepared beneficiary record.",
+                      helperText:
+                          "Must match the owner-prepared beneficiary record.",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -752,7 +914,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       labelText: "Verification phrase",
-                      helperText: "Shared phrase from setup. It is checked before the bundle can open.",
+                      helperText:
+                          "Shared phrase from setup. It is checked before the bundle can open.",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -761,7 +924,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       labelText: "TOTP Code (if required)",
-                      helperText: "Only enter this if the bundle asks for an extra authenticator step.",
+                      helperText:
+                          "Only enter this if the bundle asks for an extra authenticator step.",
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -769,10 +933,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: _busy || !_hasAccessLink || !_hasIdentityKit || !_hasVerificationCode
-                          ? null
-                          : _unlock,
-                      child: Text(_busy ? "Working..." : "Open Delivery Bundle"),
+                      onPressed: _canUnlock ? _unlock : null,
+                      child:
+                          Text(_busy ? "Working..." : "Open Delivery Bundle"),
                     ),
                   ),
                   if (_message != null) ...[
@@ -806,6 +969,14 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         Text(
                           "If you already use the app, this same receipt can later be upgraded into an app-guided experience. The secure link remains the default path.",
                         ),
+                        SizedBox(height: 6),
+                        Text(
+                          "If you are offline, pause and retry once your connection stabilizes. Repeated retries with bad signal can lock the flow temporarily.",
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          "After multiple invalid attempts, this receipt enters a temporary lock window to protect the owner and beneficiary route.",
+                        ),
                       ],
                     ),
                   ),
@@ -823,7 +994,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   children: [
                     const Text(
                       "Delivery Bundle Receipt",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     Text(_bundleSummary()),
@@ -865,7 +1037,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         Expanded(
                           child: _buildReceiptMetric(
                             "Phase 3",
-                            _countByVisibility("route_and_instructions").toString(),
+                            _countByVisibility("route_and_instructions")
+                                .toString(),
                           ),
                         ),
                       ],
@@ -886,15 +1059,20 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           SizedBox(height: 6),
-                          Text("1. Review which delivery items were released before forwarding anything."),
+                          Text(
+                              "1. Review which delivery items were released before forwarding anything."),
                           SizedBox(height: 4),
-                          Text("2. Keep the access link, receipt code, and verification phrase private."),
+                          Text(
+                              "2. Keep the access link, receipt code, and verification phrase private."),
                           SizedBox(height: 4),
-                          Text("3. Verify balances, legal status, or account details directly with the relevant partner, institution, or law office."),
+                          Text(
+                              "3. Verify balances, legal status, or account details directly with the relevant partner, institution, or law office."),
                           SizedBox(height: 4),
-                          Text("4. Complete any legal or service-specific verification outside this technical receipt flow."),
+                          Text(
+                              "4. Complete any legal or service-specific verification outside this technical receipt flow."),
                           SizedBox(height: 4),
-                          Text("5. If you think this receipt reached the wrong person, stop and re-verify the recipient path before sharing anything."),
+                          Text(
+                              "5. If you think this receipt reached the wrong person, stop and re-verify the recipient path before sharing anything."),
                         ],
                       ),
                     ),

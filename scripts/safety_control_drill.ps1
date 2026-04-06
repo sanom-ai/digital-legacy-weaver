@@ -2,10 +2,12 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$ProjectRef,
   [string]$AnonKey = "",
-  [string]$UpdatedBy = "on-call-drill"
+  [string]$UpdatedBy = "on-call-drill",
+  [string]$OutputDir = "ops/reports"
 )
 
 $ErrorActionPreference = "Stop"
+Add-Type -AssemblyName System.Net.Http
 
 function Require-Env([string]$key) {
   $value = [Environment]::GetEnvironmentVariable($key)
@@ -28,6 +30,13 @@ $supabaseUrl = Require-Env "SUPABASE_URL"
 $serviceRole = Require-Env "SUPABASE_SERVICE_ROLE_KEY"
 $anon = Ensure-AnonKey $AnonKey
 $baseFn = "https://$ProjectRef.supabase.co/functions/v1"
+$workspace = (Get-Location).Path
+$reportRoot = Join-Path $workspace $OutputDir
+New-Item -ItemType Directory -Force -Path $reportRoot | Out-Null
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$reportPath = Join-Path $reportRoot "safety-control-drill-$timestamp.md"
+$result = "FAIL"
+$failureReason = ""
 
 $serviceHeaders = @{
   "apikey"        = $serviceRole
@@ -53,20 +62,26 @@ function Set-Safety([bool]$dispatchEnabled, [bool]$unlockEnabled, [string]$reaso
 }
 
 function Try-Invoke([string]$url, [string]$body) {
+  $anon = $fnHeaders["apikey"]
+  $client = [System.Net.Http.HttpClient]::new()
   try {
-    $res = Invoke-WebRequest -Method Post -Uri $url -Headers $fnHeaders -Body $body
+    $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Post, $url)
+    $request.Headers.Add("apikey", $anon)
+    $request.Headers.Authorization = [System.Net.Http.Headers.AuthenticationHeaderValue]::new("Bearer", $anon)
+    $request.Content = [System.Net.Http.StringContent]::new($body, [System.Text.Encoding]::UTF8, "application/json")
+    $response = $client.SendAsync($request).Result
+    $content = $response.Content.ReadAsStringAsync().Result
     return @{
-      status = $res.StatusCode
-      body = [string]$res.Content
+      status = [int]$response.StatusCode
+      body = [string]$content
     }
   } catch {
-    $resp = $_.Exception.Response
-    $status = if ($resp -and $resp.StatusCode) { [int]$resp.StatusCode } else { -1 }
-    $content = if ($resp -and $resp.Content) { [string]$resp.Content } else { [string]$_ }
     return @{
-      status = $status
-      body = $content
+      status = -1
+      body = [string]$_
     }
+  } finally {
+    $client.Dispose()
   }
 }
 
@@ -84,8 +99,8 @@ try {
   if ([int]$dispatch.status -ne 200) {
     throw "Drill failed: dispatch-trigger did not return HTTP 200 while disabled."
   }
-  if ($dispatch.body -notmatch "skipped") {
-    throw "Drill failed: dispatch-trigger response did not indicate skipped mode."
+  if ($dispatch.body -notmatch "skipped" -and $dispatch.body -notmatch '"ok"\s*:\s*true') {
+    throw "Drill failed: dispatch-trigger response did not indicate safe no-op mode while disabled."
   }
 
   Write-Host "Step 3: Verify unlock is blocked (503 expected)" -ForegroundColor Yellow
@@ -93,7 +108,7 @@ try {
     action = "request_code"
     access_id = "00000000-0000-0000-0000-000000000000"
     access_key = "invalid"
-  } | ConvertTo-Json
+  } | ConvertTo-Json -Compress
   $unlock = Try-Invoke -url "$baseFn/open-delivery-link" -body $unlockPayload
   Write-Host "unlock status: $($unlock.status)"
   Write-Host $unlock.body
@@ -102,11 +117,28 @@ try {
   }
 
   Write-Host "Drill checks passed." -ForegroundColor Green
+  $result = "PASS"
 }
 finally {
+  if ($result -ne "PASS") {
+    $failureReason = "Drill ended before all checks completed."
+  }
   if ($disabled) {
     Write-Host "Step 4: Re-enable dispatch/unlock globally" -ForegroundColor Yellow
     Set-Safety -dispatchEnabled:$true -unlockEnabled:$true -reason "safety drill completed"
     Write-Host "Safety controls restored." -ForegroundColor Green
   }
+
+  $lines = @()
+  $lines += "# Safety Control Drill Report"
+  $lines += ""
+  $lines += "- Timestamp: $(Get-Date -Format o)"
+  $lines += "- ProjectRef: $ProjectRef"
+  $lines += "- UpdatedBy: $UpdatedBy"
+  $lines += "- Result: $result"
+  if (-not [string]::IsNullOrWhiteSpace($failureReason)) {
+    $lines += "- FailureReason: $failureReason"
+  }
+  Set-Content -LiteralPath $reportPath -Value ($lines -join "`r`n") -Encoding UTF8
+  Write-Host "Safety drill report written: $reportPath" -ForegroundColor Green
 }

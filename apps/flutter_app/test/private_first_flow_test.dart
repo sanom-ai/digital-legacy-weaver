@@ -94,109 +94,138 @@ class _FakeSafetySettingsController extends SafetySettingsController {
 }
 
 void main() {
-  testWidgets('Safety settings screen exposes private-first controls and saves', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          safetySettingsProvider.overrideWith(() => _FakeSafetySettingsController()),
-        ],
-        child: const MaterialApp(home: SafetySettingsScreen()),
-      ),
-    );
+  testWidgets(
+    'Safety settings screen exposes private-first controls and saves',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            safetySettingsProvider.overrideWith(
+              () => _FakeSafetySettingsController(),
+            ),
+          ],
+          child: const MaterialApp(home: SafetySettingsScreen()),
+        ),
+      );
 
-    await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.text('Private-first Mode'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Private-first Mode'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Private-first Mode'), findsOneWidget);
-    expect(find.text('Keep private-first mode enabled'), findsOneWidget);
-    expect(find.text('Privacy preset'), findsOneWidget);
-    expect(find.text('Recommended for beta'), findsOneWidget);
+      expect(find.text('Private-first Mode'), findsOneWidget);
+      expect(find.text('Keep private-first mode enabled'), findsOneWidget);
+      expect(find.text('Privacy preset'), findsOneWidget);
+      expect(find.text('Recommended for beta'), findsOneWidget);
 
-    await tester.scrollUntilVisible(
-      find.text('Audit-heavy').last,
-      250,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Audit-heavy').last, warnIfMissed: false);
-    await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Audit-heavy').last,
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Audit-heavy').last, warnIfMissed: false);
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Save Safety Settings'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Save Safety Settings'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Save Safety Settings'),
+      );
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Save Safety Settings'),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Safety settings updated.'), findsOneWidget);
-    expect(find.text('Best for audits'), findsOneWidget);
-    expect(find.textContaining('sanitized evidence and owner references'), findsWidgets);
-  });
+      expect(
+          find.text('Safety settings updated successfully.'), findsOneWidget);
+      expect(find.text('Best for audits'), findsOneWidget);
+      expect(
+        find.textContaining('sanitized evidence and owner references'),
+        findsWidgets,
+      );
+    },
+  );
 
-  testWidgets('Onboarding setup shows technical companion and privacy profile choices', (tester) async {
-    final initialProfile = ProfileModel(
-      id: 'owner-1',
-      backupEmail: 'owner@example.com',
-      beneficiaryEmail: 'beneficiary@example.com',
-      beneficiaryName: 'Beneficiary Example',
-      beneficiaryPhone: '+66-800-000-111',
-      beneficiaryVerificationHint: 'Family phrase',
-      beneficiaryVerificationPhraseHash: 'seeded-hash',
-      legacyInactivityDays: 180,
-      selfRecoveryInactivityDays: 45,
-      lastActiveAt: DateTime(2026, 1, 1),
-    );
+  testWidgets(
+    'Onboarding setup shows technical companion and privacy profile choices',
+    (tester) async {
+      final initialProfile = ProfileModel(
+        id: 'owner-1',
+        backupEmail: 'owner@example.com',
+        beneficiaryEmail: 'beneficiary@example.com',
+        beneficiaryName: 'Beneficiary Example',
+        beneficiaryPhone: '+66-800-000-111',
+        beneficiaryVerificationHint: 'Family phrase',
+        beneficiaryVerificationPhraseHash: 'seeded-hash',
+        legacyInactivityDays: 180,
+        selfRecoveryInactivityDays: 45,
+        lastActiveAt: DateTime(2026, 1, 1),
+      );
 
-    const initialSettings = SafetySettingsModel(
-      remindersEnabled: true,
-      reminderOffsetsDays: [14, 7, 1],
-      gracePeriodDays: 7,
-      proofOfLifeCheckMode: 'biometric_tap',
-      proofOfLifeFallbackChannels: ['email', 'sms'],
-      serverHeartbeatFallbackEnabled: true,
-      iosBackgroundRiskAcknowledged: true,
-      legalDisclaimerAccepted: false,
-      emergencyPauseUntil: null,
-      requireTotpUnlock: false,
-      privateFirstMode: true,
-      tracePrivacyProfile: 'minimal',
-    );
+      const initialSettings = SafetySettingsModel(
+        remindersEnabled: true,
+        reminderOffsetsDays: [14, 7, 1],
+        gracePeriodDays: 7,
+        proofOfLifeCheckMode: 'biometric_tap',
+        proofOfLifeFallbackChannels: ['email', 'sms'],
+        serverHeartbeatFallbackEnabled: true,
+        iosBackgroundRiskAcknowledged: true,
+        legalDisclaimerAccepted: false,
+        emergencyPauseUntil: null,
+        requireTotpUnlock: false,
+        privateFirstMode: true,
+        tracePrivacyProfile: 'minimal',
+      );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          home: OnboardingSetupScreen(
-            initialProfile: initialProfile,
-            initialSettings: initialSettings,
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: OnboardingSetupScreen(
+              initialProfile: initialProfile,
+              initialSettings: initialSettings,
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue').first);
-    await tester.tap(find.widgetWithText(FilledButton, 'Continue').first, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue').first);
-    await tester.tap(find.widgetWithText(FilledButton, 'Continue').first, warnIfMissed: false);
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Continue').first,
+      );
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Continue').first,
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Continue').first,
+      );
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Continue').first,
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('I understand legal companion mode'), findsOneWidget);
-    expect(find.textContaining('technical companion'), findsOneWidget);
-    expect(find.text('Keep private-first mode enabled'), findsOneWidget);
-    expect(find.text('Privacy preset'), findsOneWidget);
-    expect(find.textContaining('does not replace a legal will'), findsOneWidget);
-    expect(find.text('Highest privacy'), findsOneWidget);
+      expect(find.text('I understand legal companion mode'), findsOneWidget);
+      expect(find.textContaining('technical companion'), findsOneWidget);
+      expect(find.text('Keep private-first mode enabled'), findsOneWidget);
+      expect(find.text('Privacy preset'), findsOneWidget);
+      expect(
+        find.textContaining('does not replace a legal will'),
+        findsOneWidget,
+      );
+      expect(find.text('Highest privacy'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Confidential').last);
-    await tester.tap(find.text('Confidential').last, warnIfMissed: false);
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Confidential').last);
+      await tester.tap(find.text('Confidential').last, warnIfMissed: false);
+      await tester.pumpAndSettle();
 
-    expect(find.text('Confidential'), findsWidgets);
-    expect(find.text('Highest privacy'), findsOneWidget);
-  });
+      expect(find.text('Confidential'), findsWidgets);
+      expect(find.text('Highest privacy'), findsOneWidget);
+    },
+  );
 
   test('privacy presets map to expected trace profiles', () {
     expect(presetById('confidential').tracePrivacyProfile, 'confidential');
@@ -204,23 +233,29 @@ void main() {
     expect(presetById('audit-heavy').privateFirstMode, isTrue);
   });
 
-  testWidgets('Dashboard policy card shows active privacy preset', (tester) async {
+  testWidgets('Dashboard policy card shows active privacy preset', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          safetySettingsProvider.overrideWith(() => _FakeSafetySettingsController()),
-          profileProvider.overrideWith((ref) async => ProfileModel(
-                id: 'owner-1',
-                backupEmail: 'owner@example.com',
-                beneficiaryEmail: 'beneficiary@example.com',
-                beneficiaryName: 'Beneficiary Example',
-                beneficiaryPhone: '+66-800-000-111',
-                beneficiaryVerificationHint: 'Family phrase',
-                beneficiaryVerificationPhraseHash: 'seeded-hash',
-                legacyInactivityDays: 180,
-                selfRecoveryInactivityDays: 45,
-                lastActiveAt: DateTime(2026, 1, 1),
-              )),
+          safetySettingsProvider.overrideWith(
+            () => _FakeSafetySettingsController(),
+          ),
+          profileProvider.overrideWith(
+            (ref) async => ProfileModel(
+              id: 'owner-1',
+              backupEmail: 'owner@example.com',
+              beneficiaryEmail: 'beneficiary@example.com',
+              beneficiaryName: 'Beneficiary Example',
+              beneficiaryPhone: '+66-800-000-111',
+              beneficiaryVerificationHint: 'Family phrase',
+              beneficiaryVerificationPhraseHash: 'seeded-hash',
+              legacyInactivityDays: 180,
+              selfRecoveryInactivityDays: 45,
+              lastActiveAt: DateTime(2026, 1, 1),
+            ),
+          ),
         ],
         child: const MaterialApp(home: DashboardScreen()),
       ),
@@ -236,6 +271,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Privacy Preset: Minimal'), findsOneWidget);
-    expect(find.textContaining('Technical companion only'), findsWidgets);
+    expect(find.textContaining('Product boundary:'), findsWidgets);
   });
 }

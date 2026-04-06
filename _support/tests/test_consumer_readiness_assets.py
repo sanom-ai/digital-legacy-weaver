@@ -12,9 +12,9 @@ def test_onboarding_setup_screen_exists_with_setup_copy() -> None:
     path = ROOT / "apps" / "flutter_app" / "lib" / "features" / "onboarding" / "onboarding_setup_screen.dart"
     assert path.exists()
     src = _read(path)
-    assert "Complete Setup" in src
+    assert "Finish Setup" in src
     assert "I understand legal companion mode" in src
-    assert "Setup completed." in src
+    assert "Setup complete. Your private-first defaults are now active." in src
 
 
 def test_hosted_mode_operations_doc_exists() -> None:

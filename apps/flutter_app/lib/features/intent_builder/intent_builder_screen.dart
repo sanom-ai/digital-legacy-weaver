@@ -35,7 +35,8 @@ class IntentBuilderScreen extends ConsumerStatefulWidget {
   final String? screenSubtitle;
 
   @override
-  ConsumerState<IntentBuilderScreen> createState() => _IntentBuilderScreenState();
+  ConsumerState<IntentBuilderScreen> createState() =>
+      _IntentBuilderScreenState();
 }
 
 class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
@@ -65,7 +66,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   Future<void> _restoreArtifact() async {
     try {
       final repository = ref.read(intentCanonicalArtifactRepositoryProvider);
-      final history = await repository.loadArtifactHistory(ownerRef: _storageOwnerRef);
+      final history = await repository.loadArtifactHistory(
+        ownerRef: _storageOwnerRef,
+      );
       if (!mounted) {
         return;
       }
@@ -96,7 +99,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         _hasLocalDraft = stored != null;
         _isLoading = false;
         _loadError = null;
-        _saveMessage = stored != null ? "Restored encrypted local draft from this device." : null;
+        _saveMessage = stored != null
+            ? "Restored encrypted local draft from this device."
+            : null;
       });
     } catch (error) {
       if (!mounted) {
@@ -105,7 +110,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       setState(() {
         _document = widget.initialDocument ?? _seedDocument();
         _isLoading = false;
-        _loadError = "Could not restore local draft: $error";
+        _loadError =
+            "We could not restore your local draft right now. Please retry in a moment.";
       });
     }
   }
@@ -241,14 +247,20 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         payloadRetentionDays: widget.settings.payloadRetentionDays,
         auditLogRetentionDays: widget.settings.auditLogRetentionDays,
         proofOfLifeCheckMode: widget.settings.proofOfLifeCheckMode,
-        proofOfLifeFallbackChannels: widget.settings.proofOfLifeFallbackChannels,
-        serverHeartbeatFallbackEnabled: widget.settings.serverHeartbeatFallbackEnabled,
-        iosBackgroundRiskAcknowledged: widget.settings.iosBackgroundRiskAcknowledged,
+        proofOfLifeFallbackChannels:
+            widget.settings.proofOfLifeFallbackChannels,
+        serverHeartbeatFallbackEnabled:
+            widget.settings.serverHeartbeatFallbackEnabled,
+        iosBackgroundRiskAcknowledged:
+            widget.settings.iosBackgroundRiskAcknowledged,
       ),
     );
   }
 
-  Future<void> _persistDocument(IntentDocumentModel next, {required String message}) async {
+  Future<void> _persistDocument(
+    IntentDocumentModel next, {
+    required String message,
+  }) async {
     setState(() {
       _document = next;
       _saveMessage = message;
@@ -274,7 +286,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   Future<void> _resetDraft() async {
     final seed = _seedDocument();
-    await ref.read(intentDraftRepositoryProvider).clearDraft(ownerRef: _storageOwnerRef);
+    await ref
+        .read(intentDraftRepositoryProvider)
+        .clearDraft(ownerRef: _storageOwnerRef);
     if (!mounted) {
       return;
     }
@@ -295,7 +309,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             ListTile(
               leading: const Icon(Icons.family_restroom_outlined),
               title: const Text("Legacy delivery"),
-              subtitle: const Text("Send a secure path to a beneficiary after long inactivity"),
+              subtitle: const Text(
+                "Send a secure path to a beneficiary after long inactivity",
+              ),
               onTap: () => Navigator.of(context).pop("legacy_delivery"),
             ),
             ListTile(
@@ -350,7 +366,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     await _persistDocument(
       _document.copyWith(
         entries: [
-          for (final item in _document.entries) item.entryId == entry.entryId ? updated : item,
+          for (final item in _document.entries)
+            item.entryId == entry.entryId ? updated : item,
         ],
       ),
       message: "Draft changes saved locally with device encryption.",
@@ -365,7 +382,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
     await _persistDocument(
       document,
-      message: "${scenario.title} preset applied and saved locally with device encryption.",
+      message:
+          "${scenario.title} preset applied and saved locally with device encryption.",
     );
     await _restoreArtifact();
   }
@@ -376,7 +394,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _document.copyWith(
         entries: [
           for (final item in _document.entries)
-            item.entryId == entry.entryId ? item.copyWith(status: nextStatus) : item,
+            item.entryId == entry.entryId
+                ? item.copyWith(status: nextStatus)
+                : item,
         ],
       ),
       message: nextStatus == 'active'
@@ -391,7 +411,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       builder: (context) => AlertDialog(
         title: const Text("Remove draft entry"),
         content: Text(
-          "Remove '${entry.asset.displayName}' from this local intent draft? This does not publish or revoke any PTN policy.",
+          "Remove '${entry.asset.displayName}' from this local draft? This only updates this device draft and does not release anything.",
         ),
         actions: [
           TextButton(
@@ -418,18 +438,24 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
   }
 
-  Future<void> _exportCanonicalArtifact(IntentCompilerReportModel report, String ptnPreview) async {
+  Future<void> _exportCanonicalArtifact(
+    IntentCompilerReportModel report,
+    String ptnPreview,
+  ) async {
     if (!report.ok) {
       setState(() {
-        _saveMessage = "Resolve blocking intent review items before exporting a canonical PTN artifact.";
+        _saveMessage = "Resolve blocking items before exporting this version.";
       });
       return;
     }
 
-    final activeEntries = _document.entries.where((entry) => entry.status == "active");
+    final activeEntries = _document.entries.where(
+      (entry) => entry.status == "active",
+    );
     if (activeEntries.isEmpty) {
       setState(() {
-        _saveMessage = "Activate at least one entry before exporting a canonical PTN artifact.";
+        _saveMessage =
+            "Activate at least one route before exporting this version.";
       });
       return;
     }
@@ -447,13 +473,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       ownerRef: _document.ownerRef,
       generatedAt: generatedAt,
       sourceDraftSignature: buildIntentDocumentSignature(_document),
-      activeEntryCount: _document.entries.where((entry) => entry.status == "active").length,
+      activeEntryCount:
+          _document.entries.where((entry) => entry.status == "active").length,
       ptn: ptnPreview,
       trace: buildDraftIntentTrace(_document),
       report: report,
       sealedReleaseCandidate: _buildSealedReleaseCandidate(generatedAt),
     );
-    await ref.read(intentCanonicalArtifactRepositoryProvider).saveArtifact(artifact);
+    await ref
+        .read(intentCanonicalArtifactRepositoryProvider)
+        .saveArtifact(artifact);
     ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
     ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (!mounted) {
@@ -463,12 +492,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = [artifact, ..._artifactHistory];
       _artifact = artifact;
       _isExporting = false;
-      _saveMessage = "Canonical PTN artifact exported and sealed locally on this device.";
+      _saveMessage = "Exported version created and sealed on this device.";
     });
   }
 
-  SealedReleaseCandidateModel _buildSealedReleaseCandidate(DateTime generatedAt) {
-    final activeEntries = _document.entries.where((entry) => entry.status == "active");
+  SealedReleaseCandidateModel _buildSealedReleaseCandidate(
+    DateTime generatedAt,
+  ) {
+    final activeEntries = _document.entries.where(
+      (entry) => entry.status == "active",
+    );
     return SealedReleaseCandidateModel(
       candidateId: "release_candidate_${generatedAt.millisecondsSinceEpoch}",
       sealedAt: generatedAt,
@@ -492,7 +525,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   }
 
   Future<void> _clearCanonicalArtifact() async {
-    await ref.read(intentCanonicalArtifactRepositoryProvider).clearArtifact(ownerRef: _storageOwnerRef);
+    await ref
+        .read(intentCanonicalArtifactRepositoryProvider)
+        .clearArtifact(ownerRef: _storageOwnerRef);
     ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
     ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (!mounted) {
@@ -501,14 +536,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifact = null;
       _artifactHistory = const [];
-      _saveMessage = "Cleared locally sealed canonical PTN artifact.";
+      _saveMessage = "Cleared the sealed exported version from this device.";
     });
   }
 
   Future<void> _clearArtifactVersion(String artifactId) async {
     await ref
         .read(intentCanonicalArtifactRepositoryProvider)
-        .clearArtifactVersion(ownerRef: _storageOwnerRef, artifactId: artifactId);
+        .clearArtifactVersion(
+          ownerRef: _storageOwnerRef,
+          artifactId: artifactId,
+        );
     ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
     ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     final nextHistory = [
@@ -521,34 +559,37 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifactHistory = nextHistory;
       _artifact = nextHistory.isEmpty ? null : nextHistory.first;
-      _saveMessage = "Removed one canonical artifact version from local history.";
+      _saveMessage = "Removed one exported version from local history.";
     });
   }
 
-  Future<void> _clearArtifactVersionModel(IntentCanonicalArtifactModel artifact) async {
+  Future<void> _clearArtifactVersionModel(
+    IntentCanonicalArtifactModel artifact,
+  ) async {
     await _clearArtifactVersion(artifact.artifactId);
   }
 
-  Future<void> _promoteArtifactVersion(IntentCanonicalArtifactModel artifact) async {
-    final promoted = await ref.read(intentCanonicalArtifactRepositoryProvider).promoteArtifactVersion(
-      ownerRef: _storageOwnerRef,
-      artifactId: artifact.artifactId,
-    );
+  Future<void> _promoteArtifactVersion(
+    IntentCanonicalArtifactModel artifact,
+  ) async {
+    final promoted = await ref
+        .read(intentCanonicalArtifactRepositoryProvider)
+        .promoteArtifactVersion(
+          ownerRef: _storageOwnerRef,
+          artifactId: artifact.artifactId,
+        );
     ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
     ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (promoted == null || !mounted) {
       return;
     }
-    final nextHistory = [
-      promoted,
-      for (final item in _artifactHistory)
-        item,
-    ]..sort((left, right) => right.generatedAt.compareTo(left.generatedAt));
+    final nextHistory = [promoted, for (final item in _artifactHistory) item]
+      ..sort((left, right) => right.generatedAt.compareTo(left.generatedAt));
     setState(() {
       _artifactHistory = nextHistory;
       _artifact = promoted;
       _saveMessage =
-          "Promoted one historical artifact into a new exported version so it can be reviewed again without losing history.";
+          "Copied one historical version into a new export so it can be reviewed again without losing history.";
     });
   }
 
@@ -558,7 +599,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       return;
     }
     final updated = artifact.copyWith(artifactState: nextState);
-    await ref.read(intentCanonicalArtifactRepositoryProvider).saveArtifact(updated);
+    await ref
+        .read(intentCanonicalArtifactRepositoryProvider)
+        .saveArtifact(updated);
     ref.invalidate(intentCanonicalArtifactProvider(_storageOwnerRef));
     ref.invalidate(intentCanonicalArtifactHistoryProvider(_storageOwnerRef));
     if (!mounted) {
@@ -571,7 +614,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           if (item.artifactId != updated.artifactId) item,
       ]..sort((left, right) => right.generatedAt.compareTo(left.generatedAt));
       _artifact = updated;
-      _saveMessage = "Canonical artifact state updated to ${nextState.name}.";
+      _saveMessage = "Version status updated to ${nextState.name}.";
     });
   }
 
@@ -601,24 +644,26 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     required int activeEntryCount,
   }) {
     if (activeEntryCount == 0) {
-      return "State policy: activate at least one entry before advancing artifact readiness.";
+      return "Status rule: activate at least one route before advancing readiness.";
     }
     if (artifact.report.errorCount > 0) {
-      return "State policy: resolve blocking compiler errors before marking this artifact reviewed or ready.";
+      return "Status rule: resolve blocking issues before marking this version reviewed or ready.";
     }
     if (artifact.artifactState == IntentArtifactState.exported) {
-      return "State policy: exported artifacts can be marked reviewed when compiler errors are clear and active entries remain present.";
+      return "Status rule: exported versions can be marked reviewed when blocking issues are clear and active routes remain present.";
     }
-    if (artifact.artifactState == IntentArtifactState.reviewed && !artifactInSync) {
-      return "State policy: reviewed artifacts can only be marked ready while the current draft still matches the exported artifact.";
+    if (artifact.artifactState == IntentArtifactState.reviewed &&
+        !artifactInSync) {
+      return "Status rule: reviewed versions can only be marked ready while the current draft still matches the exported version.";
     }
-    if (artifact.artifactState == IntentArtifactState.reviewed && artifactInSync) {
-      return "State policy: this reviewed artifact is eligible to move to ready because the draft is still in sync.";
+    if (artifact.artifactState == IntentArtifactState.reviewed &&
+        artifactInSync) {
+      return "Status rule: this reviewed version can move to ready because the draft is still in sync.";
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      return "State policy: ready artifacts stay trustworthy only while the draft remains in sync with the exported version.";
+      return "Status rule: ready versions stay trustworthy only while the draft remains in sync with the exported version.";
     }
-    return "State policy: export a canonical artifact first, then review it before marking it ready.";
+    return "Status rule: export a version first, then review it before marking it ready.";
   }
 
   List<String> _artifactBadges(IntentCanonicalArtifactModel artifact) {
@@ -626,8 +671,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     if (_artifact != null && artifact.artifactId == _artifact!.artifactId) {
       badges.add("Latest");
     }
-    if (artifact.promotedFromArtifactId != null && artifact.promotedFromArtifactId!.isNotEmpty) {
-      badges.add("Promoted");
+    if (artifact.promotedFromArtifactId != null &&
+        artifact.promotedFromArtifactId!.isNotEmpty) {
+      badges.add("Copied");
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
       badges.add("Ready");
@@ -673,8 +719,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     required bool isError,
     VoidCallback? onRetry,
   }) {
-    final background = isError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
-    final icon = isError ? Icons.warning_amber_rounded : Icons.check_circle_outline;
+    final background =
+        isError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
+    final icon =
+        isError ? Icons.warning_amber_rounded : Icons.check_circle_outline;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -689,10 +737,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           const SizedBox(width: 8),
           Expanded(child: Text(message)),
           if (isError && onRetry != null)
-            TextButton(
-              onPressed: onRetry,
-              child: const Text("Retry"),
-            ),
+            TextButton(onPressed: onRetry, child: const Text("Retry")),
         ],
       ),
     );
@@ -713,7 +758,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 CircularProgressIndicator(),
                 SizedBox(height: 12),
                 Text(
-                  "Loading your local encrypted draft and recent artifact history...",
+                  "Loading your local encrypted draft and recent version history...",
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -729,20 +774,28 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       privateFirstMode: widget.settings.privateFirstMode,
       proofOfLifeCheckMode: widget.settings.proofOfLifeCheckMode,
       proofOfLifeFallbackChannels: widget.settings.proofOfLifeFallbackChannels,
-      serverHeartbeatFallbackEnabled: widget.settings.serverHeartbeatFallbackEnabled,
-      iosBackgroundRiskAcknowledged: widget.settings.iosBackgroundRiskAcknowledged,
+      serverHeartbeatFallbackEnabled:
+          widget.settings.serverHeartbeatFallbackEnabled,
+      iosBackgroundRiskAcknowledged:
+          widget.settings.iosBackgroundRiskAcknowledged,
     );
     final ptnPreview = buildDraftIntentPtnPreview(_document);
     final draftSignature = buildIntentDocumentSignature(_document);
     final screenSubtitle = widget.screenSubtitle ??
-        "This screen is the draft foundation for building intent in plain language before compiling it into PTN.";
+        "This screen helps you shape intent in plain language before export.";
     final demoScenarioTitle = _document.metadata["demo_title"] as String?;
     final demoScenarioSummary = _document.metadata["demo_summary"] as String?;
-    final demoScenarioNextStep = _document.metadata["demo_next_step"] as String?;
-    final artifactInSync = _artifact != null && _artifact!.sourceDraftSignature == draftSignature;
-    final activeEntryCount = _document.entries.where((entry) => entry.status == "active").length;
+    final demoScenarioNextStep =
+        _document.metadata["demo_next_step"] as String?;
+    final artifactInSync =
+        _artifact != null && _artifact!.sourceDraftSignature == draftSignature;
+    final activeEntryCount =
+        _document.entries.where((entry) => entry.status == "active").length;
     final canMarkReviewed = _artifact != null
-        ? _canMarkReviewed(artifact: _artifact!, activeEntryCount: activeEntryCount)
+        ? _canMarkReviewed(
+            artifact: _artifact!,
+            activeEntryCount: activeEntryCount,
+          )
         : false;
     final canMarkReady = _artifact != null
         ? _canMarkReady(
@@ -794,11 +847,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
-                        Text("1. Keep at least one active entry for a real route."),
+                        Text(
+                          "1. Keep at least one active entry for a real route.",
+                        ),
                         SizedBox(height: 4),
-                        Text("2. Export canonical PTN and review warnings immediately."),
+                        Text(
+                          "2. Export current version and review warnings immediately.",
+                        ),
                         SizedBox(height: 4),
-                        Text("3. Keep draft and exported artifact in sync before release drills."),
+                        Text(
+                          "3. Keep draft and exported version in sync before release drills.",
+                        ),
                       ],
                     ),
                   ),
@@ -835,18 +894,20 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             ? "Encrypted draft stored on this device"
                             : "Seeded from setup",
                       ),
-                      _Pill(label: "Default privacy: ${_document.defaultPrivacyProfile}"),
+                      _Pill(
+                        label:
+                            "Default privacy: ${_document.defaultPrivacyProfile}",
+                      ),
                       _Pill(label: "Entries: ${_document.entries.length}"),
                       _Pill(label: "Owner ref: ${_document.ownerRef}"),
-                      _Pill(label: "Artifact versions: ${_artifactHistory.length}"),
+                      _Pill(
+                        label: "Version history: ${_artifactHistory.length}",
+                      ),
                     ],
                   ),
                   if (_saveMessage != null) ...[
                     const SizedBox(height: 12),
-                    _buildStatusBanner(
-                      message: _saveMessage!,
-                      isError: false,
-                    ),
+                    _buildStatusBanner(message: _saveMessage!, isError: false),
                   ],
                   if (_loadError != null) ...[
                     const SizedBox(height: 12),
@@ -912,7 +973,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             const SizedBox(height: 8),
                             Text(
                               "Preset next step: $demoScenarioNextStep",
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ],
@@ -932,12 +995,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Encrypted local draft persistence",
+                    "Encrypted local draft storage",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "Intent drafts are encrypted and cached on this device so users can continue shaping intent in plain language before activation. This draft cache is local-first and not treated as a published PTN policy yet.",
+                    "Your draft is encrypted and stored on this device so you can continue planning safely before release. Local drafts are not published policies.",
                   ),
                 ],
               ),
@@ -951,70 +1014,84 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Guardian quorum & emergency access",
+                    "Shared approval & emergency access",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Use guardian quorum for sensitive legacy release and keep emergency access as a separate incapacity flow rather than a shortcut around dead-man timing.",
+                    "Use shared approval for sensitive releases, and keep emergency access as a separate incapacity path.",
                   ),
                   const SizedBox(height: 12),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text("Enable guardian quorum"),
-                    subtitle: const Text("Recommended baseline: 2-of-3 for important legacy delivery."),
+                    title: const Text("Enable shared approval"),
+                    subtitle: const Text(
+                      "Recommended baseline: 2-of-3 for sensitive handoff.",
+                    ),
                     value: _document.globalSafeguards.guardianQuorumEnabled,
                     onChanged: (value) {
-                      final poolSize = _document.globalSafeguards.guardianQuorumPoolSize;
+                      final poolSize =
+                          _document.globalSafeguards.guardianQuorumPoolSize;
                       _updateGlobalSafeguards(
                         IntentGlobalSafeguardsModel(
-                          emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
-                          defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
-                          defaultRemindersDaysBefore:
-                              _document.globalSafeguards.defaultRemindersDaysBefore,
-                          requireMultisignalBeforeRelease:
-                              _document.globalSafeguards.requireMultisignalBeforeRelease,
+                          emergencyPauseEnabled:
+                              _document.globalSafeguards.emergencyPauseEnabled,
+                          defaultGraceDays:
+                              _document.globalSafeguards.defaultGraceDays,
+                          defaultRemindersDaysBefore: _document
+                              .globalSafeguards.defaultRemindersDaysBefore,
+                          requireMultisignalBeforeRelease: _document
+                              .globalSafeguards.requireMultisignalBeforeRelease,
                           requireGuardianApprovalForLegacy: value,
                           guardianQuorumEnabled: value,
                           guardianQuorumRequired: value
-                              ? _document.globalSafeguards.guardianQuorumRequired.clamp(1, poolSize)
-                              : _document.globalSafeguards.guardianQuorumRequired,
+                              ? _document
+                                  .globalSafeguards.guardianQuorumRequired
+                                  .clamp(1, poolSize)
+                              : _document
+                                  .globalSafeguards.guardianQuorumRequired,
                           guardianQuorumPoolSize: poolSize,
                           emergencyAccessEnabled:
                               _document.globalSafeguards.emergencyAccessEnabled,
                           emergencyAccessRequiresBeneficiaryRequest: _document
-                              .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                              .globalSafeguards
+                              .emergencyAccessRequiresBeneficiaryRequest,
                           emergencyAccessRequiresGuardianQuorum: _document
-                              .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
-                          emergencyAccessGraceHours:
-                              _document.globalSafeguards.emergencyAccessGraceHours,
-                          proofOfLifeCheckMode: _document.globalSafeguards.proofOfLifeCheckMode,
-                          proofOfLifeFallbackChannels:
-                              _document.globalSafeguards.proofOfLifeFallbackChannels,
+                              .globalSafeguards
+                              .emergencyAccessRequiresGuardianQuorum,
+                          emergencyAccessGraceHours: _document
+                              .globalSafeguards.emergencyAccessGraceHours,
+                          proofOfLifeCheckMode:
+                              _document.globalSafeguards.proofOfLifeCheckMode,
+                          proofOfLifeFallbackChannels: _document
+                              .globalSafeguards.proofOfLifeFallbackChannels,
                           serverHeartbeatFallbackEnabled: _document
                               .globalSafeguards.serverHeartbeatFallbackEnabled,
-                          iosBackgroundRiskAcknowledged:
-                              _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                          iosBackgroundRiskAcknowledged: _document
+                              .globalSafeguards.iosBackgroundRiskAcknowledged,
                         ),
-                        message: "Updated guardian quorum posture.",
+                        message: "Updated shared approval settings.",
                       );
                     },
                   ),
                   if (_document.globalSafeguards.guardianQuorumEnabled) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "Current quorum: ${_document.globalSafeguards.guardianQuorumRequired}-of-${_document.globalSafeguards.guardianQuorumPoolSize}",
+                      "Current approval threshold: ${_document.globalSafeguards.guardianQuorumRequired}-of-${_document.globalSafeguards.guardianQuorumPoolSize}",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int>(
-                      initialValue: _document.globalSafeguards.guardianQuorumPoolSize,
-                      decoration: const InputDecoration(labelText: "Guardian pool size"),
+                      initialValue:
+                          _document.globalSafeguards.guardianQuorumPoolSize,
+                      decoration: const InputDecoration(
+                        labelText: "Approver group size",
+                      ),
                       items: const [
-                        DropdownMenuItem(value: 2, child: Text("2 guardians")),
-                        DropdownMenuItem(value: 3, child: Text("3 guardians")),
-                        DropdownMenuItem(value: 4, child: Text("4 guardians")),
-                        DropdownMenuItem(value: 5, child: Text("5 guardians")),
+                        DropdownMenuItem(value: 2, child: Text("2 approvers")),
+                        DropdownMenuItem(value: 3, child: Text("3 approvers")),
+                        DropdownMenuItem(value: 4, child: Text("4 approvers")),
+                        DropdownMenuItem(value: 5, child: Text("5 approvers")),
                       ],
                       onChanged: (value) {
                         if (value == null) {
@@ -1022,43 +1099,55 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         }
                         _updateGlobalSafeguards(
                           IntentGlobalSafeguardsModel(
-                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
-                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
-                            defaultRemindersDaysBefore:
-                                _document.globalSafeguards.defaultRemindersDaysBefore,
-                            requireMultisignalBeforeRelease:
-                                _document.globalSafeguards.requireMultisignalBeforeRelease,
-                            requireGuardianApprovalForLegacy:
-                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
-                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
-                            guardianQuorumRequired:
-                                _document.globalSafeguards.guardianQuorumRequired.clamp(1, value),
+                            emergencyPauseEnabled: _document
+                                .globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays:
+                                _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore: _document
+                                .globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease: _document
+                                .globalSafeguards
+                                .requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy: _document
+                                .globalSafeguards
+                                .requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document
+                                .globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired: _document
+                                .globalSafeguards.guardianQuorumRequired
+                                .clamp(1, value),
                             guardianQuorumPoolSize: value,
-                            emergencyAccessEnabled:
-                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyAccessEnabled: _document
+                                .globalSafeguards.emergencyAccessEnabled,
                             emergencyAccessRequiresBeneficiaryRequest: _document
-                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                                .globalSafeguards
+                                .emergencyAccessRequiresBeneficiaryRequest,
                             emergencyAccessRequiresGuardianQuorum: _document
-                                .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
-                            emergencyAccessGraceHours:
-                                _document.globalSafeguards.emergencyAccessGraceHours,
+                                .globalSafeguards
+                                .emergencyAccessRequiresGuardianQuorum,
+                            emergencyAccessGraceHours: _document
+                                .globalSafeguards.emergencyAccessGraceHours,
                             proofOfLifeCheckMode:
                                 _document.globalSafeguards.proofOfLifeCheckMode,
-                            proofOfLifeFallbackChannels:
-                                _document.globalSafeguards.proofOfLifeFallbackChannels,
+                            proofOfLifeFallbackChannels: _document
+                                .globalSafeguards.proofOfLifeFallbackChannels,
                             serverHeartbeatFallbackEnabled: _document
-                                .globalSafeguards.serverHeartbeatFallbackEnabled,
-                            iosBackgroundRiskAcknowledged:
-                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                                .globalSafeguards
+                                .serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged: _document
+                                .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated guardian pool size.",
+                          message: "Updated approver group size.",
                         );
                       },
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int>(
-                      initialValue: _document.globalSafeguards.guardianQuorumRequired,
-                      decoration: const InputDecoration(labelText: "Required guardian approvals"),
+                      initialValue:
+                          _document.globalSafeguards.guardianQuorumRequired,
+                      decoration: const InputDecoration(
+                        labelText: "Required approvals",
+                      ),
                       items: List.generate(
                         _document.globalSafeguards.guardianQuorumPoolSize,
                         (index) => DropdownMenuItem(
@@ -1072,36 +1161,44 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         }
                         _updateGlobalSafeguards(
                           IntentGlobalSafeguardsModel(
-                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
-                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
-                            defaultRemindersDaysBefore:
-                                _document.globalSafeguards.defaultRemindersDaysBefore,
-                            requireMultisignalBeforeRelease:
-                                _document.globalSafeguards.requireMultisignalBeforeRelease,
-                            requireGuardianApprovalForLegacy:
-                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
-                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                            emergencyPauseEnabled: _document
+                                .globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays:
+                                _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore: _document
+                                .globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease: _document
+                                .globalSafeguards
+                                .requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy: _document
+                                .globalSafeguards
+                                .requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document
+                                .globalSafeguards.guardianQuorumEnabled,
                             guardianQuorumRequired: value,
-                            guardianQuorumPoolSize:
-                                _document.globalSafeguards.guardianQuorumPoolSize,
-                            emergencyAccessEnabled:
-                                _document.globalSafeguards.emergencyAccessEnabled,
+                            guardianQuorumPoolSize: _document
+                                .globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled: _document
+                                .globalSafeguards.emergencyAccessEnabled,
                             emergencyAccessRequiresBeneficiaryRequest: _document
-                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                                .globalSafeguards
+                                .emergencyAccessRequiresBeneficiaryRequest,
                             emergencyAccessRequiresGuardianQuorum: _document
-                                .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
-                            emergencyAccessGraceHours:
-                                _document.globalSafeguards.emergencyAccessGraceHours,
+                                .globalSafeguards
+                                .emergencyAccessRequiresGuardianQuorum,
+                            emergencyAccessGraceHours: _document
+                                .globalSafeguards.emergencyAccessGraceHours,
                             proofOfLifeCheckMode:
                                 _document.globalSafeguards.proofOfLifeCheckMode,
-                            proofOfLifeFallbackChannels:
-                                _document.globalSafeguards.proofOfLifeFallbackChannels,
+                            proofOfLifeFallbackChannels: _document
+                                .globalSafeguards.proofOfLifeFallbackChannels,
                             serverHeartbeatFallbackEnabled: _document
-                                .globalSafeguards.serverHeartbeatFallbackEnabled,
-                            iosBackgroundRiskAcknowledged:
-                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                                .globalSafeguards
+                                .serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged: _document
+                                .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated guardian quorum requirement.",
+                          message: "Updated required approvals.",
                         );
                       },
                     ),
@@ -1109,41 +1206,50 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   const SizedBox(height: 12),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text("Enable emergency access override"),
-                    subtitle: const Text("For incapacity cases such as ICU, separate from standard inactivity release."),
+                    title: const Text("Enable emergency access"),
+                    subtitle: const Text(
+                      "Use only for incapacity cases (for example ICU), separate from regular inactivity release.",
+                    ),
                     value: _document.globalSafeguards.emergencyAccessEnabled,
                     onChanged: (value) {
                       _updateGlobalSafeguards(
                         IntentGlobalSafeguardsModel(
-                          emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
-                          defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
-                          defaultRemindersDaysBefore:
-                              _document.globalSafeguards.defaultRemindersDaysBefore,
-                          requireMultisignalBeforeRelease:
-                              _document.globalSafeguards.requireMultisignalBeforeRelease,
-                          requireGuardianApprovalForLegacy:
-                              _document.globalSafeguards.requireGuardianApprovalForLegacy,
-                          guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
+                          emergencyPauseEnabled:
+                              _document.globalSafeguards.emergencyPauseEnabled,
+                          defaultGraceDays:
+                              _document.globalSafeguards.defaultGraceDays,
+                          defaultRemindersDaysBefore: _document
+                              .globalSafeguards.defaultRemindersDaysBefore,
+                          requireMultisignalBeforeRelease: _document
+                              .globalSafeguards.requireMultisignalBeforeRelease,
+                          requireGuardianApprovalForLegacy: _document
+                              .globalSafeguards
+                              .requireGuardianApprovalForLegacy,
+                          guardianQuorumEnabled:
+                              _document.globalSafeguards.guardianQuorumEnabled,
                           guardianQuorumRequired:
                               _document.globalSafeguards.guardianQuorumRequired,
                           guardianQuorumPoolSize:
                               _document.globalSafeguards.guardianQuorumPoolSize,
                           emergencyAccessEnabled: value,
-                          emergencyAccessRequiresBeneficiaryRequest:
-                              _document.globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
-                          emergencyAccessRequiresGuardianQuorum:
-                              _document.globalSafeguards.emergencyAccessRequiresGuardianQuorum,
-                          emergencyAccessGraceHours:
-                              _document.globalSafeguards.emergencyAccessGraceHours,
-                          proofOfLifeCheckMode: _document.globalSafeguards.proofOfLifeCheckMode,
-                          proofOfLifeFallbackChannels:
-                              _document.globalSafeguards.proofOfLifeFallbackChannels,
-                          serverHeartbeatFallbackEnabled:
-                              _document.globalSafeguards.serverHeartbeatFallbackEnabled,
-                          iosBackgroundRiskAcknowledged:
-                              _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                          emergencyAccessRequiresBeneficiaryRequest: _document
+                              .globalSafeguards
+                              .emergencyAccessRequiresBeneficiaryRequest,
+                          emergencyAccessRequiresGuardianQuorum: _document
+                              .globalSafeguards
+                              .emergencyAccessRequiresGuardianQuorum,
+                          emergencyAccessGraceHours: _document
+                              .globalSafeguards.emergencyAccessGraceHours,
+                          proofOfLifeCheckMode:
+                              _document.globalSafeguards.proofOfLifeCheckMode,
+                          proofOfLifeFallbackChannels: _document
+                              .globalSafeguards.proofOfLifeFallbackChannels,
+                          serverHeartbeatFallbackEnabled: _document
+                              .globalSafeguards.serverHeartbeatFallbackEnabled,
+                          iosBackgroundRiskAcknowledged: _document
+                              .globalSafeguards.iosBackgroundRiskAcknowledged,
                         ),
-                        message: "Updated emergency access posture.",
+                        message: "Updated emergency access settings.",
                       );
                     },
                   ),
@@ -1151,39 +1257,50 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       title: const Text("Require beneficiary request"),
-                      subtitle: const Text("Emergency access should begin with an explicit beneficiary request."),
-                      value: _document.globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                      subtitle: const Text(
+                        "Emergency access should begin with an explicit beneficiary request.",
+                      ),
+                      value: _document.globalSafeguards
+                          .emergencyAccessRequiresBeneficiaryRequest,
                       onChanged: (value) {
                         _updateGlobalSafeguards(
                           IntentGlobalSafeguardsModel(
-                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
-                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
-                            defaultRemindersDaysBefore:
-                                _document.globalSafeguards.defaultRemindersDaysBefore,
-                            requireMultisignalBeforeRelease:
-                                _document.globalSafeguards.requireMultisignalBeforeRelease,
-                            requireGuardianApprovalForLegacy:
-                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
-                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
-                            guardianQuorumRequired:
-                                _document.globalSafeguards.guardianQuorumRequired,
-                            guardianQuorumPoolSize:
-                                _document.globalSafeguards.guardianQuorumPoolSize,
-                            emergencyAccessEnabled:
-                                _document.globalSafeguards.emergencyAccessEnabled,
-                            emergencyAccessRequiresBeneficiaryRequest: value ?? true,
-                            emergencyAccessRequiresGuardianQuorum:
-                                _document.globalSafeguards.emergencyAccessRequiresGuardianQuorum,
-                            emergencyAccessGraceHours:
-                                _document.globalSafeguards.emergencyAccessGraceHours,
+                            emergencyPauseEnabled: _document
+                                .globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays:
+                                _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore: _document
+                                .globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease: _document
+                                .globalSafeguards
+                                .requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy: _document
+                                .globalSafeguards
+                                .requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document
+                                .globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired: _document
+                                .globalSafeguards.guardianQuorumRequired,
+                            guardianQuorumPoolSize: _document
+                                .globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled: _document
+                                .globalSafeguards.emergencyAccessEnabled,
+                            emergencyAccessRequiresBeneficiaryRequest:
+                                value ?? true,
+                            emergencyAccessRequiresGuardianQuorum: _document
+                                .globalSafeguards
+                                .emergencyAccessRequiresGuardianQuorum,
+                            emergencyAccessGraceHours: _document
+                                .globalSafeguards.emergencyAccessGraceHours,
                             proofOfLifeCheckMode:
                                 _document.globalSafeguards.proofOfLifeCheckMode,
-                            proofOfLifeFallbackChannels:
-                                _document.globalSafeguards.proofOfLifeFallbackChannels,
-                            serverHeartbeatFallbackEnabled:
-                                _document.globalSafeguards.serverHeartbeatFallbackEnabled,
-                            iosBackgroundRiskAcknowledged:
-                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                            proofOfLifeFallbackChannels: _document
+                                .globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled: _document
+                                .globalSafeguards
+                                .serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged: _document
+                                .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
                           message: "Updated beneficiary request requirement.",
                         );
@@ -1191,89 +1308,112 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     ),
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text("Require guardian quorum"),
-                      subtitle: const Text("Recommended so emergency access stays multi-party and auditable."),
-                      value: _document.globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                      title: const Text("Require shared approval"),
+                      subtitle: const Text(
+                        "Recommended so emergency access remains multi-party and auditable.",
+                      ),
+                      value: _document.globalSafeguards
+                          .emergencyAccessRequiresGuardianQuorum,
                       onChanged: (value) {
                         _updateGlobalSafeguards(
                           IntentGlobalSafeguardsModel(
-                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
-                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
-                            defaultRemindersDaysBefore:
-                                _document.globalSafeguards.defaultRemindersDaysBefore,
-                            requireMultisignalBeforeRelease:
-                                _document.globalSafeguards.requireMultisignalBeforeRelease,
-                            requireGuardianApprovalForLegacy:
-                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
-                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
-                            guardianQuorumRequired:
-                                _document.globalSafeguards.guardianQuorumRequired,
-                            guardianQuorumPoolSize:
-                                _document.globalSafeguards.guardianQuorumPoolSize,
-                            emergencyAccessEnabled:
-                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyPauseEnabled: _document
+                                .globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays:
+                                _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore: _document
+                                .globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease: _document
+                                .globalSafeguards
+                                .requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy: _document
+                                .globalSafeguards
+                                .requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document
+                                .globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired: _document
+                                .globalSafeguards.guardianQuorumRequired,
+                            guardianQuorumPoolSize: _document
+                                .globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled: _document
+                                .globalSafeguards.emergencyAccessEnabled,
                             emergencyAccessRequiresBeneficiaryRequest: _document
-                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
-                            emergencyAccessRequiresGuardianQuorum: value ?? true,
-                            emergencyAccessGraceHours:
-                                _document.globalSafeguards.emergencyAccessGraceHours,
+                                .globalSafeguards
+                                .emergencyAccessRequiresBeneficiaryRequest,
+                            emergencyAccessRequiresGuardianQuorum:
+                                value ?? true,
+                            emergencyAccessGraceHours: _document
+                                .globalSafeguards.emergencyAccessGraceHours,
                             proofOfLifeCheckMode:
                                 _document.globalSafeguards.proofOfLifeCheckMode,
-                            proofOfLifeFallbackChannels:
-                                _document.globalSafeguards.proofOfLifeFallbackChannels,
-                            serverHeartbeatFallbackEnabled:
-                                _document.globalSafeguards.serverHeartbeatFallbackEnabled,
-                            iosBackgroundRiskAcknowledged:
-                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                            proofOfLifeFallbackChannels: _document
+                                .globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled: _document
+                                .globalSafeguards
+                                .serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged: _document
+                                .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated emergency guardian requirement.",
+                          message:
+                              "Updated emergency shared-approval requirement.",
                         );
                       },
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Emergency access grace window: ${_document.globalSafeguards.emergencyAccessGraceHours} hours",
+                      "Emergency access waiting window: ${_document.globalSafeguards.emergencyAccessGraceHours} hours",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Slider(
-                      value: _document.globalSafeguards.emergencyAccessGraceHours.toDouble(),
+                      value: _document
+                          .globalSafeguards.emergencyAccessGraceHours
+                          .toDouble(),
                       min: 24,
                       max: 168,
                       divisions: 6,
-                      label: "${_document.globalSafeguards.emergencyAccessGraceHours}",
+                      label:
+                          "${_document.globalSafeguards.emergencyAccessGraceHours}",
                       onChanged: (value) {
                         _updateGlobalSafeguards(
                           IntentGlobalSafeguardsModel(
-                            emergencyPauseEnabled: _document.globalSafeguards.emergencyPauseEnabled,
-                            defaultGraceDays: _document.globalSafeguards.defaultGraceDays,
-                            defaultRemindersDaysBefore:
-                                _document.globalSafeguards.defaultRemindersDaysBefore,
-                            requireMultisignalBeforeRelease:
-                                _document.globalSafeguards.requireMultisignalBeforeRelease,
-                            requireGuardianApprovalForLegacy:
-                                _document.globalSafeguards.requireGuardianApprovalForLegacy,
-                            guardianQuorumEnabled: _document.globalSafeguards.guardianQuorumEnabled,
-                            guardianQuorumRequired:
-                                _document.globalSafeguards.guardianQuorumRequired,
-                            guardianQuorumPoolSize:
-                                _document.globalSafeguards.guardianQuorumPoolSize,
-                            emergencyAccessEnabled:
-                                _document.globalSafeguards.emergencyAccessEnabled,
+                            emergencyPauseEnabled: _document
+                                .globalSafeguards.emergencyPauseEnabled,
+                            defaultGraceDays:
+                                _document.globalSafeguards.defaultGraceDays,
+                            defaultRemindersDaysBefore: _document
+                                .globalSafeguards.defaultRemindersDaysBefore,
+                            requireMultisignalBeforeRelease: _document
+                                .globalSafeguards
+                                .requireMultisignalBeforeRelease,
+                            requireGuardianApprovalForLegacy: _document
+                                .globalSafeguards
+                                .requireGuardianApprovalForLegacy,
+                            guardianQuorumEnabled: _document
+                                .globalSafeguards.guardianQuorumEnabled,
+                            guardianQuorumRequired: _document
+                                .globalSafeguards.guardianQuorumRequired,
+                            guardianQuorumPoolSize: _document
+                                .globalSafeguards.guardianQuorumPoolSize,
+                            emergencyAccessEnabled: _document
+                                .globalSafeguards.emergencyAccessEnabled,
                             emergencyAccessRequiresBeneficiaryRequest: _document
-                                .globalSafeguards.emergencyAccessRequiresBeneficiaryRequest,
+                                .globalSafeguards
+                                .emergencyAccessRequiresBeneficiaryRequest,
                             emergencyAccessRequiresGuardianQuorum: _document
-                                .globalSafeguards.emergencyAccessRequiresGuardianQuorum,
+                                .globalSafeguards
+                                .emergencyAccessRequiresGuardianQuorum,
                             emergencyAccessGraceHours: value.round(),
                             proofOfLifeCheckMode:
                                 _document.globalSafeguards.proofOfLifeCheckMode,
-                            proofOfLifeFallbackChannels:
-                                _document.globalSafeguards.proofOfLifeFallbackChannels,
-                            serverHeartbeatFallbackEnabled:
-                                _document.globalSafeguards.serverHeartbeatFallbackEnabled,
-                            iosBackgroundRiskAcknowledged:
-                                _document.globalSafeguards.iosBackgroundRiskAcknowledged,
+                            proofOfLifeFallbackChannels: _document
+                                .globalSafeguards.proofOfLifeFallbackChannels,
+                            serverHeartbeatFallbackEnabled: _document
+                                .globalSafeguards
+                                .serverHeartbeatFallbackEnabled,
+                            iosBackgroundRiskAcknowledged: _document
+                                .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated emergency access grace window.",
+                          message: "Updated emergency waiting window.",
                         );
                       },
                     ),
@@ -1287,7 +1427,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  "Draft entries",
+                  "Route entries",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -1295,7 +1435,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 onPressed: () {
                   _addDraftEntry();
                 },
-                child: const Text("Add intent entry"),
+                child: const Text("Add route"),
               ),
             ],
           ),
@@ -1309,7 +1449,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "No draft entries yet",
+                      "No routes yet",
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
@@ -1326,21 +1466,23 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               ),
             )
           else
-            ..._document.entries.map((entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _IntentEntryCard(
-                    entry: entry,
-                    onEdit: () {
-                      _editEntry(entry);
-                    },
-                    onToggleStatus: () {
-                      _toggleEntryStatus(entry);
-                    },
-                    onRemove: () {
-                      _removeEntry(entry);
-                    },
-                  ),
-                )),
+            ..._document.entries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _IntentEntryCard(
+                  entry: entry,
+                  onEdit: () {
+                    _editEntry(entry);
+                  },
+                  onToggleStatus: () {
+                    _toggleEntryStatus(entry);
+                  },
+                  onRemove: () {
+                    _removeEntry(entry);
+                  },
+                ),
+              ),
+            ),
           IntentReviewCard(report: report),
           const SizedBox(height: 12),
           Card(
@@ -1350,12 +1492,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Canonical export",
+                    "Export",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Export the current active intent set into a locally sealed PTN artifact with compiler report and trace metadata. This is the activation bridge from working draft to canonical policy output.",
+                    "Export the current active routes into a sealed local version with issue report and trace metadata. This is the bridge from draft work to a release candidate.",
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -1366,12 +1508,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             : () {
                                 _exportCanonicalArtifact(report, ptnPreview);
                               },
-                        child: Text(_isExporting ? "Exporting..." : "Export canonical PTN"),
+                        child: Text(
+                          _isExporting
+                              ? "Exporting..."
+                              : "Export current version",
+                        ),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton(
-                        onPressed: _artifact == null ? null : _clearCanonicalArtifact,
-                        child: const Text("Clear exported artifact"),
+                        onPressed:
+                            _artifact == null ? null : _clearCanonicalArtifact,
+                        child: const Text("Clear exported version"),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton(
@@ -1380,71 +1527,86 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             : () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => IntentArtifactReviewScreen(artifact: _artifact!),
+                                    builder: (_) => IntentArtifactReviewScreen(
+                                      artifact: _artifact!,
+                                    ),
                                   ),
                                 );
                               },
-                        child: const Text("Review artifact"),
+                        child: const Text("Review version"),
                       ),
                     ],
                   ),
                   if (_artifact != null) ...[
                     const SizedBox(height: 12),
-                    _Pill(label: "Last export: ${_artifact!.generatedAt.toLocal().toString()}"),
-                    const SizedBox(height: 8),
-                    Text("Contract: ${_artifact!.contractVersion}"),
-                    const SizedBox(height: 4),
-                    Text("Artifact state: ${_artifact!.artifactState.name}"),
-                    const SizedBox(height: 4),
-                    Text("Artifact active entries: ${_artifact!.activeEntryCount}"),
-                    const SizedBox(height: 4),
-                    Text("Trace entries: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}"),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Compiler status: ${_artifact!.report.errorCount} errors / ${_artifact!.report.warningCount} warnings",
+                    _Pill(
+                      label:
+                          "Last export: ${_artifact!.generatedAt.toLocal().toString()}",
                     ),
                     const SizedBox(height: 8),
-                      Text(
-                        artifactInSync
-                            ? "Activation status: draft and exported artifact are in sync."
-                            : "Activation status: draft changed since the last canonical export.",
-                        style: TextStyle(
+                    Text("Contract version: ${_artifact!.contractVersion}"),
+                    const SizedBox(height: 4),
+                    Text("Version status: ${_artifact!.artifactState.name}"),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Version active routes: ${_artifact!.activeEntryCount}",
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Trace entries: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}",
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Issue status: ${_artifact!.report.errorCount} blocking / ${_artifact!.report.warningCount} cautions",
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      artifactInSync
+                          ? "Release status: draft and exported version are in sync."
+                          : "Release status: draft changed since the last export.",
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: artifactInSync ? const Color(0xFF2F5D3A) : const Color(0xFF8A5A00),
+                        color: artifactInSync
+                            ? const Color(0xFF2F5D3A)
+                            : const Color(0xFF8A5A00),
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _statePolicyMessage(
+                        artifact: _artifact!,
+                        artifactInSync: artifactInSync,
+                        activeEntryCount: activeEntryCount,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _statePolicyMessage(
-                          artifact: _artifact!,
-                          artifactInSync: artifactInSync,
-                          activeEntryCount: activeEntryCount,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF5A4632),
-                          fontWeight: FontWeight.w500,
-                        ),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF5A4632),
+                        fontWeight: FontWeight.w500,
                       ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          OutlinedButton(
-                            onPressed: canMarkReviewed
-                                ? () {
-                                  _transitionArtifactState(IntentArtifactState.reviewed);
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton(
+                          onPressed: canMarkReviewed
+                              ? () {
+                                  _transitionArtifactState(
+                                    IntentArtifactState.reviewed,
+                                  );
                                 }
-                                : null,
-                            child: const Text("Mark reviewed"),
-                          ),
-                          OutlinedButton(
-                            onPressed: canMarkReady
-                                ? () {
-                                  _transitionArtifactState(IntentArtifactState.ready);
+                              : null,
+                          child: const Text("Mark reviewed"),
+                        ),
+                        OutlinedButton(
+                          onPressed: canMarkReady
+                              ? () {
+                                  _transitionArtifactState(
+                                    IntentArtifactState.ready,
+                                  );
                                 }
-                                : null,
+                              : null,
                           child: const Text("Mark ready"),
                         ),
                       ],
@@ -1453,19 +1615,22 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 12),
                     Text(
                       activeEntryCount > 0
-                          ? "No canonical artifact exported yet for the current active draft."
-                          : "Activate at least one entry to make canonical export meaningful.",
+                          ? "No exported version yet for the current active draft."
+                          : "Activate at least one route to make export meaningful.",
                     ),
                   ],
                   if (_artifactHistory.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     const Text(
                       "Export history",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Each export is kept as a separate local canonical artifact version for this owner.",
+                      "Each export is kept as a separate local version for this owner.",
                     ),
                     const SizedBox(height: 12),
                     Align(
@@ -1511,7 +1676,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           },
                         ),
                         ChoiceChip(
-                          label: const Text("Promoted"),
+                          label: const Text("Copied"),
                           selected: _historyFilter == 'promoted',
                           onSelected: (_) {
                             setState(() {
@@ -1531,9 +1696,18 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         DropdownButton<String>(
                           value: _historySort,
                           items: const [
-                            DropdownMenuItem(value: 'newest', child: Text("Newest first")),
-                            DropdownMenuItem(value: 'oldest', child: Text("Oldest first")),
-                            DropdownMenuItem(value: 'state', child: Text("Sort by state")),
+                            DropdownMenuItem(
+                              value: 'newest',
+                              child: Text("Newest first"),
+                            ),
+                            DropdownMenuItem(
+                              value: 'oldest',
+                              child: Text("Oldest first"),
+                            ),
+                            DropdownMenuItem(
+                              value: 'state',
+                              child: Text("Sort by state"),
+                            ),
                           ],
                           onChanged: (value) {
                             if (value == null) {
@@ -1549,82 +1723,96 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 12),
                     if (visibleArtifactHistory.isEmpty)
                       const Text(
-                        "No artifact versions match the current history filter.",
+                        "No versions match the current history filter.",
                       ),
                     ...visibleArtifactHistory.take(5).map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                            title: Text(
-                              "${item.generatedAt.toLocal()} · ${item.artifactState.name}",
-                            ),
-                            subtitle: Text(
-                              "Artifact ${item.artifactId} · ${item.activeEntryCount} active entries",
-                            ),
-                            isThreeLine: _artifactBadges(item).isNotEmpty,
-                            dense: false,
-                            minVerticalPadding: 10,
-                            leading: _artifactBadges(item).isEmpty
-                                ? null
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: _artifactBadges(item)
-                                        .take(2)
-                                        .map((badge) => Padding(
-                                              padding: const EdgeInsets.only(bottom: 4),
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                "${item.generatedAt.toLocal()} | ${item.artifactState.name}",
+                              ),
+                              subtitle: Text(
+                                "Version ${item.artifactId} | ${item.activeEntryCount} active routes",
+                              ),
+                              isThreeLine: _artifactBadges(item).isNotEmpty,
+                              dense: false,
+                              minVerticalPadding: 10,
+                              leading: _artifactBadges(item).isEmpty
+                                  ? null
+                                  : Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: _artifactBadges(item)
+                                          .take(2)
+                                          .map(
+                                            (badge) => Padding(
+                                              padding: const EdgeInsets.only(
+                                                bottom: 4,
+                                              ),
                                               child: _Pill(label: badge),
-                                            ))
-                                        .toList(),
-                                  ),
-                            trailing: Wrap(
-                              spacing: 8,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => IntentArtifactReviewScreen(artifact: item),
-                                    ),
-                                  );
-                                },
-                                child: const Text("Review"),
-                              ),
-                              TextButton(
-                                onPressed: _artifact != null && item.artifactId != _artifact!.artifactId
-                                    ? () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) => IntentArtifactCompareScreen(
-                                              currentArtifact: _artifact!,
-                                              compareArtifact: item,
                                             ),
+                                          )
+                                          .toList(),
+                                    ),
+                              trailing: Wrap(
+                                spacing: 8,
+                                children: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              IntentArtifactReviewScreen(
+                                            artifact: item,
                                           ),
-                                        );
-                                      }
-                                    : null,
-                                child: const Text("Compare"),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text("Review"),
+                                  ),
+                                  TextButton(
+                                    onPressed: _artifact != null &&
+                                            item.artifactId !=
+                                                _artifact!.artifactId
+                                        ? () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    IntentArtifactCompareScreen(
+                                                  currentArtifact: _artifact!,
+                                                  compareArtifact: item,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        : null,
+                                    child: const Text("Compare"),
+                                  ),
+                                  TextButton(
+                                    onPressed: _artifact != null &&
+                                            item.artifactId !=
+                                                _artifact!.artifactId
+                                        ? () {
+                                            _promoteArtifactVersion(item);
+                                          }
+                                        : null,
+                                    child: const Text("Copy"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      _clearArtifactVersion(item.artifactId);
+                                    },
+                                    child: const Text("Remove"),
+                                  ),
+                                ],
                               ),
-                              TextButton(
-                                onPressed: _artifact != null && item.artifactId != _artifact!.artifactId
-                                    ? () {
-                                        _promoteArtifactVersion(item);
-                                      }
-                                    : null,
-                                child: const Text("Promote"),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  _clearArtifactVersion(item.artifactId);
-                                },
-                                child: const Text("Remove version"),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
                   ],
                 ],
               ),
@@ -1638,12 +1826,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Compiler bridge",
+                    "Policy preview",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Draft canonical preview generated from the current intent document. This stays close to compiler semantics so users can see the PTN shape early.",
+                    "Preview generated from the current draft so you can review policy text early before exporting.",
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -1655,7 +1843,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     ),
                     child: SelectableText(
                       ptnPreview,
-                      style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
+                      style: const TextStyle(
+                        fontFamily: 'Consolas',
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -1694,7 +1885,10 @@ class _IntentEntryCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     entry.asset.displayName,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 _Pill(label: entry.kind),
@@ -1703,39 +1897,51 @@ class _IntentEntryCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text("Recipient: ${entry.recipient.destinationRef.isEmpty ? "Not set" : entry.recipient.destinationRef}"),
+            Text(
+              "Recipient: ${entry.recipient.destinationRef.isEmpty ? "Not set" : entry.recipient.destinationRef}",
+            ),
             const SizedBox(height: 4),
             Text("Recipient channel: ${entry.recipient.deliveryChannel}"),
             const SizedBox(height: 4),
             if (entry.recipient.registeredLegalName.trim().isNotEmpty) ...[
-              Text("Registered beneficiary: ${entry.recipient.registeredLegalName}"),
+              Text(
+                "Registered beneficiary: ${entry.recipient.registeredLegalName}",
+              ),
               const SizedBox(height: 4),
             ],
             if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
               Text("Verification hint: ${entry.recipient.verificationHint}"),
               const SizedBox(height: 4),
             ],
-            Text("Fallback channels: ${entry.recipient.fallbackChannels.join(", ")}"),
+            Text(
+              "Fallback channels: ${entry.recipient.fallbackChannels.join(", ")}",
+            ),
             const SizedBox(height: 4),
-            Text("Trigger: ${entry.trigger.mode} / ${entry.trigger.inactivityDays} inactivity days + ${entry.trigger.graceDays} grace days"),
+            Text(
+              "Start condition: ${entry.trigger.mode} | ${entry.trigger.inactivityDays} inactive days + ${entry.trigger.graceDays} confirmation days",
+            ),
             const SizedBox(height: 4),
             Text(
               "Delivery: ${entry.delivery.method}"
               "${entry.delivery.requireVerificationCode ? " + verification code" : ""}"
-              "${entry.delivery.requireTotp ? " + TOTP" : ""}",
+              "${entry.delivery.requireTotp ? " + authenticator code" : ""}",
             ),
             const SizedBox(height: 4),
             Text("Privacy: ${entry.privacy.profile}"),
             const SizedBox(height: 4),
-            Text("Visibility before trigger: ${entry.privacy.preTriggerVisibility}"),
+            Text(
+              "Before release visibility: ${entry.privacy.preTriggerVisibility}",
+            ),
             const SizedBox(height: 4),
-            Text("Visibility after trigger: ${entry.privacy.postTriggerVisibility}"),
+            Text(
+              "After release visibility: ${entry.privacy.postTriggerVisibility}",
+            ),
             const SizedBox(height: 4),
             Text("Value disclosure: ${entry.privacy.valueDisclosureMode}"),
             const SizedBox(height: 4),
             Text(
               "Safeguards: "
-              "${entry.safeguards.requireMultisignal ? "multisignal" : "single-signal"}"
+              "${entry.safeguards.requireMultisignal ? "multi-signal confirmation" : "single confirmation"}"
               "${entry.safeguards.requireGuardianApproval ? ", guardian approval" : ""}",
             ),
             const SizedBox(height: 4),
@@ -1743,20 +1949,16 @@ class _IntentEntryCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                OutlinedButton(
-                  onPressed: onEdit,
-                  child: const Text("Edit"),
-                ),
+                OutlinedButton(onPressed: onEdit, child: const Text("Edit")),
                 const SizedBox(width: 8),
                 FilledButton.tonal(
                   onPressed: onToggleStatus,
-                  child: Text(entry.status == 'active' ? "Move to draft" : "Activate"),
+                  child: Text(
+                    entry.status == 'active' ? "Pause route" : "Activate route",
+                  ),
                 ),
                 const SizedBox(width: 8),
-                TextButton(
-                  onPressed: onRemove,
-                  child: const Text("Remove"),
-                ),
+                TextButton(onPressed: onRemove, child: const Text("Remove")),
               ],
             ),
           ],
@@ -1772,7 +1974,8 @@ class _IntentEntryEditorDialog extends StatefulWidget {
   final IntentEntryModel entry;
 
   @override
-  State<_IntentEntryEditorDialog> createState() => _IntentEntryEditorDialogState();
+  State<_IntentEntryEditorDialog> createState() =>
+      _IntentEntryEditorDialogState();
 }
 
 class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
@@ -1805,13 +2008,27 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   @override
   void initState() {
     super.initState();
-    _displayNameController = TextEditingController(text: widget.entry.asset.displayName);
-    _payloadRefController = TextEditingController(text: widget.entry.asset.payloadRef);
-    _recipientController = TextEditingController(text: widget.entry.recipient.destinationRef);
-    _recipientNameController = TextEditingController(text: widget.entry.recipient.registeredLegalName);
-    _verificationHintController = TextEditingController(text: widget.entry.recipient.verificationHint);
-    _triggerDaysController = TextEditingController(text: widget.entry.trigger.inactivityDays.toString());
-    _graceDaysController = TextEditingController(text: widget.entry.trigger.graceDays.toString());
+    _displayNameController = TextEditingController(
+      text: widget.entry.asset.displayName,
+    );
+    _payloadRefController = TextEditingController(
+      text: widget.entry.asset.payloadRef,
+    );
+    _recipientController = TextEditingController(
+      text: widget.entry.recipient.destinationRef,
+    );
+    _recipientNameController = TextEditingController(
+      text: widget.entry.recipient.registeredLegalName,
+    );
+    _verificationHintController = TextEditingController(
+      text: widget.entry.recipient.verificationHint,
+    );
+    _triggerDaysController = TextEditingController(
+      text: widget.entry.trigger.inactivityDays.toString(),
+    );
+    _graceDaysController = TextEditingController(
+      text: widget.entry.trigger.graceDays.toString(),
+    );
     _kind = widget.entry.kind;
     _recipientChannel = widget.entry.recipient.deliveryChannel;
     _deliveryMethod = widget.entry.delivery.method;
@@ -1827,7 +2044,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _requireGuardianApproval = widget.entry.safeguards.requireGuardianApproval;
     _requireMultisignal = widget.entry.safeguards.requireMultisignal;
     _oneTimeAccess = widget.entry.delivery.oneTimeAccess;
-    _requireAliveConfirmation = widget.entry.trigger.requireUnconfirmedAliveStatus;
+    _requireAliveConfirmation =
+        widget.entry.trigger.requireUnconfirmedAliveStatus;
     final fallbackChannels = widget.entry.recipient.fallbackChannels.toSet();
     _fallbackEmail = fallbackChannels.contains("email");
     _fallbackSms = fallbackChannels.contains("sms");
@@ -1848,7 +2066,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Edit intent entry"),
+      title: const Text("Edit route details"),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1862,10 +2080,16 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _kind,
-              decoration: const InputDecoration(labelText: "Intent kind"),
+              decoration: const InputDecoration(labelText: "Route type"),
               items: const [
-                DropdownMenuItem(value: "legacy_delivery", child: Text("Legacy delivery")),
-                DropdownMenuItem(value: "self_recovery", child: Text("Self-recovery")),
+                DropdownMenuItem(
+                  value: "legacy_delivery",
+                  child: Text("Legacy delivery"),
+                ),
+                DropdownMenuItem(
+                  value: "self_recovery",
+                  child: Text("Self-recovery"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -1876,16 +2100,25 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _displayNameController,
-              decoration: const InputDecoration(labelText: "Asset label"),
+              decoration: const InputDecoration(labelText: "Route label"),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _assetType,
-              decoration: const InputDecoration(labelText: "Asset type"),
+              decoration: const InputDecoration(labelText: "Reference type"),
               items: const [
-                DropdownMenuItem(value: "vault_item", child: Text("Vault item")),
-                DropdownMenuItem(value: "backup_email_route", child: Text("Backup email route")),
-                DropdownMenuItem(value: "document_notice", child: Text("Document notice")),
+                DropdownMenuItem(
+                  value: "vault_item",
+                  child: Text("Vault item"),
+                ),
+                DropdownMenuItem(
+                  value: "backup_email_route",
+                  child: Text("Backup email route"),
+                ),
+                DropdownMenuItem(
+                  value: "document_notice",
+                  child: Text("Document notice"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -1896,11 +2129,21 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _payloadMode,
-              decoration: const InputDecoration(labelText: "Payload mode"),
+              decoration:
+                  const InputDecoration(labelText: "Delivery package type"),
               items: const [
-                DropdownMenuItem(value: "secure_link", child: Text("Secure link")),
-                DropdownMenuItem(value: "self_recovery_route", child: Text("Self-recovery route")),
-                DropdownMenuItem(value: "handoff_notice", child: Text("Handoff notice")),
+                DropdownMenuItem(
+                  value: "secure_link",
+                  child: Text("Secure link"),
+                ),
+                DropdownMenuItem(
+                  value: "self_recovery_route",
+                  child: Text("Self-recovery route"),
+                ),
+                DropdownMenuItem(
+                  value: "handoff_notice",
+                  child: Text("Handoff notice"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -1911,17 +2154,21 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _payloadRefController,
-              decoration: const InputDecoration(labelText: "Payload reference"),
+              decoration: const InputDecoration(labelText: "Secure reference"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _recipientController,
-              decoration: const InputDecoration(labelText: "Recipient destination"),
+              decoration: const InputDecoration(
+                labelText: "Delivery destination",
+              ),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _recipientNameController,
-              decoration: const InputDecoration(labelText: "Registered beneficiary name"),
+              decoration: const InputDecoration(
+                labelText: "Registered beneficiary name",
+              ),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -1931,7 +2178,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _recipientChannel,
-              decoration: const InputDecoration(labelText: "Recipient channel"),
+              decoration: const InputDecoration(labelText: "Delivery channel"),
               items: const [
                 DropdownMenuItem(value: "email", child: Text("Email")),
                 DropdownMenuItem(value: "sms", child: Text("SMS")),
@@ -1949,12 +2196,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               children: [
                 FilterChip(
                   selected: _fallbackEmail,
-                  label: const Text("Email fallback"),
+                  label: const Text("Fallback email"),
                   onSelected: (value) => setState(() => _fallbackEmail = value),
                 ),
                 FilterChip(
                   selected: _fallbackSms,
-                  label: const Text("SMS fallback"),
+                  label: const Text("Fallback SMS"),
                   onSelected: (value) => setState(() => _fallbackSms = value),
                 ),
               ],
@@ -1962,10 +2209,16 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _triggerMode,
-              decoration: const InputDecoration(labelText: "Trigger mode"),
+              decoration: const InputDecoration(labelText: "Start condition"),
               items: const [
-                DropdownMenuItem(value: "inactivity", child: Text("Inactivity")),
-                DropdownMenuItem(value: "manual_release", child: Text("Manual release")),
+                DropdownMenuItem(
+                  value: "inactivity",
+                  child: Text("Inactivity"),
+                ),
+                DropdownMenuItem(
+                  value: "manual_release",
+                  child: Text("Manual release"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -1977,22 +2230,33 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             TextField(
               controller: _triggerDaysController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Inactivity days"),
+              decoration: const InputDecoration(
+                  labelText: "Inactive days before start"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _graceDaysController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Grace days"),
+              decoration:
+                  const InputDecoration(labelText: "Final confirmation days"),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _deliveryMethod,
               decoration: const InputDecoration(labelText: "Delivery method"),
               items: const [
-                DropdownMenuItem(value: "secure_link", child: Text("Secure link")),
-                DropdownMenuItem(value: "self_recovery_route", child: Text("Self-recovery route")),
-                DropdownMenuItem(value: "handoff_notice", child: Text("Handoff notice")),
+                DropdownMenuItem(
+                  value: "secure_link",
+                  child: Text("Secure link"),
+                ),
+                DropdownMenuItem(
+                  value: "self_recovery_route",
+                  child: Text("Self-recovery route"),
+                ),
+                DropdownMenuItem(
+                  value: "handoff_notice",
+                  child: Text("Handoff notice"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -2003,11 +2267,17 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _privacyProfile,
-              decoration: const InputDecoration(labelText: "Privacy profile"),
+              decoration: const InputDecoration(labelText: "Privacy preset"),
               items: const [
-                DropdownMenuItem(value: "confidential", child: Text("Confidential")),
+                DropdownMenuItem(
+                  value: "confidential",
+                  child: Text("Confidential"),
+                ),
                 DropdownMenuItem(value: "minimal", child: Text("Minimal")),
-                DropdownMenuItem(value: "audit-heavy", child: Text("Audit-heavy")),
+                DropdownMenuItem(
+                  value: "audit-heavy",
+                  child: Text("Audit-heavy"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -2018,10 +2288,15 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _preTriggerVisibility,
-              decoration: const InputDecoration(labelText: "Visibility before trigger"),
+              decoration: const InputDecoration(
+                labelText: "Before release visibility",
+              ),
               items: const [
                 DropdownMenuItem(value: "none", child: Text("None")),
-                DropdownMenuItem(value: "notice_only", child: Text("Notice only")),
+                DropdownMenuItem(
+                  value: "notice_only",
+                  child: Text("Notice only"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -2032,11 +2307,22 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _postTriggerVisibility,
-              decoration: const InputDecoration(labelText: "Visibility after trigger"),
+              decoration: const InputDecoration(
+                labelText: "After release visibility",
+              ),
               items: const [
-                DropdownMenuItem(value: "existence_only", child: Text("Existence only")),
-                DropdownMenuItem(value: "route_only", child: Text("Route only")),
-                DropdownMenuItem(value: "route_and_instructions", child: Text("Route and instructions")),
+                DropdownMenuItem(
+                  value: "existence_only",
+                  child: Text("Existence only"),
+                ),
+                DropdownMenuItem(
+                  value: "route_only",
+                  child: Text("Route only"),
+                ),
+                DropdownMenuItem(
+                  value: "route_and_instructions",
+                  child: Text("Route and instructions"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -2047,10 +2333,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _valueDisclosureMode,
-              decoration: const InputDecoration(labelText: "Value disclosure"),
+              decoration: const InputDecoration(labelText: "Value visibility"),
               items: const [
                 DropdownMenuItem(value: "hidden", child: Text("Hidden")),
-                DropdownMenuItem(value: "institution_verified_only", child: Text("Institution verified only")),
+                DropdownMenuItem(
+                  value: "institution_verified_only",
+                  child: Text("Institution verified only"),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -2061,7 +2350,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             const SizedBox(height: 8),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text("Require verification code"),
+              title: const Text("Require one-time code"),
               value: _requireVerificationCode,
               onChanged: (value) {
                 setState(() => _requireVerificationCode = value);
@@ -2069,7 +2358,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             ),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text("Require TOTP"),
+              title: const Text("Require authenticator code"),
               value: _requireTotp,
               onChanged: (value) {
                 setState(() => _requireTotp = value);
@@ -2085,7 +2374,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             ),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text("Require multisignal"),
+              title: const Text("Require multi-signal confirmation"),
               value: _requireMultisignal,
               onChanged: (value) {
                 setState(() => _requireMultisignal = value);
@@ -2101,7 +2390,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             ),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text("Require unconfirmed alive status"),
+              title: const Text("Require unconfirmed alive signal"),
               value: _requireAliveConfirmation,
               onChanged: (value) {
                 setState(() => _requireAliveConfirmation = value);
@@ -2117,8 +2406,11 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
         ),
         FilledButton(
           onPressed: () {
-            final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ?? widget.entry.trigger.inactivityDays;
-            final graceDays = int.tryParse(_graceDaysController.text.trim()) ?? widget.entry.trigger.graceDays;
+            final inactivityDays =
+                int.tryParse(_triggerDaysController.text.trim()) ??
+                    widget.entry.trigger.inactivityDays;
+            final graceDays = int.tryParse(_graceDaysController.text.trim()) ??
+                widget.entry.trigger.graceDays;
             Navigator.of(context).pop(
               widget.entry.copyWith(
                 kind: _kind,
@@ -2134,10 +2426,14 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 ),
                 recipient: IntentRecipientModel(
                   recipientId: widget.entry.recipient.recipientId,
-                  relationship: _kind == "self_recovery" ? "owner" : widget.entry.recipient.relationship,
+                  relationship: _kind == "self_recovery"
+                      ? "owner"
+                      : widget.entry.recipient.relationship,
                   deliveryChannel: _recipientChannel,
                   destinationRef: _recipientController.text.trim(),
-                  role: _kind == "self_recovery" ? "owner" : widget.entry.recipient.role,
+                  role: _kind == "self_recovery"
+                      ? "owner"
+                      : widget.entry.recipient.role,
                   registeredLegalName: _kind == "self_recovery"
                       ? "Owner"
                       : _recipientNameController.text.trim(),
@@ -2167,11 +2463,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   requireGuardianApproval: _requireGuardianApproval,
                   requireMultisignal: _requireMultisignal,
                   cooldownHours: widget.entry.safeguards.cooldownHours,
-                  legalDisclaimerRequired: widget.entry.safeguards.legalDisclaimerRequired,
+                  legalDisclaimerRequired:
+                      widget.entry.safeguards.legalDisclaimerRequired,
                 ),
                 privacy: IntentPrivacyModel(
                   profile: _privacyProfile,
-                  minimizeTraceMetadata: widget.entry.privacy.minimizeTraceMetadata,
+                  minimizeTraceMetadata:
+                      widget.entry.privacy.minimizeTraceMetadata,
                   preTriggerVisibility: _preTriggerVisibility,
                   postTriggerVisibility: _postTriggerVisibility,
                   valueDisclosureMode: _valueDisclosureMode,
@@ -2179,7 +2477,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               ),
             );
           },
-          child: const Text("Apply"),
+          child: const Text("Save route"),
         ),
       ],
     );

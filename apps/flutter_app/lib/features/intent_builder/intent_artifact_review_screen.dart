@@ -4,20 +4,17 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_a
 import 'package:flutter/material.dart';
 
 class IntentArtifactReviewScreen extends StatelessWidget {
-  const IntentArtifactReviewScreen({
-    super.key,
-    required this.artifact,
-  });
+  const IntentArtifactReviewScreen({super.key, required this.artifact});
 
   final IntentCanonicalArtifactModel artifact;
 
   @override
   Widget build(BuildContext context) {
-    final traceJson = const JsonEncoder.withIndent('  ').convert(artifact.trace);
+    final traceJson = const JsonEncoder.withIndent(
+      '  ',
+    ).convert(artifact.trace);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Canonical Artifact Review"),
-      ),
+      appBar: AppBar(title: const Text("Exported Version Review")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -28,51 +25,59 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Artifact summary",
+                    "Version summary",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Text("Intent: ${artifact.intentId}"),
                   const SizedBox(height: 4),
-                  Text("Artifact: ${artifact.artifactId}"),
+                  Text("Version ID: ${artifact.artifactId}"),
                   if (artifact.promotedFromArtifactId != null &&
                       artifact.promotedFromArtifactId!.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text("Promoted from: ${artifact.promotedFromArtifactId}"),
+                    Text(
+                      "Copied from version: ${artifact.promotedFromArtifactId}",
+                    ),
                   ],
                   const SizedBox(height: 4),
                   Text("Owner: ${artifact.ownerRef}"),
                   const SizedBox(height: 4),
-                  Text("Contract: ${artifact.contractVersion}"),
+                  Text("Contract version: ${artifact.contractVersion}"),
                   const SizedBox(height: 4),
-                  Text("State: ${artifact.artifactState.name}"),
+                  Text("Status: ${artifact.artifactState.name}"),
                   const SizedBox(height: 4),
                   Text("Generated: ${artifact.generatedAt.toLocal()}"),
                   const SizedBox(height: 4),
-                  Text("Active entries: ${artifact.activeEntryCount}"),
-                  const SizedBox(height: 4),
-                  Text("Sealed release mode: ${artifact.sealedReleaseCandidate.releaseMode}"),
-                  const SizedBox(height: 4),
-                  Text("Secret residency: ${artifact.sealedReleaseCandidate.deviceSecretResidency}"),
-                  const SizedBox(height: 4),
-                  Text("Sealed release entries: ${artifact.sealedReleaseCandidate.entries.length}"),
+                  Text("Active routes: ${artifact.activeEntryCount}"),
                   const SizedBox(height: 4),
                   Text(
-                    "Compiler status: ${artifact.report.errorCount} errors / ${artifact.report.warningCount} warnings",
+                    "Release mode: ${artifact.sealedReleaseCandidate.releaseMode}",
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Secret residency: ${artifact.sealedReleaseCandidate.deviceSecretResidency}",
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Sealed release routes: ${artifact.sealedReleaseCandidate.entries.length}",
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Issue status: ${artifact.report.errorCount} blocking / ${artifact.report.warningCount} cautions",
                   ),
                   if (artifact.report.errorCount > 0) ...[
                     const SizedBox(height: 4),
-                    const Text("Badge: Has issues"),
+                    const Text("Badge: Has blocking issues"),
                   ],
                   const SizedBox(height: 4),
                   Text(
                     artifact.artifactState == IntentArtifactState.ready
-                        ? "State policy: this artifact reached ready after export and review."
-                        : "State policy: exported artifacts should be reviewed before they are treated as ready.",
+                        ? "Status rule: this version reached ready after export and review."
+                        : "Status rule: exported versions should be reviewed before being treated as ready.",
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    "Historical artifacts may be promoted into a fresh exported version when the owner wants to resume from an earlier canonical snapshot.",
+                    "Historical versions can be copied into a fresh export when you want to resume from an earlier checkpoint.",
                   ),
                 ],
               ),
@@ -86,16 +91,20 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Sealed release candidate",
+                    "Sealed release package",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Text("Candidate: ${artifact.sealedReleaseCandidate.candidateId}"),
+                  Text(
+                    "Package ID: ${artifact.sealedReleaseCandidate.candidateId}",
+                  ),
                   const SizedBox(height: 4),
-                  Text("Sealed at: ${artifact.sealedReleaseCandidate.sealedAt.toLocal()}"),
+                  Text(
+                    "Sealed at: ${artifact.sealedReleaseCandidate.sealedAt.toLocal()}",
+                  ),
                   const SizedBox(height: 4),
                   const Text(
-                    "This candidate represents the release posture only. Secret payloads stay device-local and value disclosure should remain hidden or institution-verified.",
+                    "This package shows release posture only. Secret payloads remain on-device, and value visibility stays hidden or institution-verified.",
                   ),
                   const SizedBox(height: 10),
                   ...artifact.sealedReleaseCandidate.entries.map(
@@ -113,20 +122,30 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                           children: [
                             Text(
                               entry.assetLabel,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 6),
-                            Text("Kind: ${entry.kind}"),
+                            Text("Route kind: ${entry.kind}"),
                             const SizedBox(height: 4),
                             Text("Release channel: ${entry.releaseChannel}"),
                             const SizedBox(height: 4),
-                            Text("Pre-trigger visibility: ${entry.preTriggerVisibility}"),
+                            Text(
+                              "Before trigger visibility: ${entry.preTriggerVisibility}",
+                            ),
                             const SizedBox(height: 4),
-                            Text("Post-trigger visibility: ${entry.postTriggerVisibility}"),
+                            Text(
+                              "After trigger visibility: ${entry.postTriggerVisibility}",
+                            ),
                             const SizedBox(height: 4),
-                            Text("Value disclosure: ${entry.valueDisclosureMode}"),
+                            Text(
+                              "Value disclosure: ${entry.valueDisclosureMode}",
+                            ),
                             const SizedBox(height: 4),
-                            Text("Partner verification required: ${entry.partnerVerificationRequired ? "yes" : "no"}"),
+                            Text(
+                              "Partner verification required: ${entry.partnerVerificationRequired ? "yes" : "no"}",
+                            ),
                           ],
                         ),
                       ),
@@ -144,12 +163,14 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Compiler report",
+                    "Issue report",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   if (artifact.report.issues.isEmpty)
-                    const Text("No compiler issues were captured in this artifact.")
+                    const Text(
+                      "No issues were captured in this exported version.",
+                    )
                   else
                     ...artifact.report.issues.map(
                       (issue) => Padding(
@@ -184,7 +205,10 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                     ),
                     child: SelectableText(
                       traceJson,
-                      style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
+                      style: const TextStyle(
+                        fontFamily: 'Consolas',
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -199,7 +223,7 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "PTN",
+                    "Policy Text",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -212,7 +236,10 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                     ),
                     child: SelectableText(
                       artifact.ptn,
-                      style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
+                      style: const TextStyle(
+                        fontFamily: 'Consolas',
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],

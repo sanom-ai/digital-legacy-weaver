@@ -1,3 +1,16 @@
 __pycache__/
 *.pyc
 docs/reports/
+ops/backups/
+supabase/.temp/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Flutter / Dart generated artifacts
+apps/flutter_app/.dart_tool/
+apps/flutter_app/build/
+apps/flutter_app/.flutter-plugins
+apps/flutter_app/.flutter-plugins-dependencies
+apps/flutter_app/.packages
+apps/flutter_app/pubspec_overrides.yaml

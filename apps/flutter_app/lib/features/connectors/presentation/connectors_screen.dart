@@ -22,7 +22,10 @@ class ConnectorsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Destination Paths", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                  const Text(
+                    "Destination Paths",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 8),
                   const Text(
                     "Track the services, routes, and handoff references that may be used when a protected workflow is activated.",
@@ -61,7 +64,9 @@ class ConnectorsScreen extends ConsumerWidget {
                               (c) => ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 title: Text(c.name),
-                                subtitle: Text("${c.connectorId} | ${c.status}\nassets: ${c.supportedAssetTypes.join(", ")}"),
+                                subtitle: Text(
+                                  "${c.connectorId} | ${c.status}\nassets: ${c.supportedAssetTypes.join(", ")}",
+                                ),
                               ),
                             )
                             .toList(),
@@ -71,8 +76,9 @@ class ConnectorsScreen extends ConsumerWidget {
                       message: "Loading destination paths...",
                       showSpinner: true,
                     ),
-                    error: (e, _) => _StatePanel(
-                      message: "Destination path load error: $e",
+                    error: (_, __) => _StatePanel(
+                      message:
+                          "We could not load destination paths right now. Please retry.",
                       isError: true,
                       actionLabel: "Retry",
                       onAction: () => ref.invalidate(connectorsProvider),
@@ -89,7 +95,10 @@ class ConnectorsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Legacy Asset References", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                  const Text(
+                    "Legacy Asset References",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 8),
                   const Text(
                     "Map private asset references to a destination path without exposing the underlying payload.",
@@ -97,19 +106,25 @@ class ConnectorsScreen extends ConsumerWidget {
                   const SizedBox(height: 10),
                   FilledButton.tonal(
                     onPressed: () async {
-                      final connectors = connectorsAsync.value ?? const <PartnerConnectorModel>[];
+                      final connectors = connectorsAsync.value ??
+                          const <PartnerConnectorModel>[];
                       if (connectors.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Add a destination path first.")),
+                          const SnackBar(
+                            content: Text("Add a destination path first."),
+                          ),
                         );
                         return;
                       }
                       final draft = await showDialog<_AssetRefDraft>(
                         context: context,
-                        builder: (_) => _AssetRefFormDialog(connectors: connectors),
+                        builder: (_) =>
+                            _AssetRefFormDialog(connectors: connectors),
                       );
                       if (draft == null) return;
-                      await ref.read(connectorAssetRefsProvider.notifier).addAssetRef(
+                      await ref
+                          .read(connectorAssetRefsProvider.notifier)
+                          .addAssetRef(
                             connectorRefId: draft.connectorRefId,
                             assetId: draft.assetId,
                             assetType: draft.assetType,
@@ -136,7 +151,9 @@ class ConnectorsScreen extends ConsumerWidget {
                               (a) => ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 title: Text(a.displayName),
-                                subtitle: Text("${a.assetType} | asset_id=${a.assetId}\nref=${a.encryptedPayloadRef}"),
+                                subtitle: Text(
+                                  "${a.assetType} | asset_id=${a.assetId}\nref=${a.encryptedPayloadRef}",
+                                ),
                               ),
                             )
                             .toList(),
@@ -146,11 +163,13 @@ class ConnectorsScreen extends ConsumerWidget {
                       message: "Loading asset references...",
                       showSpinner: true,
                     ),
-                    error: (e, _) => _StatePanel(
-                      message: "Asset refs load error: $e",
+                    error: (_, __) => _StatePanel(
+                      message:
+                          "We could not load asset references right now. Please retry.",
                       isError: true,
                       actionLabel: "Retry",
-                      onAction: () => ref.invalidate(connectorAssetRefsProvider),
+                      onAction: () =>
+                          ref.invalidate(connectorAssetRefsProvider),
                     ),
                   ),
                 ],
@@ -216,10 +235,7 @@ class _StatePanel extends StatelessWidget {
           ),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: onAction,
-              child: Text(actionLabel!),
-            ),
+            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
           ],
         ],
       ),
@@ -274,15 +290,26 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _connectorId, decoration: const InputDecoration(labelText: "Path ID")),
+            TextField(
+              controller: _connectorId,
+              decoration: const InputDecoration(labelText: "Path ID"),
+            ),
             const SizedBox(height: 8),
-            TextField(controller: _name, decoration: const InputDecoration(labelText: "Name")),
+            TextField(
+              controller: _name,
+              decoration: const InputDecoration(labelText: "Name"),
+            ),
             const SizedBox(height: 8),
-            TextField(controller: _assetTypes, decoration: const InputDecoration(labelText: "Asset Types (csv)")),
+            TextField(
+              controller: _assetTypes,
+              decoration: const InputDecoration(labelText: "Asset Types (csv)"),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _secondFactors,
-              decoration: const InputDecoration(labelText: "Second Factors (csv)"),
+              decoration: const InputDecoration(
+                labelText: "Second Factors (csv)",
+              ),
             ),
             CheckboxListTile(
               value: _supportsWebhooks,
@@ -294,7 +321,10 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
         FilledButton(
           onPressed: () {
             final connectorId = _connectorId.text.trim();
@@ -387,7 +417,12 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
             DropdownButtonFormField<String>(
               initialValue: _connectorRefId,
               items: widget.connectors
-                  .map((c) => DropdownMenuItem(value: c.id, child: Text("${c.name} (${c.connectorId})")))
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c.id,
+                      child: Text("${c.name} (${c.connectorId})"),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _connectorRefId = v);
@@ -395,37 +430,60 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
               decoration: const InputDecoration(labelText: "Destination Path"),
             ),
             const SizedBox(height: 8),
-            TextField(controller: _assetId, decoration: const InputDecoration(labelText: "Asset ID")),
+            TextField(
+              controller: _assetId,
+              decoration: const InputDecoration(labelText: "Asset ID"),
+            ),
             const SizedBox(height: 8),
-            TextField(controller: _assetType, decoration: const InputDecoration(labelText: "Asset Type")),
+            TextField(
+              controller: _assetType,
+              decoration: const InputDecoration(labelText: "Asset Type"),
+            ),
             const SizedBox(height: 8),
-            TextField(controller: _displayName, decoration: const InputDecoration(labelText: "Display Name")),
+            TextField(
+              controller: _displayName,
+              decoration: const InputDecoration(labelText: "Display Name"),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _payloadRef,
-              decoration: const InputDecoration(labelText: "Encrypted Payload Ref"),
+              decoration: const InputDecoration(
+                labelText: "Encrypted Payload Ref",
+              ),
             ),
             const SizedBox(height: 8),
-            TextField(controller: _integrityHash, decoration: const InputDecoration(labelText: "Integrity Hash")),
+            TextField(
+              controller: _integrityHash,
+              decoration: const InputDecoration(labelText: "Integrity Hash"),
+            ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
         FilledButton(
           onPressed: () {
             final assetId = _assetId.text.trim();
             final displayName = _displayName.text.trim();
             final payloadRef = _payloadRef.text.trim();
-            if (assetId.isEmpty || displayName.isEmpty || payloadRef.isEmpty) return;
+            if (assetId.isEmpty || displayName.isEmpty || payloadRef.isEmpty) {
+              return;
+            }
             Navigator.of(context).pop(
               _AssetRefDraft(
                 connectorRefId: _connectorRefId,
                 assetId: assetId,
-                assetType: _assetType.text.trim().isEmpty ? "unknown" : _assetType.text.trim(),
+                assetType: _assetType.text.trim().isEmpty
+                    ? "unknown"
+                    : _assetType.text.trim(),
                 displayName: displayName,
                 encryptedPayloadRef: payloadRef,
-                integrityHash: _integrityHash.text.trim().isEmpty ? null : _integrityHash.text.trim(),
+                integrityHash: _integrityHash.text.trim().isEmpty
+                    ? null
+                    : _integrityHash.text.trim(),
               ),
             );
           },

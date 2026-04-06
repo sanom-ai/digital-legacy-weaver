@@ -14,25 +14,30 @@ class IntentArtifactCompareScreen extends StatelessWidget {
   List<String> _changedFields() {
     final changes = <String>[];
     if (currentArtifact.artifactState != compareArtifact.artifactState) {
-      changes.add("Artifact state changed");
+      changes.add("Version status changed");
     }
     if (currentArtifact.activeEntryCount != compareArtifact.activeEntryCount) {
-      changes.add("Active entry count changed");
+      changes.add("Active route count changed");
     }
-    if (currentArtifact.report.errorCount != compareArtifact.report.errorCount ||
-        currentArtifact.report.warningCount != compareArtifact.report.warningCount) {
-      changes.add("Compiler status changed");
+    if (currentArtifact.report.errorCount !=
+            compareArtifact.report.errorCount ||
+        currentArtifact.report.warningCount !=
+            compareArtifact.report.warningCount) {
+      changes.add("Issue status changed");
     }
-    final currentTraceCount = (currentArtifact.trace["entries"] as Map?)?.length ?? 0;
-    final compareTraceCount = (compareArtifact.trace["entries"] as Map?)?.length ?? 0;
+    final currentTraceCount =
+        (currentArtifact.trace["entries"] as Map?)?.length ?? 0;
+    final compareTraceCount =
+        (compareArtifact.trace["entries"] as Map?)?.length ?? 0;
     if (currentTraceCount != compareTraceCount) {
-      changes.add("Trace entry count changed");
+      changes.add("Trace count changed");
     }
-    if (currentArtifact.promotedFromArtifactId != compareArtifact.promotedFromArtifactId) {
-      changes.add("Promotion lineage changed");
+    if (currentArtifact.promotedFromArtifactId !=
+        compareArtifact.promotedFromArtifactId) {
+      changes.add("Copy lineage changed");
     }
     if (currentArtifact.ptn != compareArtifact.ptn) {
-      changes.add("PTN body changed");
+      changes.add("Policy text changed");
     }
     return changes;
   }
@@ -53,8 +58,8 @@ class IntentArtifactCompareScreen extends StatelessWidget {
     final removed = compareLines.difference(currentLines).take(6).toList();
 
     return [
-      if (added.isNotEmpty) ...added.map((line) => "Added: $line"),
-      if (removed.isNotEmpty) ...removed.map((line) => "Removed: $line"),
+      if (added.isNotEmpty) ...added.map((line) => "Added line: $line"),
+      if (removed.isNotEmpty) ...removed.map((line) => "Removed line: $line"),
     ];
   }
 
@@ -63,9 +68,7 @@ class IntentArtifactCompareScreen extends StatelessWidget {
     final changedFields = _changedFields();
     final ptnLineSummary = _ptnLineSummary();
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Canonical Artifact Compare"),
-      ),
+      appBar: AppBar(title: const Text("Exported Version Compare")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -86,29 +89,35 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (changedFields.isEmpty)
-                    const Text("No meaningful differences were detected between these artifact versions.")
+                    const Text(
+                      "No meaningful differences were detected between these versions.",
+                    )
                   else
                     ...changedFields.map(
                       (item) => Padding(
                         padding: const EdgeInsets.only(bottom: 6),
-                        child: Text("• $item"),
+                        child: Text("- $item"),
                       ),
                     ),
                   const SizedBox(height: 12),
                   _ComparisonRow(
-                    label: "Artifact IDs",
+                    label: "Version IDs",
                     current: currentArtifact.artifactId,
                     compare: compareArtifact.artifactId,
                   ),
                   _ComparisonRow(
-                    label: "States",
+                    label: "Status",
                     current: currentArtifact.artifactState.name,
                     compare: compareArtifact.artifactState.name,
                   ),
                   _ComparisonRow(
-                    label: "Promotion lineage",
-                    current: currentArtifact.promotedFromArtifactId ?? "direct export",
-                    compare: compareArtifact.promotedFromArtifactId ?? "direct export",
+                    label: "Copy lineage",
+                    current:
+                        currentArtifact.promotedFromArtifactId ??
+                        "direct export",
+                    compare:
+                        compareArtifact.promotedFromArtifactId ??
+                        "direct export",
                   ),
                   _ComparisonRow(
                     label: "Generated",
@@ -116,12 +125,12 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                     compare: compareArtifact.generatedAt.toLocal().toString(),
                   ),
                   _ComparisonRow(
-                    label: "Active entries",
+                    label: "Active routes",
                     current: "${currentArtifact.activeEntryCount}",
                     compare: "${compareArtifact.activeEntryCount}",
                   ),
                   _ComparisonRow(
-                    label: "Compiler status",
+                    label: "Issue status",
                     current:
                         "${currentArtifact.report.errorCount} errors / ${currentArtifact.report.warningCount} warnings",
                     compare:
@@ -129,8 +138,10 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                   ),
                   _ComparisonRow(
                     label: "Trace entries",
-                    current: "${(currentArtifact.trace["entries"] as Map?)?.length ?? 0}",
-                    compare: "${(compareArtifact.trace["entries"] as Map?)?.length ?? 0}",
+                    current:
+                        "${(currentArtifact.trace["entries"] as Map?)?.length ?? 0}",
+                    compare:
+                        "${(compareArtifact.trace["entries"] as Map?)?.length ?? 0}",
                   ),
                 ],
               ),
@@ -149,12 +160,14 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (ptnLineSummary.isEmpty)
-                    const Text("No PTN line-level summary differences were detected.")
+                    const Text(
+                      "No line-level policy differences were detected.",
+                    )
                   else
                     ...ptnLineSummary.map(
                       (item) => Padding(
                         padding: const EdgeInsets.only(bottom: 6),
-                        child: Text("• $item"),
+                        child: Text("- $item"),
                       ),
                     ),
                 ],
@@ -169,21 +182,21 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "PTN comparison",
+                    "Policy text comparison",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Review the latest export beside an earlier version to understand how user-defined intent changed over time.",
+                    "Review the latest export beside an earlier version to understand how the plan changed over time.",
                   ),
                   const SizedBox(height: 12),
                   _ArtifactTextBlock(
-                    title: "Current artifact PTN",
+                    title: "Current version policy text",
                     value: currentArtifact.ptn,
                   ),
                   const SizedBox(height: 12),
                   _ArtifactTextBlock(
-                    title: "Compared artifact PTN",
+                    title: "Compared version policy text",
                     value: compareArtifact.ptn,
                   ),
                 ],
@@ -214,10 +227,7 @@ class _ComparisonRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text("Current: $current"),
           Text("Compared: $compare"),
@@ -228,10 +238,7 @@ class _ComparisonRow extends StatelessWidget {
 }
 
 class _ArtifactTextBlock extends StatelessWidget {
-  const _ArtifactTextBlock({
-    required this.title,
-    required this.value,
-  });
+  const _ArtifactTextBlock({required this.title, required this.value});
 
   final String title;
   final String value;
@@ -241,10 +248,7 @@ class _ArtifactTextBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
