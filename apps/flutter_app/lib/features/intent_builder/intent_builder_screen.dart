@@ -16,6 +16,7 @@ import 'package:digital_legacy_weaver/features/partner_network/verified_ecosyste
 import 'package:digital_legacy_weaver/features/partner_network/verified_partner_catalog_source.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -165,10 +166,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   }
 
   void _completeSetupFlow() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("ตั้งค่าเสร็จแล้ว แผนส่งมอบของคุณพร้อมใช้งาน"),
-      ),
+    AppFeedback.showSuccess(
+      context,
+      "ตั้งค่าเสร็จแล้ว แผนส่งมอบของคุณพร้อมใช้งาน",
     );
     Navigator.of(context).maybePop();
   }
@@ -519,24 +519,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   }
 
   Future<void> _removeEntry(IntentEntryModel entry) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await AppFeedback.confirmAction(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("ลบรายการฉบับร่าง"),
-        content: Text(
+      title: "ลบรายการฉบับร่าง",
+      message:
           "ต้องการลบ '${entry.asset.displayName}' ออกจากฉบับร่างในเครื่องใช่ไหม? การลบนี้กระทบเฉพาะเครื่องนี้ และยังไม่ส่งมอบข้อมูล",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("ยกเลิก"),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("ลบ"),
-          ),
-        ],
-      ),
+      confirmLabel: "ลบ",
+      cancelLabel: "ยกเลิก",
+      destructive: true,
     );
     if (confirmed != true) {
       return;
@@ -871,7 +861,6 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   Future<void> _openPolicyPaper(IntentCanonicalArtifactModel artifact) async {
     final paper = _buildPolicyPaper(artifact);
     final verifyUrl = _buildPolicyVerifyUrl(artifact);
-    final messenger = ScaffoldMessenger.of(context);
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -921,9 +910,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           FilledButton.tonal(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: paper));
-              messenger.showSnackBar(
-                const SnackBar(content: Text("คัดลอกเอกสารสรุปนโยบายแล้ว")),
-              );
+              AppFeedback.showSuccess(context, "คัดลอกเอกสารสรุปนโยบายแล้ว");
             },
             child: const Text("คัดลอกเอกสาร"),
           ),
@@ -3868,9 +3855,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
           onPressed: () {
             final validation = _stepValidationMessage();
             if (validation != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(validation)),
-              );
+              AppFeedback.showWarning(context, validation);
               return;
             }
             if (_editorStep < 2) {

@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/vault/data/recovery_item_model.dart';
 import 'package:digital_legacy_weaver/features/vault/data/vault_provider.dart';
@@ -16,15 +17,14 @@ class RecoveryVaultSection extends ConsumerStatefulWidget {
 class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
   bool _adding = false;
   String? _deletingId;
-  bool _isMessageError = false;
-  String? _message;
 
   void _setMessage(String message, {bool isError = false}) {
     if (!mounted) return;
-    setState(() {
-      _message = message;
-      _isMessageError = isError;
-    });
+    if (isError) {
+      AppFeedback.showError(context, message);
+      return;
+    }
+    AppFeedback.showSuccess(context, message);
   }
 
   String _friendlyActionError(String action, Object error) {
@@ -90,6 +90,14 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
 
   Future<void> _handleDelete(String id) async {
     if (_deletingId != null) return;
+    final confirmed = await AppFeedback.confirmAction(
+      context: context,
+      title: "ยืนยันการลบรายการ",
+      message: "รายการนี้จะถูกลบออกจากคลังกู้คืนทันที ต้องการลบต่อใช่ไหม",
+      confirmLabel: "ลบรายการ",
+      destructive: true,
+    );
+    if (!confirmed) return;
     setState(() => _deletingId = id);
     try {
       await ref.read(vaultItemsProvider.notifier).deleteItem(id);
@@ -126,13 +134,6 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
                 ),
               ],
             ),
-            if (_message != null) ...[
-              const SizedBox(height: 10),
-              _VaultStatePanel(
-                message: _message!,
-                isError: _isMessageError,
-              ),
-            ],
             const SizedBox(height: 12),
             itemsAsync.when(
               data: (items) {

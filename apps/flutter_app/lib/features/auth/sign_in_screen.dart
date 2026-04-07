@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -184,21 +185,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       if (_message != null) ...[
                         const SizedBox(height: 14),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: _messageIsError
-                                ? const Color(0xFFFFF6F4)
-                                : const Color(0xFFF2F8F4),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: _messageIsError
-                                  ? const Color(0xFFF0CEC8)
-                                  : const Color(0xFFD5E6D9),
-                            ),
-                          ),
-                          child: Text(_message!),
+                        AppStatePanel(
+                          message: _message!,
+                          tone: _messageIsError
+                              ? (appStateLooksOfflineMessage(_message!)
+                                  ? AppStateTone.offline
+                                  : AppStateTone.error)
+                              : AppStateTone.success,
                         ),
                       ],
                     ],

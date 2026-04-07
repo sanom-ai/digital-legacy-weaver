@@ -16,7 +16,10 @@ enum AppStateLayout {
 
 bool appStateLooksOfflineMessage(String text) {
   final lower = text.toLowerCase();
-  return lower.contains('ออฟไลน์') ||
+  return lower.contains('offline') ||
+      lower.contains('network') ||
+      lower.contains('internet') ||
+      lower.contains('ออฟไลน์') ||
       lower.contains('อินเทอร์เน็ต') ||
       lower.contains('เครือข่าย') ||
       lower.contains('สัญญาณ');
@@ -269,3 +272,4 @@ class _AppStateStyling {
   final Color iconColor;
   final IconData icon;
 }
+

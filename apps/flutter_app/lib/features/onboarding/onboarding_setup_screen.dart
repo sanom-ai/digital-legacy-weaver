@@ -7,6 +7,7 @@ import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -169,8 +170,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   }
 
   void _showStepError(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    AppFeedback.showWarning(context, message);
   }
 
   String _friendlySaveError(Object error) {
@@ -344,9 +344,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     if (!_formKey.currentState!.validate()) return;
     final guardrailMessage = _productionGuardrailMessage();
     if (guardrailMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(guardrailMessage)),
-      );
+      AppFeedback.showWarning(context, guardrailMessage);
       return;
     }
     final selectedPreset = presetById(_selectedPresetId);
@@ -364,22 +362,18 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       iosBackgroundRiskAcknowledged: _iosBackgroundRiskAcknowledged,
     );
     if (draftReport.errorCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("กรุณาแก้รายการที่ติดบล็อกก่อนบันทึก")),
-      );
+      AppFeedback.showWarning(context, "กรุณาแก้รายการที่ติดบล็อกก่อนบันทึก");
       return;
     }
     if (draftReport.warningCount > 0 && !_warningAcknowledged) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("กรุณายืนยันว่าได้ตรวจคำเตือนแล้วก่อนบันทึก")),
+      AppFeedback.showWarning(
+        context,
+        "กรุณายืนยันว่าได้ตรวจคำเตือนแล้วก่อนบันทึก",
       );
       return;
     }
     if (!_legalAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("กรุณายอมรับข้อตกลงก่อนดำเนินการต่อ")),
-      );
+      AppFeedback.showWarning(context, "กรุณายอมรับข้อตกลงก่อนดำเนินการต่อ");
       return;
     }
     setState(() => _saving = true);
@@ -446,43 +440,28 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       if (!mounted) return;
       ref.invalidate(profileProvider);
       ref.invalidate(safetySettingsProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                "ตั้งค่าเสร็จแล้ว ระบบพร้อมใช้งานในโหมดความเป็นส่วนตัวสูงสุด")),
+      AppFeedback.showSuccess(
+        context,
+        "ตั้งค่าเสร็จแล้ว ระบบพร้อมใช้งานในโหมดความเป็นส่วนตัวสูงสุด",
       );
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_friendlySaveError(error))),
-      );
+      AppFeedback.showError(context, _friendlySaveError(error));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
   Future<void> _skipToDashboard() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await AppFeedback.confirmAction(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("ข้ามการตั้งค่าตอนนี้?"),
-          content: const Text(
-            "คุณสามารถเริ่มใช้งานต่อในหน้าแดชบอร์ดก่อน แล้วค่อยกลับมาตั้งค่าให้ครบทีหลังได้",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text("อยู่หน้านี้ต่อ"),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("ไปหน้าแดชบอร์ด"),
-            ),
-          ],
-        );
-      },
+      title: "ข้ามการตั้งค่าตอนนี้?",
+      message:
+          "คุณสามารถเริ่มใช้งานต่อในหน้าแดชบอร์ดก่อน แล้วค่อยกลับมาตั้งค่าให้ครบทีหลังได้",
+      confirmLabel: "ไปหน้าแดชบอร์ด",
+      cancelLabel: "อยู่หน้านี้ต่อ",
+      icon: Icons.forward_to_inbox_rounded,
     );
     if (!mounted || confirmed != true) return;
     Navigator.of(context).pushAndRemoveUntil(

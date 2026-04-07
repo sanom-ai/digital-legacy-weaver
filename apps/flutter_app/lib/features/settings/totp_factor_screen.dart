@@ -1,4 +1,6 @@
 import 'package:digital_legacy_weaver/core/providers/supabase_provider.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/settings/totp_factor_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,6 +119,17 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
   }
 
   Future<void> _disable() async {
+    final confirmed = await AppFeedback.confirmAction(
+      context: context,
+      title: "ยืนยันการปิดการยืนยันตัวตน",
+      message:
+          "เมื่อปิดแล้ว การปลดล็อกจะไม่บังคับใช้รหัส TOTP ต้องการปิดใช่ไหม",
+      confirmLabel: "ปิดการยืนยันตัวตน",
+      destructive: true,
+      icon: Icons.lock_open_rounded,
+    );
+    if (!confirmed) return;
+
     setState(() {
       _busy = true;
       _message = null;
@@ -145,16 +158,13 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
     if (_message == null) {
       return const SizedBox.shrink();
     }
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _messageIsError
-            ? const Color(0xFFFFF1F1)
-            : const Color(0xFFE9F6EF),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(_message!),
+    return AppStatePanel(
+      message: _message!,
+      tone: _messageIsError
+          ? (appStateLooksOfflineMessage(_message!)
+              ? AppStateTone.offline
+              : AppStateTone.error)
+          : AppStateTone.success,
     );
   }
 

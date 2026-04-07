@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/connectors/data/connector_models.dart';
 import 'package:digital_legacy_weaver/features/connectors/data/connectors_provider.dart';
@@ -14,15 +15,14 @@ class ConnectorsScreen extends ConsumerStatefulWidget {
 class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
   bool _addingPath = false;
   bool _addingAssetRef = false;
-  bool _isMessageError = false;
-  String? _message;
 
   void _setMessage(String message, {bool isError = false}) {
     if (!mounted) return;
-    setState(() {
-      _message = message;
-      _isMessageError = isError;
-    });
+    if (isError) {
+      AppFeedback.showError(context, message);
+      return;
+    }
+    AppFeedback.showSuccess(context, message);
   }
 
   String _friendlyActionError(String action, Object error) {
@@ -233,13 +233,6 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
               ],
             ),
           ),
-          if (_message != null) ...[
-            const SizedBox(height: 12),
-            _StatePanel(
-              message: _message!,
-              isError: _isMessageError,
-            ),
-          ],
           const SizedBox(height: 12),
           Card(
             shape: RoundedRectangleBorder(

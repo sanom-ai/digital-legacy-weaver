@@ -1,4 +1,5 @@
 import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/totp_factor_screen.dart';
@@ -753,9 +754,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                     : () async {
                         final guardrailMessage = _productionGuardrailMessage();
                         if (guardrailMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(guardrailMessage)),
-                          );
+                          AppFeedback.showWarning(context, guardrailMessage);
                           return;
                         }
                         setState(() => _saving = true);
@@ -771,7 +770,6 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                           fallbackChannels.add("email");
                         }
 
-                        final messenger = ScaffoldMessenger.of(context);
                         try {
                           await ref.read(safetySettingsProvider.notifier).save(
                                 remindersEnabled: _remindersEnabled,
@@ -811,22 +809,16 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                                 tracePrivacyProfile:
                                     selectedPreset.tracePrivacyProfile,
                               );
-                          if (!mounted) return;
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "บันทึกการตั้งค่าความปลอดภัยเรียบร้อยแล้ว",
-                              ),
-                            ),
+                          if (!context.mounted) return;
+                          AppFeedback.showSuccess(
+                            context,
+                            "บันทึกการตั้งค่าความปลอดภัยเรียบร้อยแล้ว",
                           );
                         } catch (_) {
-                          if (!mounted) return;
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "ยังบันทึกตั้งค่าไม่ได้ในตอนนี้ กรุณาลองใหม่ | We could not save safety settings right now. Please retry.",
-                              ),
-                            ),
+                          if (!context.mounted) return;
+                          AppFeedback.showError(
+                            context,
+                            "ยังบันทึกตั้งค่าไม่ได้ในตอนนี้ กรุณาลองใหม่",
                           );
                         } finally {
                           if (mounted) {

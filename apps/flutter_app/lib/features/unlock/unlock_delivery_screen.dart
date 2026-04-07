@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 
 class UnlockDeliveryScreen extends StatefulWidget {
   const UnlockDeliveryScreen({
@@ -336,45 +337,26 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   Future<void> _showWrongRecipientDialog() async {
-    await showDialog<void>(
+    if (_busy || !_hasAccessLink) {
+      AppFeedback.showWarning(
+        context,
+        "กรุณากรอก Access ID และ Access Key ให้ครบก่อนแจ้งผู้รับไม่ตรง",
+      );
+      return;
+    }
+
+    final confirmed = await AppFeedback.confirmAction(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("ไม่ใช่ผู้รับที่ถูกต้องใช่ไหม"),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "หากชุดรับมอบนี้ส่งผิดคน อย่าขอรหัสและอย่าพยายามเปิดข้อมูลต่อ",
-            ),
-            SizedBox(height: 10),
-            Text("1. หยุดใช้งานลิงก์เข้าถึงทันที"),
-            SizedBox(height: 4),
-            Text("2. ห้ามส่งต่อลิงก์ รหัส หรือวลียืนยันตัวตน"),
-            SizedBox(height: 4),
-            Text(
-                "3. ติดต่อเจ้าของบัญชี พยาน ผู้ดูแลระบบ หรือพาร์ทเนอร์ที่กำหนดไว้ เพื่อยืนยันเส้นทางใหม่"),
-            SizedBox(height: 4),
-            Text("4. เก็บข้อมูลนี้เป็นความลับจนกว่าจะยืนยันผู้รับตัวจริงได้"),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("ปิด"),
-          ),
-          FilledButton(
-            onPressed: _busy || !_hasAccessLink
-                ? null
-                : () async {
-                    Navigator.of(context).pop();
-                    await _reportWrongRecipient();
-                  },
-            child: const Text("แจ้งว่าไม่ใช่ผู้รับ และหยุดชุดรับมอบ"),
-          ),
-        ],
-      ),
+      title: "ยืนยันว่าไม่ใช่ผู้รับที่ถูกต้อง",
+      message:
+          "ระบบจะหยุดการเข้าถึงชุดรับมอบนี้ชั่วคราวเพื่อความปลอดภัย และให้รอยืนยันเส้นทางใหม่ ต้องการดำเนินการต่อใช่ไหม",
+      confirmLabel: "ยืนยันและหยุดชุดรับมอบ",
+      destructive: true,
+      icon: Icons.gpp_bad_rounded,
     );
+    if (!confirmed) return;
+
+    await _reportWrongRecipient();
   }
 
   Future<void> _reportWrongRecipient() async {

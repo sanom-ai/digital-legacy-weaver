@@ -1,6 +1,7 @@
-﻿import 'package:digital_legacy_weaver/features/beta/beta_feedback_repository.dart';
+import 'package:digital_legacy_weaver/features/beta/beta_feedback_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 
 class BetaFeedbackScreen extends ConsumerStatefulWidget {
   const BetaFeedbackScreen({super.key});
@@ -78,7 +79,8 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
         lower.contains('timed out')) {
       return 'ยังส่งความคิดเห็นไม่ได้ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาลองใหม่อีกครั้ง';
     }
-    if (lower.contains('authenticated user') || lower.contains('unauthorized')) {
+    if (lower.contains('authenticated user') ||
+        lower.contains('unauthorized')) {
       return 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่แล้วส่งอีกครั้ง';
     }
     return 'ยังส่งความคิดเห็นไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง';
@@ -105,7 +107,8 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
                 DropdownMenuItem(value: 'ux', child: Text('ประสบการณ์ใช้งาน')),
                 DropdownMenuItem(value: 'bug', child: Text('บั๊ก')),
                 DropdownMenuItem(value: 'security', child: Text('ความปลอดภัย')),
-                DropdownMenuItem(value: 'reliability', child: Text('ความเสถียร')),
+                DropdownMenuItem(
+                    value: 'reliability', child: Text('ความเสถียร')),
                 DropdownMenuItem(value: 'other', child: Text('อื่น ๆ')),
               ],
               onChanged: (v) => setState(() => _category = v ?? 'ux'),
@@ -148,16 +151,13 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
             ),
             const SizedBox(height: 20),
             if (_message != null) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: _messageIsError
-                      ? const Color(0xFFFFF1F1)
-                      : const Color(0xFFE9F6EF),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(_message!),
+              AppStatePanel(
+                message: _message!,
+                tone: _messageIsError
+                    ? (appStateLooksOfflineMessage(_message!)
+                        ? AppStateTone.offline
+                        : AppStateTone.error)
+                    : AppStateTone.success,
               ),
               const SizedBox(height: 12),
             ],
