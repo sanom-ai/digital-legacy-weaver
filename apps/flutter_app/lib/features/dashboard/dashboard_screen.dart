@@ -35,7 +35,7 @@ class DashboardScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Supabase.instance.client.auth.signOut(),
-            child: const Text("Sign out"),
+            child: const Text("ออกจากระบบ"),
           ),
         ],
       ),
@@ -91,9 +91,9 @@ class DashboardScreen extends ConsumerWidget {
                         color: const Color(0xFFFFF7ED),
                         child: ListTile(
                           leading: const Icon(Icons.auto_fix_high_rounded),
-                          title: const Text("Complete setup for beta"),
+                          title: const Text("ตั้งค่าเริ่มต้นให้ครบก่อนใช้งาน"),
                           subtitle: const Text(
-                            "Add beneficiary identity, fallback channels, consent, and private-first defaults. This product coordinates secure handoff and does not replace a legal will.",
+                            "เพิ่มข้อมูลผู้รับ ช่องทางสำรอง และการยินยอมให้ครบก่อนใช้งานจริง แอปนี้ช่วยประสานการส่งต่ออย่างปลอดภัย และไม่ใช่พินัยกรรมทางกฎหมาย",
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () async {
@@ -477,7 +477,7 @@ class DashboardScreen extends ConsumerWidget {
                             children: [
                               ListTile(
                                 leading: const Icon(Icons.verified_outlined),
-                                title: const Text("Canonical artifact status"),
+                                title: const Text("สถานะชุดเอกสารหลัก"),
                                 subtitle: Text(
                                   artifact == null
                                       ? "No exported handoff version yet."
@@ -698,7 +698,7 @@ class _HeroCard extends StatelessWidget {
               foregroundColor: const Color(0xFF1B1A17),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
             ),
-            child: const Text('I am still alive'),
+            child: const Text('ฉันยังใช้งานอยู่'),
           ),
         ],
       ),
@@ -856,15 +856,15 @@ class _UserOutcomeCard extends StatelessWidget {
                 if (!setupComplete)
                   FilledButton(
                     onPressed: onOpenSetup,
-                    child: const Text("Finish setup first"),
+                    child: const Text("ตั้งค่าเริ่มต้นให้ครบก่อน"),
                   ),
                 OutlinedButton(
                   onPressed: onOpenBuilder,
-                  child: const Text("Open plan workspace"),
+                  child: const Text("เปิดพื้นที่จัดแผน"),
                 ),
                 OutlinedButton(
                   onPressed: onOpenReceipt,
-                  child: const Text("Open beneficiary receipt"),
+                  child: const Text("เปิดหน้ารับมอบของผู้รับ"),
                 ),
               ],
             ),
@@ -970,15 +970,15 @@ class _ProductConcretenessCard extends StatelessWidget {
               children: [
                 _MetricChip(
                   label: setupComplete
-                      ? "Setup complete: Yes"
-                      : "Setup complete: No",
+                      ? "ตั้งค่าเริ่มต้น: ครบแล้ว"
+                      : "ตั้งค่าเริ่มต้น: ยังไม่ครบ",
                 ),
-                _MetricChip(label: "Readiness: ${readiness.readinessLabel}"),
+                _MetricChip(label: "ความพร้อม: ${readiness.readinessLabel}"),
                 _MetricChip(
-                  label: "Artifact versions: ${readiness.historyCount}",
+                  label: "เวอร์ชันเอกสาร: ${readiness.historyCount}",
                 ),
                 _MetricChip(
-                  label: "Active routes: ${artifact?.activeEntryCount ?? 0}",
+                  label: "แผนที่ใช้งานอยู่: ${artifact?.activeEntryCount ?? 0}",
                 ),
                 _MetricChip(
                   label: secureLinkReceiptReady
@@ -1485,15 +1485,15 @@ class _ControlRoomCard extends StatelessWidget {
             ],
             const SizedBox(height: 8),
             Text(
-              "Primary action: ${readiness.primaryActionLabel}",
+              "งานหลักตอนนี้: ${readiness.primaryActionLabel}",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            Text("Next action: ${readiness.nextStep}"),
+            Text("ขั้นตอนถัดไป: ${readiness.nextStep}"),
             if (readiness.actionPlan.isNotEmpty) ...[
               const SizedBox(height: 10),
               const Text(
-                "Action plan",
+                "แผนการทำงาน",
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
@@ -1530,12 +1530,12 @@ class _ControlRoomCard extends StatelessWidget {
                 ),
                 OutlinedButton(
                   onPressed: onOpenReadiness,
-                  child: const Text("Open readiness details"),
+                  child: const Text("ดูรายละเอียดความพร้อม"),
                 ),
                 if (!setupComplete)
                   OutlinedButton(
                     onPressed: onOpenSetup,
-                    child: const Text("Complete beta setup"),
+                    child: const Text("ทำขั้นตอนเตรียมใช้งานให้ครบ"),
                   ),
               ],
             ),
@@ -1549,12 +1549,12 @@ class _ControlRoomCard extends StatelessWidget {
     if (!readiness.hasArtifact) {
       return [
         _StateHelperCard(
-          title: "Draft workspace only",
+          title: "ยังเป็นโหมดร่างในเครื่อง",
           body:
-              "You have a working draft but no exported handoff version yet. Export the first version so review, history, and readiness can track a concrete release path.",
+              "ตอนนี้มีแบบร่างที่ใช้งานได้แล้ว แต่ยังไม่มีเวอร์ชันส่งมอบที่ส่งออก ให้ส่งออกเวอร์ชันแรกก่อน เพื่อให้การรีวิว ประวัติ และความพร้อมอ้างอิงข้อมูลจริงชุดเดียวกัน",
           cue:
-              "Best next move: export the first handoff version from Intent Builder.",
-          actionLabel: "Open builder",
+              "แนะนำ: ส่งออกเวอร์ชันส่งมอบแรกจากหน้าจัดแผน",
+          actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1563,11 +1563,11 @@ class _ControlRoomCard extends StatelessWidget {
     if (readiness.hasBlockingErrors) {
       return [
         _StateHelperCard(
-          title: "Blocking compiler issues",
+          title: "ยังมีจุดผิดพลาดที่บล็อกการใช้งาน",
           body:
-              "The latest artifact still carries compiler errors. Keep editing in Intent Builder until those errors are resolved before you treat this artifact as reviewable or ready.",
-          cue: "Best next move: fix blocking issues and export again.",
-          actionLabel: "Fix in builder",
+              "เวอร์ชันล่าสุดยังมีข้อผิดพลาดระดับบล็อก ให้แก้ในหน้าจัดแผนจนผ่านก่อน แล้วค่อยถือว่าเวอร์ชันนี้พร้อมรีวิวหรือพร้อมใช้งาน",
+          cue: "แนะนำ: แก้ข้อผิดพลาดให้ครบ แล้วส่งออกใหม่",
+          actionLabel: "ไปแก้ในหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1576,11 +1576,11 @@ class _ControlRoomCard extends StatelessWidget {
     if ((readiness.currentArtifact?.activeEntryCount ?? 0) == 0) {
       return [
         _StateHelperCard(
-          title: "No active entries yet",
+          title: "ยังไม่มีรายการที่เปิดใช้งาน",
           body:
-              "The current artifact does not contain an active route. Activate at least one intent entry so the artifact reflects a real delivery or self-recovery path.",
-          cue: "Best next move: activate an entry, then export again.",
-          actionLabel: "Open builder",
+              "เอกสารเวอร์ชันปัจจุบันยังไม่มีแผนที่เปิดใช้งาน ควรเปิดอย่างน้อย 1 รายการ เพื่อให้สะท้อนเส้นทางส่งมอบหรือกู้คืนจริง",
+          cue: "แนะนำ: เปิดใช้งาน 1 รายการ แล้วส่งออกใหม่",
+          actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1590,11 +1590,11 @@ class _ControlRoomCard extends StatelessWidget {
     if (artifact.artifactState == IntentArtifactState.exported) {
       return [
         _StateHelperCard(
-          title: "Export completed",
+          title: "ส่งออกเวอร์ชันแล้ว",
           body:
-              "The exported version is waiting for review. This is the best moment to inspect issues and safety posture before moving forward.",
-          cue: "Best next move: review the exported artifact now.",
-          actionLabel: "Open review",
+              "เวอร์ชันที่ส่งออกแล้วกำลังรอรีวิว นี่คือจุดที่เหมาะที่สุดในการตรวจความปลอดภัยและข้อผิดพลาดก่อนเดินหน้าต่อ",
+          cue: "แนะนำ: เปิดรีวิวเวอร์ชันที่ส่งออกตอนนี้",
+          actionLabel: "เปิดหน้ารีวิว",
           onTap: onOpenArtifactReview,
         ),
       ];
@@ -1604,12 +1604,12 @@ class _ControlRoomCard extends StatelessWidget {
         !readiness.draftInSync) {
       return [
         _StateHelperCard(
-          title: "Reviewed but stale",
+          title: "รีวิวแล้ว แต่แบบร่างเปลี่ยนหลังรีวิว",
           body:
-              "This version was reviewed, but the draft changed afterward. Treat that review as outdated until a fresh export captures the latest draft.",
+              "เวอร์ชันนี้เคยรีวิวแล้ว แต่มีการแก้แบบร่างหลังจากนั้น ให้ถือว่ารีวิวเดิมล้าสมัยจนกว่าจะส่งออกเวอร์ชันใหม่จากแบบร่างล่าสุด",
           cue:
-              "Best next move: re-export from the latest draft before marking anything ready.",
-          actionLabel: "Open history",
+              "แนะนำ: ส่งออกใหม่จากแบบร่างล่าสุดก่อนทำเครื่องหมายว่าพร้อม",
+          actionLabel: "ดูประวัติเวอร์ชัน",
           onTap: onOpenArtifactHistory,
         ),
       ];
@@ -1618,12 +1618,12 @@ class _ControlRoomCard extends StatelessWidget {
     if (artifact.artifactState == IntentArtifactState.reviewed) {
       return [
         _StateHelperCard(
-          title: "Reviewed and in sync",
+          title: "รีวิวแล้ว และตรงกับแบบร่างปัจจุบัน",
           body:
-              "The reviewed version still matches your current draft. This is the cleanest moment to mark it ready for real use.",
+              "เวอร์ชันที่รีวิวยังตรงกับแบบร่างปัจจุบัน นี่คือช่วงที่เหมาะที่สุดในการทำเครื่องหมายว่าพร้อมใช้งานจริง",
           cue:
-              "Best next move: mark the reviewed artifact ready while sync still holds.",
-          actionLabel: "Open builder",
+              "แนะนำ: ทำเครื่องหมายพร้อมใช้งานขณะที่ข้อมูลยังตรงกัน",
+          actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1633,12 +1633,12 @@ class _ControlRoomCard extends StatelessWidget {
         !readiness.draftInSync) {
       return [
         _StateHelperCard(
-          title: "Ready artifact drifted",
+          title: "เวอร์ชันพร้อมใช้งานไม่ตรงกับแบบร่างล่าสุด",
           body:
-              "The latest ready version drifted because the draft changed later. Keep it as history only until you export a fresh ready candidate.",
+              "เวอร์ชันที่พร้อมใช้งานล่าสุดไม่ตรงกับแบบร่าง เพราะมีการแก้ภายหลัง ให้เก็บเป็นประวัติไว้ก่อนจนกว่าจะส่งออกเวอร์ชันพร้อมใช้งานใหม่",
           cue:
-              "Best next move: re-export the latest draft to restore runtime confidence.",
-          actionLabel: "Open history",
+              "แนะนำ: ส่งออกแบบร่างล่าสุดใหม่ เพื่อคืนความมั่นใจก่อนใช้งานจริง",
+          actionLabel: "ดูประวัติเวอร์ชัน",
           onTap: onOpenArtifactHistory,
         ),
       ];
@@ -1647,12 +1647,12 @@ class _ControlRoomCard extends StatelessWidget {
     if (artifact.artifactState == IntentArtifactState.ready) {
       return [
         _StateHelperCard(
-          title: "Runtime candidate is healthy",
+          title: "เวอร์ชันพร้อมใช้งานอยู่ในสภาพดี",
           body:
-              "The latest version is ready and in sync. From here the main job is to keep the workspace stable as intentional changes happen.",
+              "เวอร์ชันล่าสุดพร้อมใช้งานและข้อมูลตรงกันแล้ว งานหลักคือรักษาเสถียรภาพพื้นที่ทำงานเมื่อมีการแก้ไขที่ตั้งใจ",
           cue:
-              "Best next move: use review and history tools only when you intentionally change the draft.",
-          actionLabel: "Review artifact",
+              "แนะนำ: ใช้หน้ารีวิวและประวัติเมื่อมีการแก้แบบร่างที่ตั้งใจเท่านั้น",
+          actionLabel: "รีวิวเวอร์ชัน",
           onTap: onOpenArtifactReview,
         ),
       ];
@@ -1698,8 +1698,8 @@ class _RuntimeReadinessCard extends StatelessWidget {
                 const Icon(Icons.fact_check_outlined),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    "Runtime readiness",
+                    child: Text(
+                    "ความพร้อมสำหรับใช้งานจริง",
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -1710,7 +1710,7 @@ class _RuntimeReadinessCard extends StatelessWidget {
             Text(readiness.summary),
             const SizedBox(height: 10),
             Text(
-              "History: ${readiness.historyCount} versions | Ready: ${readiness.readyArtifactCount} | Reviewed: ${readiness.reviewedArtifactCount} | Promoted: ${readiness.promotedArtifactCount}",
+              "ประวัติเวอร์ชัน: ${readiness.historyCount} | พร้อมใช้งาน: ${readiness.readyArtifactCount} | รีวิวแล้ว: ${readiness.reviewedArtifactCount} | โปรโมตแล้ว: ${readiness.promotedArtifactCount}",
             ),
             const SizedBox(height: 6),
             Text(
@@ -1741,11 +1741,11 @@ class _RuntimeReadinessCard extends StatelessWidget {
               children: [
                 OutlinedButton(
                   onPressed: onOpenReadiness,
-                  child: const Text("Readiness details"),
+                  child: const Text("รายละเอียดความพร้อม"),
                 ),
                 OutlinedButton(
                   onPressed: onOpenBuilder,
-                  child: const Text("Open Intent Builder"),
+                  child: const Text("เปิดหน้าจัดแผน"),
                 ),
               ],
             ),
@@ -1931,9 +1931,9 @@ class _PolicySelectorCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: const Icon(Icons.privacy_tip_outlined),
-        title: Text('Privacy Preset: ${preset.title}'),
+        title: Text('ระดับความเป็นส่วนตัว: ${preset.title}'),
         subtitle: Text(
-          '${preset.summary}\nProduct boundary: this app coordinates secure handoff and does not replace legal will workflows.',
+          '${preset.summary}\nขอบเขตผลิตภัณฑ์: แอปนี้ช่วยประสานการส่งต่ออย่างปลอดภัย และไม่ใช่กระบวนการพินัยกรรมทางกฎหมาย',
         ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_right),

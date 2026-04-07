@@ -256,14 +256,14 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.textContaining('Privacy Preset: Minimal'),
+      find.textContaining('ระดับความเป็นส่วนตัว: Minimal'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Privacy Preset: Minimal'), findsOneWidget);
-    expect(find.textContaining('Product boundary:'), findsWidgets);
+    expect(find.textContaining('ระดับความเป็นส่วนตัว: Minimal'), findsOneWidget);
+    expect(find.textContaining('ขอบเขตผลิตภัณฑ์:'), findsWidgets);
   });
 
   testWidgets('Unlock flow shows anti-scam no-link guidance', (tester) async {
