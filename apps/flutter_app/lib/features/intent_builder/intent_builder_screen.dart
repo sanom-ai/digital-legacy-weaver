@@ -571,21 +571,25 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _isExporting = true;
     });
     final generatedAt = DateTime.now().toUtc();
+    final exportDocument = _redactedDocumentForExport(_document);
     final artifact = IntentCanonicalArtifactModel(
       artifactId: "artifact_${generatedAt.millisecondsSinceEpoch}",
       promotedFromArtifactId: null,
       contractVersion: "intent-compiler-contract/v1",
       artifactState: IntentArtifactState.exported,
-      intentId: _document.intentId,
-      ownerRef: _document.ownerRef,
+      intentId: exportDocument.intentId,
+      ownerRef: exportDocument.ownerRef,
       generatedAt: generatedAt,
-      sourceDraftSignature: buildIntentDocumentSignature(_document),
+      sourceDraftSignature: buildIntentDocumentSignature(exportDocument),
       activeEntryCount:
-          _document.entries.where((entry) => entry.status == "active").length,
-      ptn: ptnPreview,
-      trace: buildDraftIntentTrace(_document),
+          exportDocument.entries.where((entry) => entry.status == "active").length,
+      ptn: _redactMoneyLikeText(ptnPreview),
+      trace: buildDraftIntentTrace(exportDocument),
       report: report,
-      sealedReleaseCandidate: _buildSealedReleaseCandidate(generatedAt),
+      sealedReleaseCandidate: _buildSealedReleaseCandidate(
+        generatedAt,
+        exportDocument,
+      ),
     );
     await ref
         .read(intentCanonicalArtifactRepositoryProvider)
@@ -605,8 +609,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   SealedReleaseCandidateModel _buildSealedReleaseCandidate(
     DateTime generatedAt,
+    IntentDocumentModel sourceDocument,
   ) {
-    final activeEntries = _document.entries.where(
+    final activeEntries = sourceDocument.entries.where(
       (entry) => entry.status == "active",
     );
     return SealedReleaseCandidateModel(
@@ -831,6 +836,8 @@ Section 4: Partner delivery scope
 à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸:
 à¹€à¸­à¸à¸ªà¸²à¸£à¸™à¸µà¹‰à¹€à¸›à¹‡à¸™à¸ªà¸£à¸¸à¸›à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¸‚à¸­à¸‡à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µà¹à¸¥à¸°à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸
 à¹à¸¥à¸°à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸²à¸ artifact à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™à¸‚à¸­à¸‡à¸£à¸°à¸šà¸šà¹‚à¸”à¸¢à¸•à¸£à¸‡
+- à¸£à¸°à¸šà¸šà¸™à¸µà¹‰à¹„à¸¡à¹ˆà¹€à¸à¹‡à¸šà¸¢à¸­à¸”à¸—à¸£à¸±à¸žà¸¢à¹Œà¸ªà¸´à¸™à¸ˆà¸£à¸´à¸‡ à¹à¸¥à¸°à¹„à¸¡à¹ˆà¹€à¸›à¹‡à¸™à¸œà¸¹à¹‰à¸à¸§à¸”à¸ªà¸­à¸šà¸¢à¸­à¸”à¹€à¸‡à¸´à¸™
+- à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸ˆà¸£à¸´à¸‡à¸•à¹‰à¸­à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸à¸±à¸šà¸ªà¸–à¸²à¸šà¸±à¸™à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡ (bank/exchange/legal partner) à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™
 ''';
   }
 
@@ -996,6 +1003,52 @@ Section 4: Partner delivery scope
       parts.insert(0, raw.substring(start, i));
     }
     return parts.join(',');
+  }
+
+  String _redactMoneyLikeText(String input) {
+    if (input.trim().isEmpty) {
+      return input;
+    }
+    var output = input;
+    output = output.replaceAllMapped(
+      RegExp(
+        r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{1,3}(?:,[\d]{3})+(?:\.\d{1,2})?(?!\w)'),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(
+        r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?\s*(thb|baht|บาท)?(?!\w)',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    return output;
+  }
+
+  IntentDocumentModel _redactedDocumentForExport(IntentDocumentModel source) {
+    return source.copyWith(
+      entries: [
+        for (final entry in source.entries)
+          entry.copyWith(
+            asset: IntentAssetModel(
+              assetId: entry.asset.assetId,
+              assetType: entry.asset.assetType,
+              displayName: entry.asset.displayName,
+              payloadMode: entry.asset.payloadMode,
+              payloadRef: _redactMoneyLikeText(entry.asset.payloadRef),
+              notes: entry.asset.notes == null
+                  ? null
+                  : _redactMoneyLikeText(entry.asset.notes!),
+            ),
+          ),
+      ],
+    );
   }
 
   List<LegalPartnerProfile> _loadPartnerCatalogSnapshot() {
@@ -2728,6 +2781,32 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     }
   }
 
+  String _redactMoneyLikeText(String input) {
+    if (input.trim().isEmpty) {
+      return input;
+    }
+    var output = input;
+    output = output.replaceAllMapped(
+      RegExp(
+        r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{1,3}(?:,[\d]{3})+(?:\.\d{1,2})?(?!\w)'),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(
+        r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?\s*(thb|baht|บาท)?(?!\w)',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    return output;
+  }
+
   Widget _buildChecklistSection({
     required String title,
     required bool expanded,
@@ -3211,8 +3290,10 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _payloadRefController,
-                  decoration:
-                      const InputDecoration(labelText: 'ข้อมูลที่ส่งมอบ (อ้างอิง)'),
+                  decoration: const InputDecoration(
+                    labelText: 'ข้อมูลที่ส่งมอบ (อ้างอิง)',
+                    helperText: 'ไม่ต้องใส่ยอดเงินจริง ระบบยืนยันยอดกับปลายทางเท่านั้น',
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -3258,6 +3339,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               return;
             }
             _applyStructuredAssetsTemplate();
+            final sanitizedPayloadRef =
+                _redactMoneyLikeText(_payloadRefController.text.trim());
+            final sanitizedAssetNotes =
+                widget.entry.asset.notes == null
+                    ? null
+                    : _redactMoneyLikeText(widget.entry.asset.notes!);
             final inactivityDays =
                 int.tryParse(_triggerDaysController.text.trim()) ??
                     widget.entry.trigger.inactivityDays;
@@ -3273,8 +3360,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       ? widget.entry.asset.displayName
                       : _displayNameController.text.trim(),
                   payloadMode: _payloadMode,
-                  payloadRef: _payloadRefController.text.trim(),
-                  notes: widget.entry.asset.notes,
+                  payloadRef: sanitizedPayloadRef,
+                  notes: sanitizedAssetNotes,
                 ),
                 recipient: IntentRecipientModel(
                   recipientId: widget.entry.recipient.recipientId,
