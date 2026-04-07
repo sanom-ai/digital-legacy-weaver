@@ -28,3 +28,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/config/verified_legal_partners.json
+    - assets/config/verified_ecosystem_destinations.json

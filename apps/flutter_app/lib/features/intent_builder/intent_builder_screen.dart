@@ -12,6 +12,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_ptn_preview
 import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_trace_preview.dart';
 import 'package:digital_legacy_weaver/features/partner_network/partner_models.dart';
+import 'package:digital_legacy_weaver/features/partner_network/verified_ecosystem_catalog_source.dart';
 import 'package:digital_legacy_weaver/features/partner_network/verified_partner_catalog_source.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
@@ -65,10 +66,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   bool _partnerTermsAccepted = false;
   bool _partnerCatalogLoading = true;
   String _partnerCatalogSourceLabel = 'admin_config';
+  bool _ecosystemCatalogLoading = true;
+  String _ecosystemCatalogSourceLabel = 'admin_config';
   final Set<String> _selectedDestinationIds = <String>{};
   final TextEditingController _assetValueController =
       TextEditingController(text: '1000000');
   final List<LegalPartnerProfile> _partnerCatalog = [];
+  final List<EcosystemDestination> _ecosystemCatalog = [];
 
   String get _storageOwnerRef => widget.storageOwnerRef ?? widget.profile.id;
   DemoScenario? get _activeScenario =>
@@ -85,36 +89,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   List<LegalPartnerProfile> get _verifiedLegalPartners =>
       _partnerCatalog.where((partner) => partner.isVerified).toList();
-
-  static const List<EcosystemDestination> _destinations = [
-    EcosystemDestination(
-      id: 'eco_bank_01',
-      name: 'Siam Trust Bank',
-      category: 'Bank',
-      status: 'verified',
-      note: 'Supports document handoff packet and identity review ticket.',
-    ),
-    EcosystemDestination(
-      id: 'eco_exchange_01',
-      name: 'Thai Digital Exchange',
-      category: 'Exchange',
-      status: 'verified',
-      note: 'Receives policy packet and beneficiary verification request.',
-    ),
-    EcosystemDestination(
-      id: 'eco_gold_01',
-      name: 'Golden Reserve Broker',
-      category: 'Gold',
-      status: 'pilot',
-      note: 'Pilot integration for claim document routing.',
-    ),
-  ];
+  List<EcosystemDestination> get _verifiedDestinations =>
+      _ecosystemCatalog.where((destination) => destination.isVerified).toList();
 
   @override
   void initState() {
     super.initState();
     _document = widget.initialDocument ?? _seedDocument();
     _loadVerifiedPartnersFromAdminSource();
+    _loadVerifiedEcosystemFromAdminSource();
     _restoreDraft();
     _restoreArtifact();
   }
@@ -760,7 +743,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         ? "à¸ªà¸¹à¸‡"
         : "à¸¡à¸²à¸•à¸£à¸à¸²à¸™";
     final partner = _selectedPartner;
-    final selectedDestinations = _destinations
+    final selectedDestinations = _verifiedDestinations
         .where(
             (destination) => _selectedDestinationIds.contains(destination.id))
         .map((destination) => destination.name)
@@ -1048,6 +1031,32 @@ Section 4: Partner delivery scope
     }
   }
 
+  Future<void> _loadVerifiedEcosystemFromAdminSource() async {
+    try {
+      final source = VerifiedEcosystemCatalogSource();
+      final result = await source.loadVerifiedDestinations();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _ecosystemCatalog
+          ..clear()
+          ..addAll(result.destinations);
+        _ecosystemCatalogSourceLabel = result.source;
+        _ecosystemCatalogLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _ecosystemCatalog.clear();
+        _ecosystemCatalogSourceLabel = 'unavailable';
+        _ecosystemCatalogLoading = false;
+      });
+    }
+  }
+
   String _partnerCatalogSourceText() {
     switch (_partnerCatalogSourceLabel) {
       case 'admin_api':
@@ -1058,6 +1067,19 @@ Section 4: Partner delivery scope
         return 'Source unavailable';
       default:
         return 'Source: $_partnerCatalogSourceLabel';
+    }
+  }
+
+  String _ecosystemCatalogSourceText() {
+    switch (_ecosystemCatalogSourceLabel) {
+      case 'admin_api':
+        return 'Source: Admin API';
+      case 'admin_config':
+        return 'Source: Admin Config';
+      case 'unavailable':
+        return 'Source unavailable';
+      default:
+        return 'Source: $_ecosystemCatalogSourceLabel';
     }
   }
 
@@ -1279,8 +1301,66 @@ Section 4: Partner delivery scope
             const Text(
               "Choose institutions to receive policy packet + document request. No automatic transfer is executed by the app.",
             ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: scheme.surfaceContainerHighest,
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.55),
+                ),
+              ),
+              child: Text(
+                _ecosystemCatalogSourceText(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
-            ..._destinations.map((destination) {
+            if (_ecosystemCatalogLoading) ...[
+              const LinearProgressIndicator(minHeight: 4),
+              const SizedBox(height: 8),
+              const Text(
+                "กำลังอัปเดตรายชื่อปลายทางที่ผ่านการตรวจสอบ...",
+              ),
+              const SizedBox(height: 12),
+            ],
+            Row(
+              children: [
+                const Expanded(
+                  child: Text("แสดงเฉพาะปลายทางที่ผ่านการ verify แล้วเท่านั้น"),
+                ),
+                IconButton(
+                  tooltip: 'Refresh ecosystem list',
+                  onPressed: _ecosystemCatalogLoading
+                      ? null
+                      : () {
+                          setState(() => _ecosystemCatalogLoading = true);
+                          _loadVerifiedEcosystemFromAdminSource();
+                        },
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ],
+            ),
+            if (_verifiedDestinations.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: scheme.surfaceContainerLowest,
+                  border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: const Text(
+                  "ยังไม่มีปลายทาง ecosystem ที่ผ่านการ verify จากระบบหลังบ้าน เมื่อ admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
+                ),
+              ),
+            ..._verifiedDestinations.map((destination) {
               final enabled = _selectedDestinationIds.contains(destination.id);
               return SwitchListTile.adaptive(
                 value: enabled,

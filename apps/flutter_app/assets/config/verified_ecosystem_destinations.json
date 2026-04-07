@@ -1,0 +1,23 @@
+[
+  {
+    "id": "eco_bank_01",
+    "name": "Siam Trust Bank",
+    "category": "Bank",
+    "status": "verified",
+    "note": "Supports policy packet receipt and beneficiary verification route."
+  },
+  {
+    "id": "eco_exchange_01",
+    "name": "Thai Digital Exchange",
+    "category": "Exchange",
+    "status": "verified",
+    "note": "Receives handoff policy packet and identity confirmation request."
+  },
+  {
+    "id": "eco_gold_01",
+    "name": "Golden Reserve Broker",
+    "category": "Gold",
+    "status": "verified",
+    "note": "Supports documented claim routing with verified beneficiary workflow."
+  }
+]

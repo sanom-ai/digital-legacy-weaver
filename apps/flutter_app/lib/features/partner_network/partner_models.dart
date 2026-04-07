@@ -108,7 +108,8 @@ class LegalPartnerProfile {
           .map((item) => FeeTier.fromMap(Map<String, dynamic>.from(item)))
           .toList(),
       otherFeeNote: map['other_fee_note'] as String? ?? '',
-      platformFeePercent: (map['platform_fee_percent'] as num?)?.toDouble() ?? 0,
+      platformFeePercent:
+          (map['platform_fee_percent'] as num?)?.toDouble() ?? 0,
       feeFloor: (map['fee_floor'] as num?)?.toDouble(),
       feeCap: (map['fee_cap'] as num?)?.toDouble(),
     );
@@ -200,4 +201,26 @@ class EcosystemDestination {
   final String category;
   final String status;
   final String note;
+
+  bool get isVerified => status.toLowerCase() == 'verified';
+
+  factory EcosystemDestination.fromMap(Map<String, dynamic> map) {
+    return EcosystemDestination(
+      id: map['id'] as String? ?? '',
+      name: map['name'] as String? ?? '',
+      category: map['category'] as String? ?? 'Other',
+      status: map['status'] as String? ?? 'unverified',
+      note: map['note'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'category': category,
+      'status': status,
+      'note': note,
+    };
+  }
 }
