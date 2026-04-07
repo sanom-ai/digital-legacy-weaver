@@ -2502,6 +2502,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late final TextEditingController _emailAssetsController;
   late final TextEditingController _socialAssetsController;
   late final TextEditingController _fileAssetsController;
+  late final TextEditingController _personalSecretsNoteController;
+  late final TextEditingController _importantDocsNoteController;
+  late final TextEditingController _digitalAccountsNoteController;
   late final TextEditingController _recipientController;
   late final TextEditingController _recipientNameController;
   late final TextEditingController _verificationHintController;
@@ -2526,6 +2529,43 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late bool _fallbackEmail;
   late bool _fallbackSms;
   late String _safetyLevel;
+  final Set<String> _selectedPersonalSecrets = <String>{};
+  final Set<String> _selectedImportantDocs = <String>{};
+  final Set<String> _selectedDigitalAccounts = <String>{};
+  final Set<String> _selectedEcosystemConnectors = <String>{};
+  bool _connectLegalPartner = false;
+  String? _selectedLegalPartner;
+
+  static const List<String> _personalSecretItems = [
+    'recovery codes',
+    'crypto wallet seed',
+    'password vault export',
+    'private keys',
+    'PIN / passphrase',
+  ];
+  static const List<String> _importantDocumentItems = [
+    'พินัยกรรม (reference)',
+    'ประกันชีวิต',
+    'สัญญา / โฉนด',
+    'รหัสบัญชีธนาคาร',
+    'ข้อมูลติดต่อฉุกเฉิน',
+  ];
+  static const List<String> _digitalAccountItems = [
+    'email / social accounts',
+    'cloud storage access',
+    'subscription services',
+    'domain / hosting',
+    'crypto exchange login',
+  ];
+  static const List<String> _ecosystemTargets = [
+    'Bank connector',
+    'Exchange connector',
+    'Gold broker connector',
+  ];
+  static const List<String> _legalPartners = [
+    'Sanom Legal Partners',
+    'Northern Trust Counsel',
+  ];
 
   @override
   void initState() {
@@ -2540,6 +2580,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _emailAssetsController = TextEditingController();
     _socialAssetsController = TextEditingController();
     _fileAssetsController = TextEditingController();
+    _personalSecretsNoteController = TextEditingController();
+    _importantDocsNoteController = TextEditingController();
+    _digitalAccountsNoteController = TextEditingController();
     _recipientController = TextEditingController(
       text: widget.entry.recipient.destinationRef,
     );
@@ -2588,6 +2631,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _emailAssetsController.dispose();
     _socialAssetsController.dispose();
     _fileAssetsController.dispose();
+    _personalSecretsNoteController.dispose();
+    _importantDocsNoteController.dispose();
+    _digitalAccountsNoteController.dispose();
     _recipientController.dispose();
     _recipientNameController.dispose();
     _verificationHintController.dispose();
@@ -2598,6 +2644,15 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
   List<String> _structuredAssetLines() {
     final lines = <String>[];
+    if (_selectedPersonalSecrets.isNotEmpty) {
+      lines.add('ความลับส่วนตัว: ${_selectedPersonalSecrets.join(', ')}');
+    }
+    if (_selectedImportantDocs.isNotEmpty) {
+      lines.add('เอกสารสำคัญ: ${_selectedImportantDocs.join(', ')}');
+    }
+    if (_selectedDigitalAccounts.isNotEmpty) {
+      lines.add('บัญชีดิจิทัล: ${_selectedDigitalAccounts.join(', ')}');
+    }
     if (_bankAssetsController.text.trim().isNotEmpty) {
       lines.add('บัญชีการเงิน: ${_bankAssetsController.text.trim()}');
     }
@@ -2609,6 +2664,21 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     }
     if (_fileAssetsController.text.trim().isNotEmpty) {
       lines.add('ไฟล์สำคัญ: ${_fileAssetsController.text.trim()}');
+    }
+    if (_personalSecretsNoteController.text.trim().isNotEmpty) {
+      lines.add('หมายเหตุความลับส่วนตัว: ${_personalSecretsNoteController.text.trim()}');
+    }
+    if (_importantDocsNoteController.text.trim().isNotEmpty) {
+      lines.add('หมายเหตุเอกสารสำคัญ: ${_importantDocsNoteController.text.trim()}');
+    }
+    if (_digitalAccountsNoteController.text.trim().isNotEmpty) {
+      lines.add('หมายเหตุบัญชีดิจิทัล: ${_digitalAccountsNoteController.text.trim()}');
+    }
+    if (_selectedEcosystemConnectors.isNotEmpty) {
+      lines.add('เชื่อมต่อ ecosystem: ${_selectedEcosystemConnectors.join(', ')}');
+    }
+    if (_connectLegalPartner && _selectedLegalPartner != null) {
+      lines.add('ประสานงานสำนักงานกฎหมาย: $_selectedLegalPartner');
     }
     return lines;
   }
@@ -2726,6 +2796,111 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 ),
               ),
               const SizedBox(height: 8),
+              const Text(
+                'ความลับส่วนตัว',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _personalSecretItems
+                    .map(
+                      (item) => FilterChip(
+                        selected: _selectedPersonalSecrets.contains(item),
+                        label: Text(item),
+                        onSelected: (value) {
+                          setState(() {
+                            if (value) {
+                              _selectedPersonalSecrets.add(item);
+                            } else {
+                              _selectedPersonalSecrets.remove(item);
+                            }
+                          });
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _personalSecretsNoteController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'หมายเหตุความลับส่วนตัว (เพิ่มเติม)',
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'เอกสารสำคัญ',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _importantDocumentItems
+                    .map(
+                      (item) => FilterChip(
+                        selected: _selectedImportantDocs.contains(item),
+                        label: Text(item),
+                        onSelected: (value) {
+                          setState(() {
+                            if (value) {
+                              _selectedImportantDocs.add(item);
+                            } else {
+                              _selectedImportantDocs.remove(item);
+                            }
+                          });
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _importantDocsNoteController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'หมายเหตุเอกสารสำคัญ (เพิ่มเติม)',
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'บัญชีดิจิทัล',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _digitalAccountItems
+                    .map(
+                      (item) => FilterChip(
+                        selected: _selectedDigitalAccounts.contains(item),
+                        label: Text(item),
+                        onSelected: (value) {
+                          setState(() {
+                            if (value) {
+                              _selectedDigitalAccounts.add(item);
+                            } else {
+                              _selectedDigitalAccounts.remove(item);
+                            }
+                          });
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _digitalAccountsNoteController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'หมายเหตุบัญชีดิจิทัล (เพิ่มเติม)',
+                ),
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _bankAssetsController,
                 decoration: const InputDecoration(
@@ -2755,6 +2930,83 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 decoration: const InputDecoration(
                   labelText: 'ไฟล์สำคัญ',
                   hintText: 'เช่น รูปครอบครัว, เอกสารประกัน',
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF6F6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'เชื่อมต่อปลายทาง (connect)',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'เลือกให้ระบบประสานงานเอกสารไปยัง ecosystem และสำนักงานกฎหมายได้',
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _ecosystemTargets
+                          .map(
+                            (target) => FilterChip(
+                              selected:
+                                  _selectedEcosystemConnectors.contains(target),
+                              label: Text(target),
+                              onSelected: (value) {
+                                setState(() {
+                                  if (value) {
+                                    _selectedEcosystemConnectors.add(target);
+                                  } else {
+                                    _selectedEcosystemConnectors.remove(target);
+                                  }
+                                });
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      value: _connectLegalPartner,
+                      onChanged: (value) {
+                        setState(() {
+                          _connectLegalPartner = value;
+                          if (!value) {
+                            _selectedLegalPartner = null;
+                          }
+                        });
+                      },
+                      title: const Text('เชื่อมต่อสำนักงานกฎหมายให้ช่วยประสานงาน'),
+                    ),
+                    if (_connectLegalPartner)
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedLegalPartner,
+                        decoration: const InputDecoration(
+                          labelText: 'เลือกสำนักงานกฎหมายพาร์ทเนอร์',
+                        ),
+                        items: _legalPartners
+                            .map(
+                              (partner) => DropdownMenuItem(
+                                value: partner,
+                                child: Text(partner),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedLegalPartner = value);
+                        },
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
