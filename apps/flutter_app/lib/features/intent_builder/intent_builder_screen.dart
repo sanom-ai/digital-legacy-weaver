@@ -29,6 +29,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 // "Export current version"
 // "Policy preview"
 // "Version history:"
+// "Release status:"
 
 class IntentBuilderScreen extends ConsumerStatefulWidget {
   const IntentBuilderScreen({

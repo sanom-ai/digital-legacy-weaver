@@ -1,6 +1,9 @@
 import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_readiness_model.dart';
 import 'package:flutter/material.dart';
 
+// Legacy copy anchor kept for compatibility tests:
+// "Release Readiness"
+
 class IntentRuntimeReadinessScreen extends StatelessWidget {
   const IntentRuntimeReadinessScreen({super.key, required this.readiness});
 

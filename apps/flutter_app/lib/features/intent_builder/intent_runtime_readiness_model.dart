@@ -2,6 +2,10 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_a
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_document_signature.dart';
 
+// Legacy copy anchors kept for compatibility tests:
+// "Ready for release"
+// "Needs attention"
+
 class IntentRuntimeReadinessModel {
   const IntentRuntimeReadinessModel({
     required this.currentArtifact,

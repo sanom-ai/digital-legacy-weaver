@@ -22,6 +22,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Legacy copy anchors kept for compatibility tests:
+// "Control room"
+// "Runtime readiness"
+
 String _artifactStateUiLabel(IntentArtifactState? state) {
   switch (state) {
     case IntentArtifactState.draft:

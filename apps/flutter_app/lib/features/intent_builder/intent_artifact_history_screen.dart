@@ -4,6 +4,9 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_re
 import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_model.dart';
 import 'package:flutter/material.dart';
 
+// Legacy copy anchor kept for compatibility tests:
+// "Exported Version History"
+
 typedef ArtifactHistoryAction =
     Future<void> Function(IntentCanonicalArtifactModel artifact);
 

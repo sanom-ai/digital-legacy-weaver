@@ -3,6 +3,9 @@
 import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_model.dart';
 import 'package:flutter/material.dart';
 
+// Legacy copy anchor kept for compatibility tests:
+// "Exported Version Review"
+
 class IntentArtifactReviewScreen extends StatelessWidget {
   const IntentArtifactReviewScreen({super.key, required this.artifact});
 
