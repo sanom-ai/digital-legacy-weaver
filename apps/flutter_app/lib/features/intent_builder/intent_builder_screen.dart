@@ -51,6 +51,34 @@ class IntentBuilderScreen extends ConsumerStatefulWidget {
       _IntentBuilderScreenState();
 }
 
+String _destinationCategoryUiLabel(String category) {
+  switch (category.trim().toLowerCase()) {
+    case 'bank':
+      return 'ธนาคาร';
+    case 'exchange':
+      return 'แพลตฟอร์มซื้อขาย';
+    case 'gold':
+      return 'ผู้ให้บริการทองคำ';
+    case 'legal':
+      return 'กฎหมาย';
+    default:
+      return category;
+  }
+}
+
+String _destinationStatusUiLabel(String status) {
+  switch (status.trim().toLowerCase()) {
+    case 'verified':
+      return 'ยืนยันแล้ว';
+    case 'active':
+      return 'พร้อมใช้งาน';
+    case 'pending':
+      return 'รอตรวจสอบ';
+    default:
+      return status;
+  }
+}
+
 class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   late IntentDocumentModel _document;
   bool _isLoading = true;
@@ -827,7 +855,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
 ส่วนที่ 4: พาร์ทเนอร์และปลายทาง
 - สำนักงานกฎหมาย: $partnerLine
-- ปลายทางใน ecosystem: $destinationLine
+- ปลายทางสถาบัน: $destinationLine
 - สถานะการยอมรับค่าธรรมเนียมพาร์ทเนอร์: ${_partnerTermsAccepted ? "ยอมรับแล้ว" : "ยังไม่ยอมรับ"}
 
 หมายเหตุ
@@ -1106,26 +1134,26 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _partnerCatalogSourceText() {
     switch (_partnerCatalogSourceLabel) {
       case 'admin_api':
-        return 'แหล่งข้อมูล: Admin API';
+        return 'แหล่งข้อมูล: ระบบกลางที่ยืนยันแล้ว';
       case 'admin_config':
-        return 'แหล่งข้อมูล: Admin Config';
+        return 'แหล่งข้อมูล: รายการสำรองในแอป';
       case 'unavailable':
-        return 'Source unavailable';
+        return 'ตอนนี้ยังดึงรายชื่อจากระบบกลางไม่ได้';
       default:
-        return 'Source: $_partnerCatalogSourceLabel';
+        return 'แหล่งข้อมูล: $_partnerCatalogSourceLabel';
     }
   }
 
   String _ecosystemCatalogSourceText() {
     switch (_ecosystemCatalogSourceLabel) {
       case 'admin_api':
-        return 'แหล่งข้อมูล: Admin API';
+        return 'แหล่งข้อมูล: ระบบกลางที่ยืนยันแล้ว';
       case 'admin_config':
-        return 'แหล่งข้อมูล: Admin Config';
+        return 'แหล่งข้อมูล: รายการสำรองในแอป';
       case 'unavailable':
-        return 'Source unavailable';
+        return 'ตอนนี้ยังดึงรายชื่อจากระบบกลางไม่ได้';
       default:
-        return 'Source: $_ecosystemCatalogSourceLabel';
+        return 'แหล่งข้อมูล: $_ecosystemCatalogSourceLabel';
     }
   }
 
@@ -1227,7 +1255,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบหลังบ้าน เมื่อ Admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
+                  "ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบกลาง เมื่อรายชื่อได้รับอนุมัติแล้วจะแสดงที่นี่อัตโนมัติ",
                 ),
               ),
             ..._verifiedLegalPartners.map((partner) {
@@ -1340,12 +1368,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "ปลายทางใน Ecosystem",
+              "ปลายทางสถาบันที่พร้อมรับเอกสาร",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             const Text(
-              "เลือกหน่วยงานปลายทางที่จะรับ policy packet และคำขอเอกสาร โดยแอปจะไม่ทำการโอนอัตโนมัติ",
+              "เลือกสถาบันปลายทางที่จะรับเอกสารสรุปและคำขอ โดยแอปจะไม่ทำการโอนหรือสั่งธุรกรรมอัตโนมัติ",
             ),
             const SizedBox(height: 4),
             Container(
@@ -1380,7 +1408,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   child: Text("แสดงเฉพาะปลายทางที่ผ่านการยืนยันแล้ว"),
                 ),
                 IconButton(
-                  tooltip: 'Refresh ecosystem list',
+                  tooltip: 'อัปเดตรายชื่อปลายทาง',
                   onPressed: _ecosystemCatalogLoading
                       ? null
                       : () {
@@ -1403,7 +1431,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "ยังไม่มีปลายทาง Ecosystem ที่ผ่านการยืนยันจากระบบหลังบ้าน เมื่อ Admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
+                  "ยังไม่มีปลายทางสถาบันที่ผ่านการยืนยัน เมื่อระบบกลางอัปเดตรายชื่อแล้วจะแสดงที่นี่อัตโนมัติ",
                 ),
               ),
             ..._verifiedDestinations.map((destination) {
@@ -1422,7 +1450,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 },
                 title: Text(destination.name),
                 subtitle: Text(
-                  "${destination.category} â€¢ ${destination.status} â€¢ ${destination.note}",
+                  "${_destinationCategoryUiLabel(destination.category)} • ${_destinationStatusUiLabel(destination.status)} • ${destination.note}",
                 ),
               );
             }),
@@ -2934,25 +2962,25 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   bool _expandDigitalAccounts = false;
 
   static const List<String> _personalSecretItems = [
-    'recovery codes',
-    'crypto wallet seed',
-    'password vault export',
-    'private keys',
-    'PIN / passphrase',
+    'รหัสกู้คืน',
+    'ชุดคำกู้กระเป๋าเงินคริปโต',
+    'ไฟล์ส่งออกจากตัวจัดการรหัสผ่าน',
+    'กุญแจส่วนตัว',
+    'PIN / รหัสผ่านวลี',
   ];
   static const List<String> _importantDocumentItems = [
-    'พินัยกรรม (reference)',
+    'พินัยกรรม (อ้างอิง)',
     'ประกันชีวิต',
     'สัญญา / โฉนด',
     'รหัสบัญชีธนาคาร',
     'ข้อมูลติดต่อฉุกเฉิน',
   ];
   static const List<String> _digitalAccountItems = [
-    'email / social accounts',
-    'cloud storage access',
-    'subscription services',
-    'domain / hosting',
-    'crypto exchange login',
+    'บัญชีอีเมล / โซเชียล',
+    'สิทธิ์เข้าถึงคลาวด์',
+    'บริการสมาชิกที่ผูกไว้',
+    'โดเมน / โฮสติ้ง',
+    'บัญชีแพลตฟอร์มคริปโต',
   ];
   static const List<String> _ecosystemTargets = [
     'Bank connector',
@@ -2971,6 +2999,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       default:
         return target;
     }
+  }
+
+  String _selectedEcosystemSummary() {
+    return _selectedEcosystemConnectors
+        .map(_ecosystemTargetLabel)
+        .join(', ');
   }
 
   @override
@@ -3084,8 +3118,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
           'หมายเหตุบัญชีดิจิทัล: ${_digitalAccountsNoteController.text.trim()}');
     }
     if (_selectedEcosystemConnectors.isNotEmpty) {
-      lines.add(
-          'เชื่อมต่อ ecosystem: ${_selectedEcosystemConnectors.join(', ')}');
+      lines.add('ประสานปลายทางสถาบัน: ${_selectedEcosystemSummary()}');
     }
     if (_connectLegalPartner && _selectedLegalPartner != null) {
       lines.add('ประสานงานสำนักงานกฎหมาย: $_selectedLegalPartner');
@@ -3431,7 +3464,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               TextField(
                 controller: _bankAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'บัญชีการเงิน (Bank/Exchange/Gold)',
+                  labelText: 'บัญชีการเงิน (ธนาคาร / คริปโต / ทองคำ)',
                   hintText: 'เช่น KBank, Bitkub, ร้านทอง A',
                 ),
               ),
