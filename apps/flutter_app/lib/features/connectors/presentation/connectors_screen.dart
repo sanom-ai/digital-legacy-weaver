@@ -56,7 +56,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     return "We could not load $scope right now. Please retry.";
   }
 
-  Future<void> _handleAddPath(AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
+  Future<void> _handleAddPath(
+      AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
     if (_addingPath) return;
     final draft = await showDialog<_ConnectorDraft>(
       context: context,
@@ -75,7 +76,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
           );
       _setMessage("Destination path saved.");
     } catch (error) {
-      _setMessage(_friendlyActionError("saving this path", error), isError: true);
+      _setMessage(_friendlyActionError("saving this path", error),
+          isError: true);
     } finally {
       if (mounted) {
         setState(() => _addingPath = false);
@@ -83,7 +85,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     }
   }
 
-  Future<void> _handleAddAssetRef(AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
+  Future<void> _handleAddAssetRef(
+      AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
     if (_addingAssetRef) return;
     if (connectorsAsync.isLoading) {
       _setMessage(
@@ -101,7 +104,9 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     }
     final connectors = connectorsAsync.value ?? const <PartnerConnectorModel>[];
     if (connectors.isEmpty) {
-      _setMessage("Add at least one destination path before adding asset references.", isError: true);
+      _setMessage(
+          "Add at least one destination path before adding asset references.",
+          isError: true);
       return;
     }
 
@@ -136,6 +141,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final connectorsAsync = ref.watch(connectorsProvider);
     final assetsAsync = ref.watch(connectorAssetRefsProvider);
 
@@ -145,6 +151,11 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.45)),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -167,7 +178,9 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                   ],
                   const SizedBox(height: 10),
                   FilledButton.tonal(
-                    onPressed: _addingPath ? null : () => _handleAddPath(connectorsAsync),
+                    onPressed: _addingPath
+                        ? null
+                        : () => _handleAddPath(connectorsAsync),
                     child: Text(_addingPath ? "Saving path..." : "Add Path"),
                   ),
                   const SizedBox(height: 10),
@@ -211,6 +224,11 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
           ),
           const SizedBox(height: 12),
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.45)),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -226,9 +244,12 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                   ),
                   const SizedBox(height: 10),
                   FilledButton.tonal(
-                    onPressed:
-                        _addingAssetRef ? null : () => _handleAddAssetRef(connectorsAsync),
-                    child: Text(_addingAssetRef ? "Saving asset ref..." : "Add Asset Ref"),
+                    onPressed: _addingAssetRef
+                        ? null
+                        : () => _handleAddAssetRef(connectorsAsync),
+                    child: Text(_addingAssetRef
+                        ? "Saving asset ref..."
+                        : "Add Asset Ref"),
                   ),
                   const SizedBox(height: 10),
                   assetsAsync.when(
@@ -295,17 +316,19 @@ class _StatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final color = isError
-        ? const Color(0xFFFFF1F1)
+        ? scheme.errorContainer.withValues(alpha: 0.35)
         : highlighted
-            ? const Color(0xFFFFF7ED)
-            : const Color(0xFFF7F1E8);
+            ? scheme.primaryContainer.withValues(alpha: 0.3)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.5);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,6 +399,16 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
     super.dispose();
   }
 
+  InputDecoration _dialogInputDecoration(String label) {
+    final scheme = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -386,24 +419,22 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
           children: [
             TextField(
               controller: _connectorId,
-              decoration: const InputDecoration(labelText: "Path ID"),
+              decoration: _dialogInputDecoration("Path ID"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _name,
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: _dialogInputDecoration("Name"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _assetTypes,
-              decoration: const InputDecoration(labelText: "Asset Types (csv)"),
+              decoration: _dialogInputDecoration("Asset Types (csv)"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _secondFactors,
-              decoration: const InputDecoration(
-                labelText: "Second Factors (csv)",
-              ),
+              decoration: _dialogInputDecoration("Second Factors (csv)"),
             ),
             CheckboxListTile(
               value: _supportsWebhooks,
@@ -500,6 +531,16 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
     super.dispose();
   }
 
+  InputDecoration _dialogInputDecoration(String label) {
+    final scheme = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -521,34 +562,32 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
               onChanged: (v) {
                 if (v != null) setState(() => _connectorRefId = v);
               },
-              decoration: const InputDecoration(labelText: "Destination Path"),
+              decoration: _dialogInputDecoration("Destination Path"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _assetId,
-              decoration: const InputDecoration(labelText: "Asset ID"),
+              decoration: _dialogInputDecoration("Asset ID"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _assetType,
-              decoration: const InputDecoration(labelText: "Asset Type"),
+              decoration: _dialogInputDecoration("Asset Type"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _displayName,
-              decoration: const InputDecoration(labelText: "Display Name"),
+              decoration: _dialogInputDecoration("Display Name"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _payloadRef,
-              decoration: const InputDecoration(
-                labelText: "Encrypted Payload Ref",
-              ),
+              decoration: _dialogInputDecoration("Encrypted Payload Ref"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _integrityHash,
-              decoration: const InputDecoration(labelText: "Integrity Hash"),
+              decoration: _dialogInputDecoration("Integrity Hash"),
             ),
           ],
         ),

@@ -54,14 +54,33 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   }
 
   Color _badgeColor(PrivacyProfilePreset preset) {
+    final scheme = Theme.of(context).colorScheme;
     switch (preset.id) {
       case "confidential":
-        return const Color(0xFFD9E8FF);
+        return scheme.primaryContainer.withValues(alpha: 0.75);
       case "audit-heavy":
-        return const Color(0xFFFFE4C7);
+        return scheme.tertiaryContainer.withValues(alpha: 0.75);
       default:
-        return const Color(0xFFE5D7C5);
+        return scheme.surfaceContainerHighest;
     }
+  }
+
+  RoundedRectangleBorder _sectionCardShape() {
+    final scheme = Theme.of(context).colorScheme;
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+      side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+    );
+  }
+
+  InputDecoration _settingsFieldDecoration(String label) {
+    final scheme = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    );
   }
 
   String? _productionGuardrailMessage() {
@@ -166,6 +185,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
             children: [
               Card(
+                shape: _sectionCardShape(),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -202,6 +222,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
               ),
               const SizedBox(height: 12),
               Card(
+                shape: _sectionCardShape(),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -217,7 +238,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                       SwitchListTile(
                         value: _remindersEnabled,
                         onChanged: (v) => setState(() => _remindersEnabled = v),
-                        title: const Text("เปิดการเตือนก่อนทริกเกอร์ | Enable pre-trigger reminders"),
+                        title: const Text(
+                            "เปิดการเตือนก่อนทริกเกอร์ | Enable pre-trigger reminders"),
                         contentPadding: EdgeInsets.zero,
                       ),
                       const SizedBox(height: 4),
@@ -242,12 +264,13 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Text("การยืนยันว่ายังใช้งานอยู่ | Proof-of-life confirmation"),
+                      const Text(
+                          "การยืนยันว่ายังใช้งานอยู่ | Proof-of-life confirmation"),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         initialValue: _proofOfLifeCheckMode,
-                        decoration: const InputDecoration(
-                          labelText: "วิธีเช็กอิน | Check-in method",
+                        decoration: _settingsFieldDecoration(
+                          "วิธีเช็กอิน | Check-in method",
                         ),
                         items: const [
                           DropdownMenuItem(
@@ -270,7 +293,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      const Text("ช่องทางสำรองสำหรับยืนยัน | Proof-of-life fallback channels"),
+                      const Text(
+                          "ช่องทางสำรองสำหรับยืนยัน | Proof-of-life fallback channels"),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
@@ -289,7 +313,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Text("ช่วงหน่วงก่อนปล่อยจริง (วัน) | Final release grace period (days)"),
+                      const Text(
+                          "ช่วงหน่วงก่อนปล่อยจริง (วัน) | Final release grace period (days)"),
                       Slider(
                         value: _graceDays.toDouble(),
                         min: 7,
@@ -303,7 +328,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         value: _serverHeartbeatFallbackEnabled,
                         onChanged: (v) =>
                             setState(() => _serverHeartbeatFallbackEnabled = v),
-                        title: const Text("เปิด server heartbeat สำรอง | Enable server heartbeat fallback"),
+                        title: const Text(
+                            "เปิด server heartbeat สำรอง | Enable server heartbeat fallback"),
                         subtitle: const Text(
                           "Recommended for iOS and long background gaps where app-only proof-of-life can drift.",
                         ),
@@ -314,7 +340,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         onChanged: (v) => setState(
                           () => _iosBackgroundRiskAcknowledged = v ?? false,
                         ),
-                        title: const Text("รับทราบข้อจำกัด iOS/background | Acknowledge iOS/background limits"),
+                        title: const Text(
+                            "รับทราบข้อจำกัด iOS/background | Acknowledge iOS/background limits"),
                         subtitle: const Text(
                           "Dead-man style timers on mobile may need fallback heartbeat to avoid false triggers.",
                         ),
@@ -323,14 +350,16 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                       SwitchListTile(
                         value: _pause7Days,
                         onChanged: (v) => setState(() => _pause7Days = v),
-                        title: const Text("พักการทำงานฉุกเฉิน 7 วัน | Emergency pause for 7 days"),
+                        title: const Text(
+                            "พักการทำงานฉุกเฉิน 7 วัน | Emergency pause for 7 days"),
                         contentPadding: EdgeInsets.zero,
                       ),
                       SwitchListTile(
                         value: _requireTotpUnlock,
                         onChanged: (v) =>
                             setState(() => _requireTotpUnlock = v),
-                        title: const Text("บังคับ TOTP ตอนปลดล็อก | Require TOTP at unlock"),
+                        title: const Text(
+                            "บังคับ TOTP ตอนปลดล็อก | Require TOTP at unlock"),
                         subtitle: const Text(
                           "Enable a stronger second-factor check before handoff details are shown.",
                         ),
@@ -365,7 +394,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         value: _guardianQuorumEnabled,
                         onChanged: (v) =>
                             setState(() => _guardianQuorumEnabled = v),
-                        title: const Text("เปิดการอนุมัติร่วมก่อนปล่อย | Enable shared approval for release"),
+                        title: const Text(
+                            "เปิดการอนุมัติร่วมก่อนปล่อย | Enable shared approval for release"),
                         subtitle: const Text(
                           "Recommended baseline: 2-of-3 approvers.",
                         ),
@@ -374,8 +404,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                       if (_guardianQuorumEnabled) ...[
                         DropdownButtonFormField<int>(
                           initialValue: _guardianQuorumPoolSize,
-                          decoration: const InputDecoration(
-                            labelText: "จำนวนคนในกลุ่มอนุมัติ | Approver group size",
+                          decoration: _settingsFieldDecoration(
+                            "จำนวนคนในกลุ่มอนุมัติ | Approver group size",
                           ),
                           items: const [
                             DropdownMenuItem(
@@ -409,8 +439,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         const SizedBox(height: 8),
                         DropdownButtonFormField<int>(
                           initialValue: _guardianQuorumRequired,
-                          decoration: const InputDecoration(
-                            labelText: "จำนวนที่ต้องอนุมัติ | Required approvals",
+                          decoration: _settingsFieldDecoration(
+                            "จำนวนที่ต้องอนุมัติ | Required approvals",
                           ),
                           items: List.generate(
                             _guardianQuorumPoolSize,
@@ -444,7 +474,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         value: _emergencyAccessEnabled,
                         onChanged: (v) =>
                             setState(() => _emergencyAccessEnabled = v),
-                        title: const Text("เปิดการเข้าถึงฉุกเฉิน | Enable emergency access"),
+                        title: const Text(
+                            "เปิดการเข้าถึงฉุกเฉิน | Enable emergency access"),
                         subtitle: const Text(
                           "Keep this separate from standard inactivity-trigger release.",
                         ),
@@ -457,7 +488,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                             () => _emergencyAccessRequiresBeneficiaryRequest =
                                 v ?? true,
                           ),
-                          title: const Text("ต้องมีคำขอจากผู้รับ | Require beneficiary request"),
+                          title: const Text(
+                              "ต้องมีคำขอจากผู้รับ | Require beneficiary request"),
                           subtitle: const Text(
                             "Emergency access should start with an explicit beneficiary request.",
                           ),
@@ -469,14 +501,16 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                             () => _emergencyAccessRequiresGuardianQuorum =
                                 v ?? true,
                           ),
-                          title: const Text("ต้องมีการอนุมัติร่วม | Require shared approval"),
+                          title: const Text(
+                              "ต้องมีการอนุมัติร่วม | Require shared approval"),
                           subtitle: const Text(
                             "Recommended so one person cannot force emergency access alone.",
                           ),
                           contentPadding: EdgeInsets.zero,
                         ),
                         const SizedBox(height: 8),
-                        const Text("ระยะเวลารอก่อนเข้าถึงฉุกเฉิน (ชม.) | Emergency waiting window (hours)"),
+                        const Text(
+                            "ระยะเวลารอก่อนเข้าถึงฉุกเฉิน (ชม.) | Emergency waiting window (hours)"),
                         Slider(
                           value: _emergencyAccessGraceHours.toDouble(),
                           min: 24,
@@ -505,7 +539,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                             _deviceRebindStartedAt = v ? DateTime.now() : null;
                           });
                         },
-                        title: const Text("กำลังย้ายอุปกรณ์ | Device rebind in progress"),
+                        title: const Text(
+                            "กำลังย้ายอุปกรณ์ | Device rebind in progress"),
                         subtitle: const Text(
                           "Enable before changing phone, passkey, or biometric setup.",
                         ),
@@ -517,7 +552,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       const SizedBox(height: 8),
-                      const Text("ช่วงผ่อนผันการย้าย (ชม.) | Rebind grace window (hours)"),
+                      const Text(
+                          "ช่วงผ่อนผันการย้าย (ชม.) | Rebind grace window (hours)"),
                       Slider(
                         value: _deviceRebindGraceHours.toDouble(),
                         min: 24,
@@ -531,7 +567,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         value: _recoveryKeyEnabled,
                         onChanged: (v) =>
                             setState(() => _recoveryKeyEnabled = v),
-                        title: const Text("เปิด recovery key สำรอง | Enable recovery key fallback"),
+                        title: const Text(
+                            "เปิด recovery key สำรอง | Enable recovery key fallback"),
                         subtitle: const Text(
                           "Keep an offline recovery key path for proof-of-life disruptions.",
                         ),
@@ -547,7 +584,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         "Set how long delivery links, secure references, and audit traces should remain retained.",
                       ),
                       const SizedBox(height: 8),
-                      const Text("อายุลิงก์เข้าถึง (ชม.) | Delivery access link TTL (hours)"),
+                      const Text(
+                          "อายุลิงก์เข้าถึง (ชม.) | Delivery access link TTL (hours)"),
                       Slider(
                         value: _deliveryAccessTtlHours.toDouble(),
                         min: 24,
@@ -558,7 +596,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                             setState(() => _deliveryAccessTtlHours = v.round()),
                       ),
                       const SizedBox(height: 8),
-                      const Text("เก็บ payload (วัน) | Payload retention (days)"),
+                      const Text(
+                          "เก็บ payload (วัน) | Payload retention (days)"),
                       Slider(
                         value: _payloadRetentionDays.toDouble(),
                         min: 7,
@@ -569,7 +608,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                             setState(() => _payloadRetentionDays = v.round()),
                       ),
                       const SizedBox(height: 8),
-                      const Text("เก็บ audit log (วัน) | Audit log retention (days)"),
+                      const Text(
+                          "เก็บ audit log (วัน) | Audit log retention (days)"),
                       Slider(
                         value: _auditLogRetentionDays.toDouble(),
                         min: 7,
@@ -585,6 +625,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
               ),
               const SizedBox(height: 12),
               Card(
+                shape: _sectionCardShape(),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
