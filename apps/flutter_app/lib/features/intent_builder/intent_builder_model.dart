@@ -47,7 +47,8 @@ class IntentDocumentModel {
       intentId: intentId ?? this.intentId,
       version: version ?? this.version,
       ownerRef: ownerRef ?? this.ownerRef,
-      defaultPrivacyProfile: defaultPrivacyProfile ?? this.defaultPrivacyProfile,
+      defaultPrivacyProfile:
+          defaultPrivacyProfile ?? this.defaultPrivacyProfile,
       entries: entries ?? this.entries,
       globalSafeguards: globalSafeguards ?? this.globalSafeguards,
       metadata: metadata ?? this.metadata,
@@ -71,17 +72,20 @@ class IntentDocumentModel {
       intentId: map["intent_id"] as String? ?? "intent_primary",
       version: map["version"] as String? ?? "0.1.0",
       ownerRef: map["owner_ref"] as String? ?? "",
-      defaultPrivacyProfile: map["default_privacy_profile"] as String? ?? "minimal",
+      defaultPrivacyProfile:
+          map["default_privacy_profile"] as String? ?? "minimal",
       entries: (map["entries"] as List<dynamic>? ?? const [])
           .whereType<Map>()
-          .map((entry) => IntentEntryModel.fromMap(Map<String, dynamic>.from(entry)))
+          .map((entry) =>
+              IntentEntryModel.fromMap(Map<String, dynamic>.from(entry)))
           .toList(),
       globalSafeguards: IntentGlobalSafeguardsModel.fromMap(
         Map<String, dynamic>.from(
           map["global_safeguards"] as Map? ?? const <String, dynamic>{},
         ),
       ),
-      metadata: Map<String, dynamic>.from(map["metadata"] as Map? ?? const <String, dynamic>{}),
+      metadata: Map<String, dynamic>.from(
+          map["metadata"] as Map? ?? const <String, dynamic>{}),
     );
   }
 }
@@ -271,22 +275,28 @@ class IntentEntryModel {
       entryId: map["entry_id"] as String? ?? "entry_unknown",
       kind: map["kind"] as String? ?? "legacy_delivery",
       asset: IntentAssetModel.fromMap(
-        Map<String, dynamic>.from(map["asset"] as Map? ?? const <String, dynamic>{}),
+        Map<String, dynamic>.from(
+            map["asset"] as Map? ?? const <String, dynamic>{}),
       ),
       recipient: IntentRecipientModel.fromMap(
-        Map<String, dynamic>.from(map["recipient"] as Map? ?? const <String, dynamic>{}),
+        Map<String, dynamic>.from(
+            map["recipient"] as Map? ?? const <String, dynamic>{}),
       ),
       trigger: IntentTriggerModel.fromMap(
-        Map<String, dynamic>.from(map["trigger"] as Map? ?? const <String, dynamic>{}),
+        Map<String, dynamic>.from(
+            map["trigger"] as Map? ?? const <String, dynamic>{}),
       ),
       delivery: IntentDeliveryModel.fromMap(
-        Map<String, dynamic>.from(map["delivery"] as Map? ?? const <String, dynamic>{}),
+        Map<String, dynamic>.from(
+            map["delivery"] as Map? ?? const <String, dynamic>{}),
       ),
       safeguards: IntentSafeguardsModel.fromMap(
-        Map<String, dynamic>.from(map["safeguards"] as Map? ?? const <String, dynamic>{}),
+        Map<String, dynamic>.from(
+            map["safeguards"] as Map? ?? const <String, dynamic>{}),
       ),
       privacy: IntentPrivacyModel.fromMap(
-        Map<String, dynamic>.from(map["privacy"] as Map? ?? const <String, dynamic>{}),
+        Map<String, dynamic>.from(
+            map["privacy"] as Map? ?? const <String, dynamic>{}),
       ),
       partnerPath: map["partner_path"] == null
           ? null
@@ -381,9 +391,10 @@ class IntentRecipientModel {
       role: map["role"] as String? ?? "beneficiary",
       registeredLegalName: map["registered_legal_name"] as String? ?? "",
       verificationHint: map["verification_hint"] as String? ?? "",
-      fallbackChannels: (map["fallback_channels"] as List<dynamic>? ?? const ["email"])
-          .whereType<String>()
-          .toList(),
+      fallbackChannels:
+          (map["fallback_channels"] as List<dynamic>? ?? const ["email"])
+              .whereType<String>()
+              .toList(),
     );
   }
 }
@@ -395,6 +406,7 @@ class IntentTriggerModel {
     required this.requireUnconfirmedAliveStatus,
     required this.graceDays,
     required this.remindersDaysBefore,
+    this.scheduledAtUtc,
   });
 
   final String mode;
@@ -402,6 +414,7 @@ class IntentTriggerModel {
   final bool requireUnconfirmedAliveStatus;
   final int graceDays;
   final List<int> remindersDaysBefore;
+  final DateTime? scheduledAtUtc;
 
   Map<String, dynamic> toMap() {
     return {
@@ -410,18 +423,28 @@ class IntentTriggerModel {
       "require_unconfirmed_alive_status": requireUnconfirmedAliveStatus,
       "grace_days": graceDays,
       "reminders_days_before": remindersDaysBefore,
+      if (scheduledAtUtc != null)
+        "scheduled_at_utc": scheduledAtUtc!.toUtc().toIso8601String(),
     };
   }
 
   factory IntentTriggerModel.fromMap(Map<String, dynamic> map) {
+    DateTime? scheduledAt;
+    final rawScheduledAt = map["scheduled_at_utc"];
+    if (rawScheduledAt is String && rawScheduledAt.trim().isNotEmpty) {
+      scheduledAt = DateTime.tryParse(rawScheduledAt)?.toUtc();
+    }
     return IntentTriggerModel(
       mode: map["mode"] as String? ?? "inactivity",
       inactivityDays: map["inactivity_days"] as int? ?? 90,
-      requireUnconfirmedAliveStatus: map["require_unconfirmed_alive_status"] as bool? ?? true,
+      requireUnconfirmedAliveStatus:
+          map["require_unconfirmed_alive_status"] as bool? ?? true,
       graceDays: map["grace_days"] as int? ?? 7,
-      remindersDaysBefore: (map["reminders_days_before"] as List<dynamic>? ?? const [14, 7, 1])
-          .whereType<int>()
-          .toList(),
+      remindersDaysBefore:
+          (map["reminders_days_before"] as List<dynamic>? ?? const [14, 7, 1])
+              .whereType<int>()
+              .toList(),
+      scheduledAtUtc: scheduledAt,
     );
   }
 }
@@ -451,7 +474,8 @@ class IntentDeliveryModel {
   factory IntentDeliveryModel.fromMap(Map<String, dynamic> map) {
     return IntentDeliveryModel(
       method: map["method"] as String? ?? "secure_link",
-      requireVerificationCode: map["require_verification_code"] as bool? ?? true,
+      requireVerificationCode:
+          map["require_verification_code"] as bool? ?? true,
       requireTotp: map["require_totp"] as bool? ?? false,
       oneTimeAccess: map["one_time_access"] as bool? ?? true,
     );
@@ -482,10 +506,12 @@ class IntentSafeguardsModel {
 
   factory IntentSafeguardsModel.fromMap(Map<String, dynamic> map) {
     return IntentSafeguardsModel(
-      requireGuardianApproval: map["require_guardian_approval"] as bool? ?? false,
+      requireGuardianApproval:
+          map["require_guardian_approval"] as bool? ?? false,
       requireMultisignal: map["require_multisignal"] as bool? ?? true,
       cooldownHours: map["cooldown_hours"] as int? ?? 24,
-      legalDisclaimerRequired: map["legal_disclaimer_required"] as bool? ?? true,
+      legalDisclaimerRequired:
+          map["legal_disclaimer_required"] as bool? ?? true,
     );
   }
 }
@@ -520,8 +546,10 @@ class IntentPrivacyModel {
       profile: map["profile"] as String? ?? "minimal",
       minimizeTraceMetadata: map["minimize_trace_metadata"] as bool? ?? true,
       preTriggerVisibility: map["pre_trigger_visibility"] as String? ?? "none",
-      postTriggerVisibility: map["post_trigger_visibility"] as String? ?? "route_only",
-      valueDisclosureMode: map["value_disclosure_mode"] as String? ?? "institution_verified_only",
+      postTriggerVisibility:
+          map["post_trigger_visibility"] as String? ?? "route_only",
+      valueDisclosureMode: map["value_disclosure_mode"] as String? ??
+          "institution_verified_only",
     );
   }
 }
@@ -620,8 +648,10 @@ class IntentGlobalSafeguardsModel {
       "guardian_quorum_required": guardianQuorumRequired,
       "guardian_quorum_pool_size": guardianQuorumPoolSize,
       "emergency_access_enabled": emergencyAccessEnabled,
-      "emergency_access_requires_beneficiary_request": emergencyAccessRequiresBeneficiaryRequest,
-      "emergency_access_requires_guardian_quorum": emergencyAccessRequiresGuardianQuorum,
+      "emergency_access_requires_beneficiary_request":
+          emergencyAccessRequiresBeneficiaryRequest,
+      "emergency_access_requires_guardian_quorum":
+          emergencyAccessRequiresGuardianQuorum,
       "emergency_access_grace_hours": emergencyAccessGraceHours,
       "device_rebind_in_progress": deviceRebindInProgress,
       "device_rebind_grace_hours": deviceRebindGraceHours,
@@ -640,11 +670,15 @@ class IntentGlobalSafeguardsModel {
     return IntentGlobalSafeguardsModel(
       emergencyPauseEnabled: map["emergency_pause_enabled"] as bool? ?? true,
       defaultGraceDays: map["default_grace_days"] as int? ?? 7,
-      defaultRemindersDaysBefore: (map["default_reminders_days_before"] as List<dynamic>? ?? const [14, 7, 1])
-          .whereType<int>()
-          .toList(),
-      requireMultisignalBeforeRelease: map["require_multisignal_before_release"] as bool? ?? true,
-      requireGuardianApprovalForLegacy: map["require_guardian_approval_for_legacy"] as bool? ?? false,
+      defaultRemindersDaysBefore:
+          (map["default_reminders_days_before"] as List<dynamic>? ??
+                  const [14, 7, 1])
+              .whereType<int>()
+              .toList(),
+      requireMultisignalBeforeRelease:
+          map["require_multisignal_before_release"] as bool? ?? true,
+      requireGuardianApprovalForLegacy:
+          map["require_guardian_approval_for_legacy"] as bool? ?? false,
       guardianQuorumEnabled: map["guardian_quorum_enabled"] as bool? ?? false,
       guardianQuorumRequired: map["guardian_quorum_required"] as int? ?? 2,
       guardianQuorumPoolSize: map["guardian_quorum_pool_size"] as int? ?? 3,
@@ -653,19 +687,26 @@ class IntentGlobalSafeguardsModel {
           map["emergency_access_requires_beneficiary_request"] as bool? ?? true,
       emergencyAccessRequiresGuardianQuorum:
           map["emergency_access_requires_guardian_quorum"] as bool? ?? true,
-      emergencyAccessGraceHours: map["emergency_access_grace_hours"] as int? ?? 48,
-      deviceRebindInProgress: map["device_rebind_in_progress"] as bool? ?? false,
+      emergencyAccessGraceHours:
+          map["emergency_access_grace_hours"] as int? ?? 48,
+      deviceRebindInProgress:
+          map["device_rebind_in_progress"] as bool? ?? false,
       deviceRebindGraceHours: map["device_rebind_grace_hours"] as int? ?? 72,
       recoveryKeyEnabled: map["recovery_key_enabled"] as bool? ?? true,
       deliveryAccessTtlHours: map["delivery_access_ttl_hours"] as int? ?? 72,
       payloadRetentionDays: map["payload_retention_days"] as int? ?? 30,
       auditLogRetentionDays: map["audit_log_retention_days"] as int? ?? 30,
-      proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
-      proofOfLifeFallbackChannels: (map["proof_of_life_fallback_channels"] as List<dynamic>? ?? const ["email", "sms"])
-          .whereType<String>()
-          .toList(),
-      serverHeartbeatFallbackEnabled: map["server_heartbeat_fallback_enabled"] as bool? ?? true,
-      iosBackgroundRiskAcknowledged: map["ios_background_risk_acknowledged"] as bool? ?? false,
+      proofOfLifeCheckMode:
+          map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
+      proofOfLifeFallbackChannels:
+          (map["proof_of_life_fallback_channels"] as List<dynamic>? ??
+                  const ["email", "sms"])
+              .whereType<String>()
+              .toList(),
+      serverHeartbeatFallbackEnabled:
+          map["server_heartbeat_fallback_enabled"] as bool? ?? true,
+      iosBackgroundRiskAcknowledged:
+          map["ios_background_risk_acknowledged"] as bool? ?? false,
     );
   }
 }

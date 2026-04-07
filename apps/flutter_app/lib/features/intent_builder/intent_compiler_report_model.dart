@@ -53,7 +53,8 @@ class IntentCompilerReportModel {
       warningCount: map["warning_count"] as int? ?? 0,
       issues: rawIssues
           .whereType<Map>()
-          .map((item) => IntentCompilerIssueModel.fromMap(Map<String, dynamic>.from(item)))
+          .map((item) =>
+              IntentCompilerIssueModel.fromMap(Map<String, dynamic>.from(item)))
           .toList(),
     );
   }
@@ -99,13 +100,15 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
     );
   }
 
-  final activeEntries = document.entries.where((entry) => entry.status == "active").toList();
+  final activeEntries =
+      document.entries.where((entry) => entry.status == "active").toList();
   if (activeEntries.isEmpty) {
     issues.add(
       _issue(
         severity: "warning",
         code: "inactive_entry_skipped",
-        message: "No active entries yet. Activate at least one entry to emit canonical PTN.",
+        message:
+            "No active entries yet. Activate at least one entry to emit canonical PTN.",
       ),
     );
   }
@@ -133,12 +136,49 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
       );
     }
 
-    if (entry.trigger.inactivityDays <= 0) {
+    final triggerMode = entry.trigger.mode.trim().toLowerCase();
+    if (triggerMode == "inactivity") {
+      if (entry.trigger.inactivityDays <= 0) {
+        issues.add(
+          _issue(
+            severity: "error",
+            code: "intent_validation_error",
+            message:
+                "${entry.entryId}: trigger.inactivity_days must be a positive integer",
+            entryId: entry.entryId,
+          ),
+        );
+      }
+    } else if (triggerMode == "exact_date") {
+      if (entry.trigger.scheduledAtUtc == null) {
+        issues.add(
+          _issue(
+            severity: "error",
+            code: "intent_validation_error",
+            message:
+                "${entry.entryId}: trigger.scheduled_at_utc is required for exact_date mode",
+            entryId: entry.entryId,
+          ),
+        );
+      } else if (!entry.trigger.scheduledAtUtc!
+          .isAfter(DateTime.now().toUtc())) {
+        issues.add(
+          _issue(
+            severity: "warning",
+            code: "exact_date_in_past",
+            message:
+                "${entry.entryId}: exact date trigger is in the past; this route may dispatch immediately once evaluated.",
+            entryId: entry.entryId,
+          ),
+        );
+      }
+    } else if (triggerMode != "manual_release") {
       issues.add(
         _issue(
           severity: "error",
           code: "intent_validation_error",
-          message: "${entry.entryId}: trigger.inactivity_days must be a positive integer",
+          message:
+              "${entry.entryId}: unsupported trigger.mode '$triggerMode' (expected inactivity, exact_date, or manual_release)",
           entryId: entry.entryId,
         ),
       );
@@ -149,7 +189,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
         _issue(
           severity: "error",
           code: "intent_validation_error",
-          message: "${entry.entryId}: legal companion consent is required before activation",
+          message:
+              "${entry.entryId}: legal companion consent is required before activation",
           entryId: entry.entryId,
         ),
       );
@@ -160,7 +201,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
         _issue(
           severity: "warning",
           code: "inactive_entry_skipped",
-          message: "${entry.entryId}: entry is not active and will not compile into PTN output",
+          message:
+              "${entry.entryId}: entry is not active and will not compile into PTN output",
           entryId: entry.entryId,
         ),
       );
@@ -248,7 +290,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
         _issue(
           severity: "warning",
           code: "missing_payload_ref",
-          message: "${entry.entryId}: asset.payload_ref is empty; delivery may be incomplete",
+          message:
+              "${entry.entryId}: asset.payload_ref is empty; delivery may be incomplete",
           entryId: entry.entryId,
         ),
       );
@@ -259,7 +302,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
         _issue(
           severity: "warning",
           code: "missing_partner_path",
-          message: "${entry.entryId}: no partner_path defined; workflow will remain core-only",
+          message:
+              "${entry.entryId}: no partner_path defined; workflow will remain core-only",
           entryId: entry.entryId,
         ),
       );
@@ -271,13 +315,15 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
         _issue(
           severity: "warning",
           code: "missing_multisignal_safeguard",
-          message: "${entry.entryId}: no multisignal safeguard configured for this active entry",
+          message:
+              "${entry.entryId}: no multisignal safeguard configured for this active entry",
           entryId: entry.entryId,
         ),
       );
     }
 
-    if (entry.privacy.profile == "audit-heavy" && entry.privacy.minimizeTraceMetadata) {
+    if (entry.privacy.profile == "audit-heavy" &&
+        entry.privacy.minimizeTraceMetadata) {
       issues.add(
         _issue(
           severity: "warning",
@@ -289,7 +335,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
       );
     }
 
-    if (entry.delivery.method == "notification_only" && entry.safeguards.requireGuardianApproval) {
+    if (entry.delivery.method == "notification_only" &&
+        entry.safeguards.requireGuardianApproval) {
       issues.add(
         _issue(
           severity: "warning",
@@ -316,8 +363,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
 
   final effectiveProofOfLifeMode =
       proofOfLifeCheckMode ?? document.globalSafeguards.proofOfLifeCheckMode;
-  final effectiveFallbackChannels =
-      proofOfLifeFallbackChannels ?? document.globalSafeguards.proofOfLifeFallbackChannels;
+  final effectiveFallbackChannels = proofOfLifeFallbackChannels ??
+      document.globalSafeguards.proofOfLifeFallbackChannels;
   final effectiveHeartbeatFallback = serverHeartbeatFallbackEnabled ??
       document.globalSafeguards.serverHeartbeatFallbackEnabled;
   final effectiveIosRiskAck = iosBackgroundRiskAcknowledged ??
@@ -426,7 +473,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
     );
   }
 
-  if (safeguards.guardianQuorumEnabled && safeguards.guardianQuorumRequired < 2) {
+  if (safeguards.guardianQuorumEnabled &&
+      safeguards.guardianQuorumRequired < 2) {
     issues.add(
       _issue(
         severity: "warning",
@@ -462,8 +510,10 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
     );
   }
 
-  final errorCount = issues.where((issue) => issue["severity"] == "error").length;
-  final warningCount = issues.where((issue) => issue["severity"] == "warning").length;
+  final errorCount =
+      issues.where((issue) => issue["severity"] == "error").length;
+  final warningCount =
+      issues.where((issue) => issue["severity"] == "warning").length;
   return IntentCompilerReportModel.fromMap({
     "ok": errorCount == 0,
     "error_count": errorCount,

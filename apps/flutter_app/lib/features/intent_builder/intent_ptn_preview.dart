@@ -103,9 +103,11 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
   lines.add('}');
   lines.add('');
 
-  final activeEntries = document.entries.where((entry) => entry.status == 'active').toList();
+  final activeEntries =
+      document.entries.where((entry) => entry.status == 'active').toList();
   if (activeEntries.isEmpty) {
-    lines.add('# No active entries yet. Activate a draft entry to emit canonical PTN.');
+    lines.add(
+        '# No active entries yet. Activate a draft entry to emit canonical PTN.');
     return '${lines.join('\n')}\n';
   }
 
@@ -263,13 +265,27 @@ String buildDraftIntentPtnPreview(IntentDocumentModel document) {
     lines.add('policy ${_slug(entry.entryId)}_policy {');
     lines.add('  when action == "$action"');
     lines.add('  and intent.entry_id == "${_quote(entry.entryId)}"');
-    lines.add('  and profile.inactive_days >= ${entry.trigger.inactivityDays}');
+    if (entry.trigger.mode == 'exact_date') {
+      final scheduledAt =
+          entry.trigger.scheduledAtUtc?.toUtc().toIso8601String();
+      if (scheduledAt != null) {
+        lines.add('  and runtime.now_utc >= "$scheduledAt"');
+      } else {
+        lines.add('  and runtime.now_utc >= "<missing_exact_date>"');
+      }
+    } else if (entry.trigger.mode == 'manual_release') {
+      lines.add('  and runtime.manual_release_approved == true');
+    } else {
+      lines.add(
+          '  and profile.inactive_days >= ${entry.trigger.inactivityDays}');
+    }
     if (entry.trigger.requireUnconfirmedAliveStatus) {
       lines.add('  and profile.last_alive_check_confirmed == false');
     }
     lines.add('  then $event');
     lines.add('  and append_audit_log');
-    lines.add('  and set_privacy_profile_${entry.privacy.profile.replaceAll('-', '_')}');
+    lines.add(
+        '  and set_privacy_profile_${entry.privacy.profile.replaceAll('-', '_')}');
     lines.add('  and route_to_${_slug(entry.recipient.recipientId)}');
     lines.add('  and label_asset_${_slug(entry.asset.assetId)}');
     lines.add('}');
@@ -315,6 +331,9 @@ String _slug(String value) {
       buffer.write('_');
     }
   }
-  final normalized = buffer.toString().replaceAll(RegExp(r'_+'), '_').replaceAll(RegExp(r'^_|_$'), '');
+  final normalized = buffer
+      .toString()
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
   return normalized.isEmpty ? 'unknown' : normalized;
 }

@@ -2568,8 +2568,16 @@ class _IntentEntryCard extends StatelessWidget {
         : (entry.recipient.destinationRef.isEmpty
             ? 'ยังไม่ได้ระบุผู้รับ'
             : entry.recipient.destinationRef);
-    final startCondition =
-        'เริ่มเมื่อไม่พบการใช้งาน ${entry.trigger.inactivityDays} วัน และรอยืนยันอีก ${entry.trigger.graceDays} วัน';
+    final startCondition = switch (entry.trigger.mode) {
+      'exact_date' when entry.trigger.scheduledAtUtc != null =>
+        'เริ่มตามวันที่กำหนด ${entry.trigger.scheduledAtUtc!.toLocal()} และรอยืนยันอีก ${entry.trigger.graceDays} วัน',
+      'exact_date' =>
+        'เริ่มตามวันที่กำหนด (ยังไม่ได้ตั้งวันเวลา) และรอยืนยันอีก ${entry.trigger.graceDays} วัน',
+      'manual_release' =>
+        'เริ่มเมื่อมีการปลดล็อกแบบฉุกเฉิน และรอยืนยันอีก ${entry.trigger.graceDays} วัน',
+      _ =>
+        'เริ่มเมื่อไม่พบการใช้งาน ${entry.trigger.inactivityDays} วัน และรอยืนยันอีก ${entry.trigger.graceDays} วัน',
+    };
     final statusLabel = entry.status == 'active' ? 'กำลังใช้งาน' : 'พักไว้';
     final kindLabel = entry.kind == 'legacy_delivery'
         ? 'ส่งต่อให้ผู้รับ'
@@ -2712,6 +2720,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late String _assetType;
   late String _payloadMode;
   late String _triggerMode;
+  DateTime? _exactDateUtc;
   late String _privacyProfile;
   late String _preTriggerVisibility;
   late String _postTriggerVisibility;
@@ -2799,6 +2808,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _assetType = widget.entry.asset.assetType;
     _payloadMode = widget.entry.asset.payloadMode;
     _triggerMode = widget.entry.trigger.mode;
+    _exactDateUtc = widget.entry.trigger.scheduledAtUtc;
     _privacyProfile = widget.entry.privacy.profile;
     _preTriggerVisibility = widget.entry.privacy.preTriggerVisibility;
     _postTriggerVisibility = widget.entry.privacy.postTriggerVisibility;
@@ -2933,6 +2943,49 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       r'(?<!\w)([\d]{1,3}(?:,[\d]{3})+|[\d]{5,})(?:\.\d{1,2})?(?!\w)',
     ).hasMatch(input);
     return hasCurrency || hasLargeNumber;
+  }
+
+  String _exactDateLabel() {
+    final value = _exactDateUtc;
+    if (value == null) {
+      return 'ยังไม่ได้เลือกวันเวลา';
+    }
+    final local = value.toLocal();
+    final hh = local.hour.toString().padLeft(2, '0');
+    final mm = local.minute.toString().padLeft(2, '0');
+    return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} $hh:$mm';
+  }
+
+  Future<void> _pickExactDateTime() async {
+    final now = DateTime.now();
+    final current = (_exactDateUtc ?? now.toUtc()).toLocal();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: current.isBefore(now) ? now : current,
+      firstDate: now,
+      lastDate: DateTime(now.year + 10),
+    );
+    if (pickedDate == null || !mounted) {
+      return;
+    }
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(current),
+    );
+    if (pickedTime == null) {
+      return;
+    }
+    final local = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+    setState(() {
+      _exactDateUtc = local.toUtc();
+      _triggerMode = 'exact_date';
+    });
   }
 
   Widget _buildChecklistSection({
@@ -3301,19 +3354,47 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 },
                 title: const Text('เมื่อฉันไม่ใช้งานเกินช่วงเวลาที่กำหนด'),
               ),
-              Slider(
-                value: inactivityDays.clamp(30, 365).toDouble(),
-                min: 30,
-                max: 365,
-                divisions: 11,
-                label: '$inactivityDays วัน',
+              if (_triggerMode == 'inactivity')
+                Slider(
+                  value: inactivityDays.clamp(30, 365).toDouble(),
+                  min: 30,
+                  max: 365,
+                  divisions: 11,
+                  label: '$inactivityDays วัน',
+                  onChanged: (value) {
+                    setState(() {
+                      _triggerDaysController.text = value.round().toString();
+                    });
+                  },
+                ),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _triggerMode == 'exact_date',
                 onChanged: (value) {
-                  setState(() {
-                    _triggerDaysController.text = value.round().toString();
-                    _triggerMode = 'inactivity';
-                  });
+                  if (value == true) {
+                    setState(() => _triggerMode = 'exact_date');
+                  }
                 },
+                title: const Text('กำหนดวันและเวลาแบบตายตัว (Exact date)'),
               ),
+              if (_triggerMode == 'exact_date') ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'วันเวลาที่ตั้งไว้: ${_exactDateLabel()}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: _pickExactDateTime,
+                      icon: const Icon(Icons.calendar_month_outlined),
+                      label: const Text('เลือกวันเวลา'),
+                    ),
+                  ],
+                ),
+              ],
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: emergencyEnabled,
@@ -3583,6 +3664,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   requireUnconfirmedAliveStatus: _requireAliveConfirmation,
                   graceDays: graceDays,
                   remindersDaysBefore: widget.entry.trigger.remindersDaysBefore,
+                  scheduledAtUtc:
+                      _triggerMode == 'exact_date' ? _exactDateUtc : null,
                 ),
                 delivery: IntentDeliveryModel(
                   method: _deliveryMethod,
