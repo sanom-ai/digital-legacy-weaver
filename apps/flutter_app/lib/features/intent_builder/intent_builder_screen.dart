@@ -456,7 +456,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             item.entryId == entry.entryId ? updated : item,
         ],
       ),
-      message: "à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¹à¸à¹‰à¹„à¸‚à¸£à¹ˆà¸²à¸‡à¹„à¸§à¹‰à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹à¸¥à¹‰à¸§",
+      message: "บันทึกการแก้ไขแบบร่างไว้ในเครื่องแบบเข้ารหัสแล้ว",
     );
   }
 
@@ -3947,5 +3947,4 @@ class _Pill extends StatelessWidget {
     );
   }
 }
-
 
