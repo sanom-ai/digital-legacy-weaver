@@ -925,6 +925,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           )
         : false;
     final visibleArtifactHistory = _visibleArtifactHistory();
+    final isCompact = MediaQuery.of(context).size.width < 760;
+    final pagePadding = EdgeInsets.symmetric(
+      horizontal: isCompact ? 14 : 20,
+      vertical: isCompact ? 14 : 20,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -937,7 +942,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: pagePadding,
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        physics: const BouncingScrollPhysics(),
         children: [
           Card(
             child: Padding(
@@ -1536,31 +1543,54 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
+          if (isCompact)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
                   "Routes you will manage",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
-              ),
-              FilledButton.tonal(
-                onPressed: () {
-                  _addDraftEntry();
-                },
-                child: const Text("Add route"),
-              ),
-            ],
-          ),
+                const SizedBox(height: 8),
+                FilledButton.tonal(
+                  onPressed: () {
+                    _addDraftEntry();
+                  },
+                  child: const Text("Add route"),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    "Routes you will manage",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                FilledButton.tonal(
+                  onPressed: () {
+                    _addDraftEntry();
+                  },
+                  child: const Text("Add route"),
+                ),
+              ],
+            ),
           const SizedBox(height: 12),
           if (_document.entries.isEmpty)
             Card(
-              color: const Color(0xFFFFF7ED),
+              color: const Color(0xFFF9F4EC),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Icon(
+                      Icons.playlist_add_check_circle_outlined,
+                      color: Color(0xFF866141),
+                    ),
+                    const SizedBox(height: 8),
                     const Text(
                       "No route yet",
                       style: TextStyle(fontWeight: FontWeight.w600),
@@ -2053,9 +2083,15 @@ class _IntentEntryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _Pill(label: kindLabel),
                 const SizedBox(width: 8),
-                _Pill(label: statusLabel),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _Pill(label: kindLabel),
+                    _Pill(label: statusLabel),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -2102,17 +2138,17 @@ class _IntentEntryCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 OutlinedButton(onPressed: onEdit, child: const Text('แก้ไข')),
-                const SizedBox(width: 8),
                 FilledButton.tonal(
                   onPressed: onToggleStatus,
                   child: Text(
                     entry.status == 'active' ? 'พักเส้นทาง' : 'เปิดใช้งาน',
                   ),
                 ),
-                const SizedBox(width: 8),
                 TextButton(onPressed: onRemove, child: const Text('ลบ')),
               ],
             ),
