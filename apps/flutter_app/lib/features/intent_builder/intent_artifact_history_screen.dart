@@ -34,18 +34,18 @@ class _IntentArtifactHistoryScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Copy as latest version"),
+        title: const Text("คัดลอกเป็นเวอร์ชันล่าสุด"),
         content: Text(
-          "Create a fresh exported version from ${artifact.artifactId}? The original history entry stays unchanged.",
+          "สร้างเวอร์ชันส่งออกใหม่จาก ${artifact.artifactId} ใช่ไหม? ประวัติเวอร์ชันเดิมจะยังอยู่เหมือนเดิม",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
+            child: const Text("ยกเลิก"),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Copy"),
+            child: const Text("คัดลอก"),
           ),
         ],
       ),
@@ -57,18 +57,18 @@ class _IntentArtifactHistoryScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Remove version"),
+        title: const Text("ลบเวอร์ชัน"),
         content: Text(
-          "Remove ${artifact.artifactId} from local version history on this device?",
+          "ลบ ${artifact.artifactId} ออกจากประวัติเวอร์ชันในเครื่องนี้ใช่ไหม?",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
+            child: const Text("ยกเลิก"),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Remove"),
+            child: const Text("ลบ"),
           ),
         ],
       ),
@@ -80,19 +80,19 @@ class _IntentArtifactHistoryScreenState
     final badges = <String>[];
     if (widget.currentArtifact != null &&
         artifact.artifactId == widget.currentArtifact!.artifactId) {
-      badges.add("Latest");
+      badges.add("ล่าสุด");
     }
     if (artifact.promotedFromArtifactId != null &&
         artifact.promotedFromArtifactId!.isNotEmpty) {
-      badges.add("Copied");
+      badges.add("คัดลอก");
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      badges.add("Ready");
+      badges.add("พร้อมใช้งาน");
     } else if (artifact.artifactState == IntentArtifactState.reviewed) {
-      badges.add("Reviewed");
+      badges.add("รีวิวแล้ว");
     }
     if (artifact.report.errorCount > 0) {
-      badges.add("Has issues");
+      badges.add("มีประเด็น");
     }
     return badges;
   }
@@ -129,7 +129,7 @@ class _IntentArtifactHistoryScreenState
   Widget build(BuildContext context) {
     final visibleArtifactHistory = _visibleArtifactHistory();
     return Scaffold(
-      appBar: AppBar(title: const Text("Exported Version History")),
+      appBar: AppBar(title: const Text("ประวัติเวอร์ชันที่ส่งออก")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -140,20 +140,20 @@ class _IntentArtifactHistoryScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Full version history",
+                    "ประวัติเวอร์ชันทั้งหมด",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Text("Stored versions: ${widget.artifactHistory.length}"),
+                  Text("เวอร์ชันที่เก็บไว้: ${widget.artifactHistory.length}"),
                   if (widget.currentArtifact != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "Latest pinned version: ${widget.currentArtifact!.artifactId} | ${widget.currentArtifact!.artifactState.name}",
+                      "เวอร์ชันที่ปักล่าสุด: ${widget.currentArtifact!.artifactId} | ${_stateLabel(widget.currentArtifact!.artifactState)}",
                     ),
                   ],
                   const SizedBox(height: 8),
                   const Text(
-                    "Review, compare, and copy actions happen locally on this device. Older versions stay until you remove them.",
+                    "การรีวิว เทียบเวอร์ชัน และคัดลอก ทำในเครื่องนี้ทั้งหมด เวอร์ชันเก่าจะคงอยู่จนกว่าจะลบ",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -162,25 +162,25 @@ class _IntentArtifactHistoryScreenState
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       ChoiceChip(
-                        label: const Text("All"),
+                        label: const Text("ทั้งหมด"),
                         selected: _historyFilter == 'all',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'all'),
                       ),
                       ChoiceChip(
-                        label: const Text("Ready"),
+                        label: const Text("พร้อมใช้งาน"),
                         selected: _historyFilter == 'ready',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'ready'),
                       ),
                       ChoiceChip(
-                        label: const Text("Copied"),
+                        label: const Text("คัดลอก"),
                         selected: _historyFilter == 'promoted',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'promoted'),
                       ),
                       ChoiceChip(
-                        label: const Text("Has issues"),
+                        label: const Text("มีประเด็น"),
                         selected: _historyFilter == 'issues',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'issues'),
@@ -190,15 +190,15 @@ class _IntentArtifactHistoryScreenState
                         items: const [
                           DropdownMenuItem(
                             value: 'newest',
-                            child: Text("Newest first"),
+                            child: Text("ใหม่สุดก่อน"),
                           ),
                           DropdownMenuItem(
                             value: 'oldest',
-                            child: Text("Oldest first"),
+                            child: Text("เก่าสุดก่อน"),
                           ),
                           DropdownMenuItem(
                             value: 'state',
-                            child: Text("Sort by state"),
+                            child: Text("เรียงตามสถานะ"),
                           ),
                         ],
                         onChanged: (value) {
@@ -219,7 +219,7 @@ class _IntentArtifactHistoryScreenState
             const Card(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Text("No versions match the current history filter."),
+                child: Text("ไม่มีเวอร์ชันที่ตรงกับตัวกรองตอนนี้"),
               ),
             ),
           ...visibleArtifactHistory.map(
@@ -228,10 +228,10 @@ class _IntentArtifactHistoryScreenState
               child: Card(
                 child: ListTile(
                   title: Text(
-                    "${artifact.generatedAt.toLocal()} | ${artifact.artifactState.name}",
+                    "${artifact.generatedAt.toLocal()} | ${_stateLabel(artifact.artifactState)}",
                   ),
                   subtitle: Text(
-                    "Version ${artifact.artifactId} | ${artifact.activeEntryCount} active routes",
+                    "เวอร์ชัน ${artifact.artifactId} | ${artifact.activeEntryCount} แผนที่ใช้งานอยู่",
                   ),
                   isThreeLine: _artifactBadges(artifact).isNotEmpty,
                   leading: _artifactBadges(artifact).isEmpty
@@ -262,7 +262,7 @@ class _IntentArtifactHistoryScreenState
                             ),
                           );
                         },
-                        child: const Text("Review"),
+                        child: const Text("รีวิว"),
                       ),
                       TextButton(
                         onPressed:
@@ -280,7 +280,7 @@ class _IntentArtifactHistoryScreenState
                                 );
                               }
                             : null,
-                        child: const Text("Compare"),
+                        child: const Text("เทียบ"),
                       ),
                       TextButton(
                         onPressed:
@@ -301,14 +301,14 @@ class _IntentArtifactHistoryScreenState
                                 messenger.showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      "Historical version copied into a fresh exported version.",
+                                      "คัดลอกเวอร์ชันประวัติเป็นเวอร์ชันส่งออกใหม่เรียบร้อยแล้ว",
                                     ),
                                   ),
                                 );
                                 navigator.pop();
                               }
                             : null,
-                        child: const Text("Copy"),
+                        child: const Text("คัดลอก"),
                       ),
                       TextButton(
                         onPressed: () async {
@@ -323,13 +323,13 @@ class _IntentArtifactHistoryScreenState
                           messenger.showSnackBar(
                             const SnackBar(
                               content: Text(
-                                "Version removed from local history.",
+                                "ลบเวอร์ชันออกจากประวัติในเครื่องแล้ว",
                               ),
                             ),
                           );
                           navigator.pop();
                         },
-                        child: const Text("Remove"),
+                        child: const Text("ลบ"),
                       ),
                     ],
                   ),
@@ -340,6 +340,19 @@ class _IntentArtifactHistoryScreenState
         ],
       ),
     );
+  }
+
+  String _stateLabel(IntentArtifactState state) {
+    switch (state) {
+      case IntentArtifactState.draft:
+        return 'แบบร่าง';
+      case IntentArtifactState.exported:
+        return 'ส่งออกแล้ว';
+      case IntentArtifactState.reviewed:
+        return 'รีวิวแล้ว';
+      case IntentArtifactState.ready:
+        return 'พร้อมใช้งาน';
+    }
   }
 }
 

@@ -14,30 +14,30 @@ class IntentArtifactCompareScreen extends StatelessWidget {
   List<String> _changedFields() {
     final changes = <String>[];
     if (currentArtifact.artifactState != compareArtifact.artifactState) {
-      changes.add("Version status changed");
+      changes.add("สถานะเวอร์ชันเปลี่ยน");
     }
     if (currentArtifact.activeEntryCount != compareArtifact.activeEntryCount) {
-      changes.add("Active route count changed");
+      changes.add("จำนวนแผนที่ใช้งานอยู่เปลี่ยน");
     }
     if (currentArtifact.report.errorCount !=
             compareArtifact.report.errorCount ||
         currentArtifact.report.warningCount !=
             compareArtifact.report.warningCount) {
-      changes.add("Issue status changed");
+      changes.add("สถานะประเด็นเปลี่ยน");
     }
     final currentTraceCount =
         (currentArtifact.trace["entries"] as Map?)?.length ?? 0;
     final compareTraceCount =
         (compareArtifact.trace["entries"] as Map?)?.length ?? 0;
     if (currentTraceCount != compareTraceCount) {
-      changes.add("Trace count changed");
+      changes.add("จำนวน Trace เปลี่ยน");
     }
     if (currentArtifact.promotedFromArtifactId !=
         compareArtifact.promotedFromArtifactId) {
-      changes.add("Copy lineage changed");
+      changes.add("ที่มาของการคัดลอกเปลี่ยน");
     }
     if (currentArtifact.ptn != compareArtifact.ptn) {
-      changes.add("Policy text changed");
+      changes.add("ข้อความนโยบายเปลี่ยน");
     }
     return changes;
   }
@@ -58,8 +58,8 @@ class IntentArtifactCompareScreen extends StatelessWidget {
     final removed = compareLines.difference(currentLines).take(6).toList();
 
     return [
-      if (added.isNotEmpty) ...added.map((line) => "Added line: $line"),
-      if (removed.isNotEmpty) ...removed.map((line) => "Removed line: $line"),
+      if (added.isNotEmpty) ...added.map((line) => "บรรทัดที่เพิ่ม: $line"),
+      if (removed.isNotEmpty) ...removed.map((line) => "บรรทัดที่หายไป: $line"),
     ];
   }
 
@@ -68,7 +68,7 @@ class IntentArtifactCompareScreen extends StatelessWidget {
     final changedFields = _changedFields();
     final ptnLineSummary = _ptnLineSummary();
     return Scaffold(
-      appBar: AppBar(title: const Text("Exported Version Compare")),
+      appBar: AppBar(title: const Text("เทียบเวอร์ชันที่ส่งออก")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -79,18 +79,18 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Comparison summary",
+                    "สรุปการเทียบเวอร์ชัน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    "Changed fields",
+                    "หัวข้อที่เปลี่ยน",
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   if (changedFields.isEmpty)
                     const Text(
-                      "No meaningful differences were detected between these versions.",
+                      "ไม่พบความต่างสำคัญระหว่างสองเวอร์ชันนี้",
                     )
                   else
                     ...changedFields.map(
@@ -101,43 +101,43 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                     ),
                   const SizedBox(height: 12),
                   _ComparisonRow(
-                    label: "Version IDs",
+                    label: "รหัสเวอร์ชัน",
                     current: currentArtifact.artifactId,
                     compare: compareArtifact.artifactId,
                   ),
                   _ComparisonRow(
-                    label: "Status",
-                    current: currentArtifact.artifactState.name,
-                    compare: compareArtifact.artifactState.name,
+                    label: "สถานะ",
+                    current: _stateLabel(currentArtifact.artifactState),
+                    compare: _stateLabel(compareArtifact.artifactState),
                   ),
                   _ComparisonRow(
-                    label: "Copy lineage",
+                    label: "ที่มาของการคัดลอก",
                     current:
                         currentArtifact.promotedFromArtifactId ??
-                        "direct export",
+                        "ส่งออกตรง",
                     compare:
                         compareArtifact.promotedFromArtifactId ??
-                        "direct export",
+                        "ส่งออกตรง",
                   ),
                   _ComparisonRow(
-                    label: "Generated",
+                    label: "เวลาที่สร้าง",
                     current: currentArtifact.generatedAt.toLocal().toString(),
                     compare: compareArtifact.generatedAt.toLocal().toString(),
                   ),
                   _ComparisonRow(
-                    label: "Active routes",
+                    label: "แผนที่ใช้งานอยู่",
                     current: "${currentArtifact.activeEntryCount}",
                     compare: "${compareArtifact.activeEntryCount}",
                   ),
                   _ComparisonRow(
-                    label: "Issue status",
+                    label: "สถานะประเด็น",
                     current:
-                        "${currentArtifact.report.errorCount} errors / ${currentArtifact.report.warningCount} warnings",
+                        "ผิดพลาด ${currentArtifact.report.errorCount} / เตือน ${currentArtifact.report.warningCount}",
                     compare:
-                        "${compareArtifact.report.errorCount} errors / ${compareArtifact.report.warningCount} warnings",
+                        "ผิดพลาด ${compareArtifact.report.errorCount} / เตือน ${compareArtifact.report.warningCount}",
                   ),
                   _ComparisonRow(
-                    label: "Trace entries",
+                    label: "จำนวนรายการใน Trace",
                     current:
                         "${(currentArtifact.trace["entries"] as Map?)?.length ?? 0}",
                     compare:
@@ -155,13 +155,13 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Diff details",
+                    "รายละเอียดความต่าง",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   if (ptnLineSummary.isEmpty)
                     const Text(
-                      "No line-level policy differences were detected.",
+                      "ไม่พบความต่างระดับบรรทัดในนโยบาย",
                     )
                   else
                     ...ptnLineSummary.map(
@@ -182,21 +182,21 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Policy text comparison",
+                    "เทียบข้อความนโยบาย",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Review the latest export beside an earlier version to understand how the plan changed over time.",
+                    "ดูเวอร์ชันล่าสุดเทียบกับเวอร์ชันก่อนหน้า เพื่อเข้าใจว่าแผนเปลี่ยนอย่างไรตามเวลา",
                   ),
                   const SizedBox(height: 12),
                   _ArtifactTextBlock(
-                    title: "Current version policy text",
+                    title: "ข้อความนโยบายของเวอร์ชันล่าสุด",
                     value: currentArtifact.ptn,
                   ),
                   const SizedBox(height: 12),
                   _ArtifactTextBlock(
-                    title: "Compared version policy text",
+                    title: "ข้อความนโยบายของเวอร์ชันที่นำมาเทียบ",
                     value: compareArtifact.ptn,
                   ),
                 ],
@@ -206,6 +206,19 @@ class IntentArtifactCompareScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _stateLabel(IntentArtifactState state) {
+    switch (state) {
+      case IntentArtifactState.draft:
+        return 'แบบร่าง';
+      case IntentArtifactState.exported:
+        return 'ส่งออกแล้ว';
+      case IntentArtifactState.reviewed:
+        return 'รีวิวแล้ว';
+      case IntentArtifactState.ready:
+        return 'พร้อมใช้งาน';
+    }
   }
 }
 
@@ -229,8 +242,8 @@ class _ComparisonRow extends StatelessWidget {
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text("Current: $current"),
-          Text("Compared: $compare"),
+          Text("เวอร์ชันล่าสุด: $current"),
+          Text("เวอร์ชันที่เทียบ: $compare"),
         ],
       ),
     );
