@@ -69,9 +69,15 @@ class AppTheme {
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
-        elevation: 0,
+        elevation: 1.2,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: const Color(0x220E0A06),
         color: Colors.white.withValues(alpha: 0.75),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0x33C8B69F), width: 0.9),
+        ),
+        clipBehavior: Clip.antiAlias,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

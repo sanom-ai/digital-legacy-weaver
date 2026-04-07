@@ -875,11 +875,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("หน้ารับมอบผู้รับผลประโยชน์ | Beneficiary Receipt")),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
         children: [
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1167,7 +1168,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           if (_items.isNotEmpty)
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
