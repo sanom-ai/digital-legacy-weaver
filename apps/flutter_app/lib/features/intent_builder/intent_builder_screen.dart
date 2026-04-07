@@ -865,7 +865,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenTitle = widget.screenTitle ?? "Intent Builder";
+    final screenTitle = widget.screenTitle ?? "Legacy plan workspace";
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: Text(screenTitle)),
@@ -902,7 +902,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final ptnPreview = buildDraftIntentPtnPreview(_document);
     final draftSignature = buildIntentDocumentSignature(_document);
     final screenSubtitle = widget.screenSubtitle ??
-        "This screen helps you shape intent in plain language before export.";
+        "Step 2 of 3: shape your plan in plain language before export.";
     final demoScenarioTitle = _document.metadata["demo_title"] as String?;
     final demoScenarioSummary = _document.metadata["demo_summary"] as String?;
     final demoScenarioNextStep =
@@ -932,7 +932,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         actions: [
           TextButton(
             onPressed: _hasLocalDraft ? _resetDraft : null,
-            child: const Text("Reset local draft"),
+            child: const Text("Start over"),
           ),
         ],
       ),
@@ -946,7 +946,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "User-defined legacy intent",
+                    "Step 2 of 3: Shape your plan",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -956,7 +956,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7F1E8),
+                      color: const Color(0xFFEAF6F6),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Column(
@@ -967,17 +967,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
-                        Text(
-                          "1. Keep at least one active entry for a real route.",
-                        ),
+                        Text("1. Keep at least one active route."),
                         SizedBox(height: 4),
-                        Text(
-                          "2. Export current version and review warnings immediately.",
-                        ),
+                        Text("2. Export and review warnings."),
                         SizedBox(height: 4),
-                        Text(
-                          "3. Keep draft and exported version in sync before release drills.",
-                        ),
+                        Text("3. Mark ready only when draft and export match."),
                       ],
                     ),
                   ),
@@ -993,7 +987,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Demo scenario: $demoScenarioTitle",
+                            "From onboarding: $demoScenarioTitle",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           if (demoScenarioSummary != null) ...[
@@ -1011,17 +1005,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     children: [
                       _Pill(
                         label: _hasLocalDraft
-                            ? "Encrypted draft stored on this device"
-                            : "Seeded from setup",
+                            ? "Local encrypted draft: on"
+                            : "Using seeded setup",
                       ),
                       _Pill(
-                        label:
-                            "Default privacy: ${_document.defaultPrivacyProfile}",
+                        label: "Privacy: ${_document.defaultPrivacyProfile}",
                       ),
-                      _Pill(label: "Entries: ${_document.entries.length}"),
-                      _Pill(label: "Owner ref: ${_document.ownerRef}"),
+                      _Pill(label: "Routes: ${_document.entries.length}"),
+                      _Pill(label: "Active: $activeEntryCount"),
                       _Pill(
-                        label: "Version history: ${_artifactHistory.length}",
+                        label: "Versions: ${_artifactHistory.length}",
                       ),
                     ],
                   ),
@@ -1049,12 +1042,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Scenario preset",
+                    "Quick starter preset",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Use a preset to make the current workspace concrete faster. Presets seed entries, safeguards, and privacy posture without making you start from a blank document.",
+                    "Pick one preset to fill routes and safeguards automatically, then edit details to match your real case.",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -1084,7 +1077,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Preset active: ${_activeScenario!.title}",
+                            "Active preset: ${_activeScenario!.title}",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 6),
@@ -1092,7 +1085,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           if (demoScenarioNextStep != null) ...[
                             const SizedBox(height: 8),
                             Text(
-                              "Preset next step: $demoScenarioNextStep",
+                              "Next step: $demoScenarioNextStep",
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1115,12 +1108,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Encrypted local draft storage",
+                    "Private local draft",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "Your draft is encrypted and stored on this device so you can continue planning safely before release. Local drafts are not published policies.",
+                    "Your plan is encrypted on this device. Nothing is published until you export and confirm readiness.",
                   ),
                 ],
               ),
