@@ -1,4 +1,4 @@
-import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
+﻿import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
 import 'package:digital_legacy_weaver/features/connectors/presentation/connectors_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_history_screen.dart';
@@ -1043,6 +1043,32 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
       "verification_code" => "Verification code",
       _ => "Biometric tap",
     };
+    String triggerSummary(SealedReleaseEntryModel item) {
+      if (item.triggerMode == "exact_date") {
+        final scheduled = item.scheduledAtUtc?.toLocal();
+        if (scheduled != null) {
+          return "เริ่มตามวันที่ ${scheduled.toString()}";
+        }
+        return "เริ่มตามวันที่กำหนด (ยังไม่ตั้งวันเวลา)";
+      }
+      if (item.triggerMode == "manual_release") {
+        return "เริ่มเมื่อยืนยันโหมดฉุกเฉิน";
+      }
+      return "เริ่มเมื่อไม่พบการใช้งาน ${item.inactivityDays} วัน";
+    }
+
+    String statusSummary(SealedReleaseEntryModel item) {
+      if (item.kind == "self_recovery") {
+        return "กู้คืนได้เมื่อยืนยันตัวตน";
+      }
+      if (item.triggerMode == "exact_date") {
+        return "รอถึงวันเวลาที่กำหนด + ยืนยันซ้ำ ${item.graceDays} วัน";
+      }
+      if (item.triggerMode == "manual_release") {
+        return "รอโหมดฉุกเฉิน + ยืนยันซ้ำ ${item.graceDays} วัน";
+      }
+      return "รอขาดการติดต่อ ${item.inactivityDays} วัน + ยืนยันซ้ำ ${item.graceDays} วัน";
+    }
 
     return Card(
       margin: EdgeInsets.zero,
@@ -1231,14 +1257,14 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                   final displayName = item.kind == "self_recovery"
                       ? "เจ้าของบัญชี (คุณ)"
                       : (index == 0 ? fallbackName : "ผู้รับมรดก ${index + 1}");
-                  final status = item.kind == "self_recovery"
-                      ? "กู้คืนได้เมื่อยืนยันตัวตน"
-                      : "รอการยืนยันตัวตน ${profile.legacyInactivityDays} วัน";
+                  final triggerLabel = triggerSummary(item);
+                  final status = statusSummary(item);
                   return Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: _LegacyRecipientCard(
                       displayName: displayName,
                       deliveryLabel: item.assetLabel,
+                      triggerLabel: triggerLabel,
                       statusLabel: status,
                     ),
                   );
@@ -1255,11 +1281,13 @@ class _LegacyRecipientCard extends StatelessWidget {
   const _LegacyRecipientCard({
     required this.displayName,
     required this.deliveryLabel,
+    required this.triggerLabel,
     required this.statusLabel,
   });
 
   final String displayName;
   final String deliveryLabel;
+  final String triggerLabel;
   final String statusLabel;
 
   @override
@@ -1290,6 +1318,8 @@ class _LegacyRecipientCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text("ข้อมูลที่ส่งมอบ: $deliveryLabel"),
+                const SizedBox(height: 4),
+                Text("Trigger: $triggerLabel"),
               ],
             ),
           ),
@@ -1883,3 +1913,5 @@ class _PolicySelectorCard extends StatelessWidget {
     );
   }
 }
+
+

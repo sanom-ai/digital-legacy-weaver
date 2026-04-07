@@ -605,10 +605,14 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             minLines: 2,
             maxLines: 4,
             decoration: const InputDecoration(
-              labelText: "Handoff packet / message",
+              labelText: "Paste handoff packet (no link click)",
               helperText:
                   "รองรับรูปแบบ access_id=... และ access_key=... จากข้อความทางการ",
             ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            "ไม่ต้องกดลิงก์จากข้อความ ให้เปิดแอปเอง แล้ววาง packet หรือกรอกรหัสในหน้านี้เท่านั้น",
           ),
           const SizedBox(height: 10),
           Align(
@@ -616,7 +620,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             child: OutlinedButton.icon(
               onPressed: _busy ? null : _applyHandoffPacket,
               icon: const Icon(Icons.key_outlined),
-              label: const Text("ใช้ชุดข้อมูลนี้"),
+              label: const Text("ใช้ข้อมูลชุดนี้"),
             ),
           ),
         ],

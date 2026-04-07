@@ -1,5 +1,6 @@
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/dashboard/dashboard_screen.dart';
+import 'package:digital_legacy_weaver/features/unlock/unlock_delivery_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
@@ -272,5 +273,30 @@ void main() {
 
     expect(find.textContaining('Privacy Preset: Minimal'), findsOneWidget);
     expect(find.textContaining('Product boundary:'), findsWidgets);
+  });
+
+  testWidgets('Unlock flow shows anti-scam no-link guidance', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: UnlockDeliveryScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.textContaining('Security Notice'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Security Notice'), findsOneWidget);
+    expect(find.textContaining('ไม่ขอรหัสผ่าน'), findsWidgets);
+    expect(find.textContaining('อย่ากดลิงก์จากข้อความ'), findsOneWidget);
+    expect(
+      find.textContaining('เปิดแอป Digital Legacy Weaver เอง แล้วกรอกรหัส'),
+      findsOneWidget,
+    );
+    expect(find.text('Paste handoff packet (no link click)'), findsOneWidget);
   });
 }
