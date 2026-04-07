@@ -397,6 +397,8 @@ class IntentArtifactReviewScreen extends StatelessWidget {
         return "ยังไม่ได้ตั้งคำใบ้ยืนยันตัวตนผู้รับ";
       case "missing_multi_channel_fallback":
         return "ช่องทางสำรองผู้รับยังไม่พอ";
+      case "heavy_proof_of_life_check":
+        return "รูปแบบเช็กอินมีขั้นตอนมากเกินจำเป็น";
       case "pretrigger_visibility_too_open":
         return "การมองเห็นก่อนถึงเงื่อนไขเปิดกว้างเกินไป";
       default:
@@ -418,6 +420,8 @@ class IntentArtifactReviewScreen extends StatelessWidget {
         return "เพิ่มคำใบ้ที่มีแค่ผู้รับจริงตอบได้ เพื่อกันมิจฉาชีพ";
       case "missing_multi_channel_fallback":
         return "เพิ่มช่องทางสำรองอย่างน้อย 2 ช่องทาง เช่น Email และ SMS";
+      case "heavy_proof_of_life_check":
+        return "แนะนำใช้ Half-life soft check-in เพื่อลดความรบกวนและลดโอกาสพลาดเช็กอิน";
       case "pretrigger_visibility_too_open":
         return "ตั้งค่าให้ข้อมูลก่อนถึงเงื่อนไขเป็นแบบซ่อน เพื่อความเป็นส่วนตัว";
       default:

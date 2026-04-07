@@ -11,7 +11,11 @@ class SafetySettingsRepository {
     if (user == null) {
       throw const AuthException("No authenticated user.");
     }
-    final existing = await _client.from("user_safety_settings").select().eq("owner_id", user.id).maybeSingle();
+    final existing = await _client
+        .from("user_safety_settings")
+        .select()
+        .eq("owner_id", user.id)
+        .maybeSingle();
     if (existing != null) {
       return SafetySettingsModel.fromMap(existing);
     }
@@ -22,7 +26,7 @@ class SafetySettingsRepository {
           "reminders_enabled": true,
           "reminder_offsets_days": [14, 7, 1],
           "grace_period_days": 7,
-          "proof_of_life_check_mode": "biometric_tap",
+          "proof_of_life_check_mode": "half_life_soft_checkin",
           "proof_of_life_fallback_channels": ["email", "sms"],
           "server_heartbeat_fallback_enabled": true,
           "ios_background_risk_acknowledged": false,
@@ -89,18 +93,23 @@ class SafetySettingsRepository {
       "server_heartbeat_fallback_enabled": serverHeartbeatFallbackEnabled,
       "ios_background_risk_acknowledged": iosBackgroundRiskAcknowledged,
       "legal_disclaimer_accepted": legalDisclaimerAccepted,
-      "legal_disclaimer_accepted_at": legalDisclaimerAccepted ? DateTime.now().toUtc().toIso8601String() : null,
+      "legal_disclaimer_accepted_at": legalDisclaimerAccepted
+          ? DateTime.now().toUtc().toIso8601String()
+          : null,
       "emergency_pause_until": emergencyPauseUntil?.toUtc().toIso8601String(),
       "require_totp_unlock": requireTotpUnlock,
       "guardian_quorum_enabled": guardianQuorumEnabled,
       "guardian_quorum_required": guardianQuorumRequired,
       "guardian_quorum_pool_size": guardianQuorumPoolSize,
       "emergency_access_enabled": emergencyAccessEnabled,
-      "emergency_access_requires_beneficiary_request": emergencyAccessRequiresBeneficiaryRequest,
-      "emergency_access_requires_guardian_quorum": emergencyAccessRequiresGuardianQuorum,
+      "emergency_access_requires_beneficiary_request":
+          emergencyAccessRequiresBeneficiaryRequest,
+      "emergency_access_requires_guardian_quorum":
+          emergencyAccessRequiresGuardianQuorum,
       "emergency_access_grace_hours": emergencyAccessGraceHours,
       "device_rebind_in_progress": deviceRebindInProgress,
-      "device_rebind_started_at": deviceRebindStartedAt?.toUtc().toIso8601String(),
+      "device_rebind_started_at":
+          deviceRebindStartedAt?.toUtc().toIso8601String(),
       "device_rebind_grace_hours": deviceRebindGraceHours,
       "recovery_key_enabled": recoveryKeyEnabled,
       "delivery_access_ttl_hours": deliveryAccessTtlHours,

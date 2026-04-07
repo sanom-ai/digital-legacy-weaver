@@ -608,7 +608,7 @@ class IntentGlobalSafeguardsModel {
     this.deliveryAccessTtlHours = 72,
     this.payloadRetentionDays = 30,
     this.auditLogRetentionDays = 30,
-    this.proofOfLifeCheckMode = "biometric_tap",
+    this.proofOfLifeCheckMode = "half_life_soft_checkin",
     this.proofOfLifeFallbackChannels = const ["email", "sms"],
     this.serverHeartbeatFallbackEnabled = true,
     this.iosBackgroundRiskAcknowledged = false,
@@ -696,8 +696,8 @@ class IntentGlobalSafeguardsModel {
       deliveryAccessTtlHours: map["delivery_access_ttl_hours"] as int? ?? 72,
       payloadRetentionDays: map["payload_retention_days"] as int? ?? 30,
       auditLogRetentionDays: map["audit_log_retention_days"] as int? ?? 30,
-      proofOfLifeCheckMode:
-          map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
+      proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ??
+          "half_life_soft_checkin",
       proofOfLifeFallbackChannels:
           (map["proof_of_life_fallback_channels"] as List<dynamic>? ??
                   const ["email", "sms"])

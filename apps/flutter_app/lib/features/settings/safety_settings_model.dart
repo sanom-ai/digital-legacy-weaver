@@ -58,17 +58,27 @@ class SafetySettingsModel {
   factory SafetySettingsModel.fromMap(Map<String, dynamic> map) {
     return SafetySettingsModel(
       remindersEnabled: map["reminders_enabled"] as bool? ?? true,
-      reminderOffsetsDays: (map["reminder_offsets_days"] as List<dynamic>? ?? [14, 7, 1]).map((e) => e as int).toList(),
+      reminderOffsetsDays:
+          (map["reminder_offsets_days"] as List<dynamic>? ?? [14, 7, 1])
+              .map((e) => e as int)
+              .toList(),
       gracePeriodDays: map["grace_period_days"] as int? ?? 7,
-      proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ?? "biometric_tap",
+      proofOfLifeCheckMode: map["proof_of_life_check_mode"] as String? ??
+          "half_life_soft_checkin",
       proofOfLifeFallbackChannels:
-          (map["proof_of_life_fallback_channels"] as List<dynamic>? ?? ["email", "sms"])
+          (map["proof_of_life_fallback_channels"] as List<dynamic>? ??
+                  ["email", "sms"])
               .map((e) => e as String)
               .toList(),
-      serverHeartbeatFallbackEnabled: map["server_heartbeat_fallback_enabled"] as bool? ?? true,
-      iosBackgroundRiskAcknowledged: map["ios_background_risk_acknowledged"] as bool? ?? false,
-      legalDisclaimerAccepted: map["legal_disclaimer_accepted"] as bool? ?? false,
-      emergencyPauseUntil: map["emergency_pause_until"] != null ? DateTime.parse(map["emergency_pause_until"] as String) : null,
+      serverHeartbeatFallbackEnabled:
+          map["server_heartbeat_fallback_enabled"] as bool? ?? true,
+      iosBackgroundRiskAcknowledged:
+          map["ios_background_risk_acknowledged"] as bool? ?? false,
+      legalDisclaimerAccepted:
+          map["legal_disclaimer_accepted"] as bool? ?? false,
+      emergencyPauseUntil: map["emergency_pause_until"] != null
+          ? DateTime.parse(map["emergency_pause_until"] as String)
+          : null,
       requireTotpUnlock: map["require_totp_unlock"] as bool? ?? false,
       guardianQuorumEnabled: map["guardian_quorum_enabled"] as bool? ?? false,
       guardianQuorumRequired: map["guardian_quorum_required"] as int? ?? 2,
@@ -78,8 +88,10 @@ class SafetySettingsModel {
           map["emergency_access_requires_beneficiary_request"] as bool? ?? true,
       emergencyAccessRequiresGuardianQuorum:
           map["emergency_access_requires_guardian_quorum"] as bool? ?? true,
-      emergencyAccessGraceHours: map["emergency_access_grace_hours"] as int? ?? 48,
-      deviceRebindInProgress: map["device_rebind_in_progress"] as bool? ?? false,
+      emergencyAccessGraceHours:
+          map["emergency_access_grace_hours"] as int? ?? 48,
+      deviceRebindInProgress:
+          map["device_rebind_in_progress"] as bool? ?? false,
       deviceRebindStartedAt: map["device_rebind_started_at"] != null
           ? DateTime.parse(map["device_rebind_started_at"] as String)
           : null,

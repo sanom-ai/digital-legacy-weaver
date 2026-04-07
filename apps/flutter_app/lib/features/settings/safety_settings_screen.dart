@@ -36,7 +36,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   int _payloadRetentionDays = 30;
   int _auditLogRetentionDays = 30;
   bool _privateFirstMode = true;
-  String _proofOfLifeCheckMode = "biometric_tap";
+  String _proofOfLifeCheckMode = "half_life_soft_checkin";
   bool _fallbackEmail = true;
   bool _fallbackSms = true;
   bool _serverHeartbeatFallbackEnabled = true;
@@ -274,16 +274,20 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         ),
                         items: const [
                           DropdownMenuItem(
+                            value: "half_life_soft_checkin",
+                            child: Text("Half-life soft check-in (แนะนำ)"),
+                          ),
+                          DropdownMenuItem(
                             value: "biometric_tap",
-                            child: Text("Biometric tap"),
+                            child: Text("Biometric tap (เข้มงวด)"),
                           ),
                           DropdownMenuItem(
                             value: "single_tap",
-                            child: Text("Single tap"),
+                            child: Text("Single tap (เบา)"),
                           ),
                           DropdownMenuItem(
                             value: "verification_code",
-                            child: Text("Verification code"),
+                            child: Text("Verification code (เข้มงวดมาก)"),
                           ),
                         ],
                         onChanged: (value) {
@@ -351,7 +355,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                         value: _pause7Days,
                         onChanged: (v) => setState(() => _pause7Days = v),
                         title: const Text(
-                            "พักการทำงานฉุกเฉิน 7 วัน | Emergency pause for 7 days"),
+                            "Kill Switch: พักการส่งมอบอัตโนมัติ 7 วัน"),
                         contentPadding: EdgeInsets.zero,
                       ),
                       SwitchListTile(

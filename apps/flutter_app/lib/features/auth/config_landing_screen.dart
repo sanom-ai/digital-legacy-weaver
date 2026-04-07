@@ -38,7 +38,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     remindersEnabled: true,
     reminderOffsetsDays: [14, 7, 1],
     gracePeriodDays: 7,
-    proofOfLifeCheckMode: 'biometric_tap',
+    proofOfLifeCheckMode: 'half_life_soft_checkin',
     proofOfLifeFallbackChannels: ['email', 'sms'],
     serverHeartbeatFallbackEnabled: true,
     iosBackgroundRiskAcknowledged: true,
@@ -281,18 +281,21 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                     title: title,
                     summary: summary,
                     isThai: _isThai,
-                    onLanguageChanged: (isThai) => setState(() => _thaiMode = isThai),
+                    onLanguageChanged: (isThai) =>
+                        setState(() => _thaiMode = isThai),
                     primaryActionLabel: _tr(
                       'เริ่มโหมดส่วนตัวทันที',
                       'Start in private mode',
                     ),
-                    onPrimaryAction: () => _openScenario(context, _selectedScenario),
+                    onPrimaryAction: () =>
+                        _openScenario(context, _selectedScenario),
                     secondaryActionLabel: _tr(
                       'ฉันพร้อมแล้ว ไปหน้าทำงานเลย',
                       'I already know, go to dashboard',
                     ),
                     onSecondaryAction: () => _openWorkspaceQuick(context),
-                    tertiaryActionLabel: _tr('ดูวิธีเชื่อมคลาวด์', 'Cloud setup later'),
+                    tertiaryActionLabel:
+                        _tr('ดูวิธีเชื่อมคลาวด์', 'Cloud setup later'),
                     onTertiaryAction: () => _showBackendSetupSheet(context),
                     stepTitle: _tr(
                       'Step 1 of 3: เลือกเส้นทางแรก',
@@ -304,7 +307,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                     _buildJourneySection(theme),
                     const SizedBox(height: 12),
                     _LocalExplanationCard(
-                      title: _tr('ในโหมด local จะเกิดอะไรขึ้น', 'What happens in local mode'),
+                      title: _tr('ในโหมด local จะเกิดอะไรขึ้น',
+                          'What happens in local mode'),
                       expanded: _localGuideExpanded,
                       collapsible: true,
                       onExpandedChanged: (value) =>
@@ -339,7 +343,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.gpp_good_rounded, color: Color(0xFF0E7C86)),
+                          const Icon(Icons.gpp_good_rounded,
+                              color: Color(0xFF0E7C86)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -395,7 +400,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                   detail: _scenarioDetail(scenario),
                   selected: selected,
                   highlighted: scenario.id == 'family_handoff',
-                  onSelect: () => setState(() => _selectedScenarioId = scenario.id),
+                  onSelect: () =>
+                      setState(() => _selectedScenarioId = scenario.id),
                   onStart: () => _openScenario(context, scenario),
                 ),
               );
@@ -595,9 +601,8 @@ class _PathCardState extends State<_PathCard> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = widget.highlighted
-        ? const Color(0xFFEBA44E)
-        : const Color(0xFF2A7F88);
+    final selectedColor =
+        widget.highlighted ? const Color(0xFFEBA44E) : const Color(0xFF2A7F88);
 
     return InkWell(
       borderRadius: BorderRadius.circular(22),
@@ -607,7 +612,9 @@ class _PathCardState extends State<_PathCard> {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
-          color: widget.selected ? const Color(0xFFFFFBF5) : const Color(0xFFFFFDF9),
+          color: widget.selected
+              ? const Color(0xFFFFFBF5)
+              : const Color(0xFFFFFDF9),
           border: Border.all(
             color: widget.selected ? selectedColor : const Color(0xFFE6DDD1),
             width: widget.selected ? 2 : 1,
@@ -659,8 +666,9 @@ class _PathCardState extends State<_PathCard> {
             const SizedBox(height: 10),
             Text(widget.summary),
             AnimatedCrossFade(
-              crossFadeState:
-                  _showDetail ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              crossFadeState: _showDetail
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 170),
               firstChild: const SizedBox(height: 0),
               secondChild: Padding(
@@ -681,10 +689,12 @@ class _PathCardState extends State<_PathCard> {
                 FilledButton(
                   onPressed: widget.onStart,
                   style: FilledButton.styleFrom(
-                    backgroundColor:
-                        widget.highlighted ? const Color(0xFFF2A64D) : const Color(0xFF1E6A79),
-                    foregroundColor:
-                        widget.highlighted ? const Color(0xFF2A1808) : Colors.white,
+                    backgroundColor: widget.highlighted
+                        ? const Color(0xFFF2A64D)
+                        : const Color(0xFF1E6A79),
+                    foregroundColor: widget.highlighted
+                        ? const Color(0xFF2A1808)
+                        : Colors.white,
                     textStyle: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   child: Text(widget.actionLabel),
@@ -736,7 +746,8 @@ class _LocalExplanationCard extends StatelessWidget {
                         color: const Color(0xFFDBF0EF),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(item.icon, size: 20, color: const Color(0xFF1E6C77)),
+                      child: Icon(item.icon,
+                          size: 20, color: const Color(0xFF1E6C77)),
                     ),
                     const SizedBox(width: 10),
                     Expanded(child: Text(item.title)),

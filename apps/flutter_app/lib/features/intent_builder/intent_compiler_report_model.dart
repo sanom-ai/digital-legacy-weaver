@@ -370,7 +370,8 @@ IntentCompilerReportModel buildDraftIntentCompilerReport({
   final effectiveIosRiskAck = iosBackgroundRiskAcknowledged ??
       document.globalSafeguards.iosBackgroundRiskAcknowledged;
 
-  if (effectiveProofOfLifeMode != "biometric_tap" &&
+  if (effectiveProofOfLifeMode != "half_life_soft_checkin" &&
+      effectiveProofOfLifeMode != "biometric_tap" &&
       effectiveProofOfLifeMode != "single_tap") {
     issues.add(
       _issue(

@@ -691,14 +691,18 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           ),
                           items: const [
                             DropdownMenuItem(
+                              value: 'half_life_soft_checkin',
+                              child: Text("Half-life soft check-in (แนะนำ)"),
+                            ),
+                            DropdownMenuItem(
                                 value: 'biometric_tap',
-                                child: Text("Biometric tap")),
+                                child: Text("Biometric tap (เข้มงวด)")),
                             DropdownMenuItem(
                                 value: 'single_tap',
-                                child: Text("Single tap fallback")),
+                                child: Text("Single tap (เบา)")),
                             DropdownMenuItem(
                                 value: 'verification_code',
-                                child: Text("Verification code")),
+                                child: Text("Verification code (เข้มงวดมาก)")),
                           ],
                           onChanged: (value) {
                             if (value != null) {
