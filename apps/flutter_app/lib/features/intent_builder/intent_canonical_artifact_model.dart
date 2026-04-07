@@ -20,6 +20,10 @@ class SealedReleaseEntryModel {
     required this.kind,
     required this.assetLabel,
     required this.releaseChannel,
+    required this.triggerMode,
+    required this.inactivityDays,
+    required this.graceDays,
+    this.scheduledAtUtc,
     required this.payloadResidency,
     required this.preTriggerVisibility,
     required this.postTriggerVisibility,
@@ -31,6 +35,10 @@ class SealedReleaseEntryModel {
   final String kind;
   final String assetLabel;
   final String releaseChannel;
+  final String triggerMode;
+  final int inactivityDays;
+  final int graceDays;
+  final DateTime? scheduledAtUtc;
   final String payloadResidency;
   final String preTriggerVisibility;
   final String postTriggerVisibility;
@@ -43,11 +51,21 @@ class SealedReleaseEntryModel {
       kind: map["kind"] as String? ?? "legacy_delivery",
       assetLabel: map["asset_label"] as String? ?? "Untitled asset",
       releaseChannel: map["release_channel"] as String? ?? "secure_link",
-      payloadResidency: map["payload_residency"] as String? ?? "device_local_only",
+      triggerMode: map["trigger_mode"] as String? ?? "inactivity",
+      inactivityDays: map["inactivity_days"] as int? ?? 90,
+      graceDays: map["grace_days"] as int? ?? 7,
+      scheduledAtUtc: map["scheduled_at_utc"] == null
+          ? null
+          : DateTime.tryParse(map["scheduled_at_utc"] as String)?.toUtc(),
+      payloadResidency:
+          map["payload_residency"] as String? ?? "device_local_only",
       preTriggerVisibility: map["pre_trigger_visibility"] as String? ?? "none",
-      postTriggerVisibility: map["post_trigger_visibility"] as String? ?? "route_only",
-      valueDisclosureMode: map["value_disclosure_mode"] as String? ?? "institution_verified_only",
-      partnerVerificationRequired: map["partner_verification_required"] as bool? ?? true,
+      postTriggerVisibility:
+          map["post_trigger_visibility"] as String? ?? "route_only",
+      valueDisclosureMode: map["value_disclosure_mode"] as String? ??
+          "institution_verified_only",
+      partnerVerificationRequired:
+          map["partner_verification_required"] as bool? ?? true,
     );
   }
 
@@ -57,6 +75,11 @@ class SealedReleaseEntryModel {
       "kind": kind,
       "asset_label": assetLabel,
       "release_channel": releaseChannel,
+      "trigger_mode": triggerMode,
+      "inactivity_days": inactivityDays,
+      "grace_days": graceDays,
+      if (scheduledAtUtc != null)
+        "scheduled_at_utc": scheduledAtUtc!.toUtc().toIso8601String(),
       "payload_residency": payloadResidency,
       "pre_trigger_visibility": preTriggerVisibility,
       "post_trigger_visibility": postTriggerVisibility,
@@ -70,6 +93,10 @@ class SealedReleaseEntryModel {
     String? kind,
     String? assetLabel,
     String? releaseChannel,
+    String? triggerMode,
+    int? inactivityDays,
+    int? graceDays,
+    DateTime? scheduledAtUtc,
     String? payloadResidency,
     String? preTriggerVisibility,
     String? postTriggerVisibility,
@@ -81,9 +108,14 @@ class SealedReleaseEntryModel {
       kind: kind ?? this.kind,
       assetLabel: assetLabel ?? this.assetLabel,
       releaseChannel: releaseChannel ?? this.releaseChannel,
+      triggerMode: triggerMode ?? this.triggerMode,
+      inactivityDays: inactivityDays ?? this.inactivityDays,
+      graceDays: graceDays ?? this.graceDays,
+      scheduledAtUtc: scheduledAtUtc ?? this.scheduledAtUtc,
       payloadResidency: payloadResidency ?? this.payloadResidency,
       preTriggerVisibility: preTriggerVisibility ?? this.preTriggerVisibility,
-      postTriggerVisibility: postTriggerVisibility ?? this.postTriggerVisibility,
+      postTriggerVisibility:
+          postTriggerVisibility ?? this.postTriggerVisibility,
       valueDisclosureMode: valueDisclosureMode ?? this.valueDisclosureMode,
       partnerVerificationRequired:
           partnerVerificationRequired ?? this.partnerVerificationRequired,
@@ -110,13 +142,16 @@ class SealedReleaseCandidateModel {
     return SealedReleaseCandidateModel(
       candidateId: map["candidate_id"] as String? ?? "release_candidate_latest",
       sealedAt: DateTime.parse(
-        map["sealed_at"] as String? ?? DateTime.fromMillisecondsSinceEpoch(0).toUtc().toIso8601String(),
+        map["sealed_at"] as String? ??
+            DateTime.fromMillisecondsSinceEpoch(0).toUtc().toIso8601String(),
       ),
-      deviceSecretResidency: map["device_secret_residency"] as String? ?? "device_local_only",
+      deviceSecretResidency:
+          map["device_secret_residency"] as String? ?? "device_local_only",
       releaseMode: map["release_mode"] as String? ?? "hybrid_secure_link",
       entries: (map["entries"] as List<dynamic>? ?? const [])
           .whereType<Map>()
-          .map((item) => SealedReleaseEntryModel.fromMap(Map<String, dynamic>.from(item)))
+          .map((item) =>
+              SealedReleaseEntryModel.fromMap(Map<String, dynamic>.from(item)))
           .toList(),
     );
   }
@@ -141,7 +176,8 @@ class SealedReleaseCandidateModel {
     return SealedReleaseCandidateModel(
       candidateId: candidateId ?? this.candidateId,
       sealedAt: sealedAt ?? this.sealedAt,
-      deviceSecretResidency: deviceSecretResidency ?? this.deviceSecretResidency,
+      deviceSecretResidency:
+          deviceSecretResidency ?? this.deviceSecretResidency,
       releaseMode: releaseMode ?? this.releaseMode,
       entries: entries ?? this.entries,
     );
@@ -183,21 +219,25 @@ class IntentCanonicalArtifactModel {
     return IntentCanonicalArtifactModel(
       artifactId: map["artifact_id"] as String? ?? "artifact_latest",
       promotedFromArtifactId: map["promoted_from_artifact_id"] as String?,
-      contractVersion: map["contract_version"] as String? ?? "intent-compiler-contract/v1",
+      contractVersion:
+          map["contract_version"] as String? ?? "intent-compiler-contract/v1",
       artifactState: IntentArtifactState.fromValue(
         map["artifact_state"] as String? ?? "exported",
       ),
       intentId: map["intent_id"] as String? ?? "intent_primary",
       ownerRef: map["owner_ref"] as String? ?? "",
       generatedAt: DateTime.parse(
-        map["generated_at"] as String? ?? DateTime.fromMillisecondsSinceEpoch(0).toUtc().toIso8601String(),
+        map["generated_at"] as String? ??
+            DateTime.fromMillisecondsSinceEpoch(0).toUtc().toIso8601String(),
       ),
       sourceDraftSignature: map["source_draft_signature"] as String? ?? "",
       activeEntryCount: map["active_entry_count"] as int? ?? 0,
       ptn: map["ptn"] as String? ?? "",
-      trace: Map<String, dynamic>.from(map["trace"] as Map? ?? const <String, dynamic>{}),
+      trace: Map<String, dynamic>.from(
+          map["trace"] as Map? ?? const <String, dynamic>{}),
       report: IntentCompilerReportModel.fromMap(
-        Map<String, dynamic>.from(map["report"] as Map? ?? const <String, dynamic>{}),
+        Map<String, dynamic>.from(
+            map["report"] as Map? ?? const <String, dynamic>{}),
       ),
       sealedReleaseCandidate: SealedReleaseCandidateModel.fromMap(
         Map<String, dynamic>.from(
@@ -242,7 +282,8 @@ class IntentCanonicalArtifactModel {
   }) {
     return IntentCanonicalArtifactModel(
       artifactId: artifactId ?? this.artifactId,
-      promotedFromArtifactId: promotedFromArtifactId ?? this.promotedFromArtifactId,
+      promotedFromArtifactId:
+          promotedFromArtifactId ?? this.promotedFromArtifactId,
       contractVersion: contractVersion ?? this.contractVersion,
       artifactState: artifactState ?? this.artifactState,
       intentId: intentId ?? this.intentId,
@@ -253,7 +294,8 @@ class IntentCanonicalArtifactModel {
       ptn: ptn ?? this.ptn,
       trace: trace ?? this.trace,
       report: report ?? this.report,
-      sealedReleaseCandidate: sealedReleaseCandidate ?? this.sealedReleaseCandidate,
+      sealedReleaseCandidate:
+          sealedReleaseCandidate ?? this.sealedReleaseCandidate,
     );
   }
 }

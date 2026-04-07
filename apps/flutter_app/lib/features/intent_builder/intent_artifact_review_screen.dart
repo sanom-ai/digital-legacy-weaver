@@ -91,6 +91,51 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
+                    "Trigger summary (human view)",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Use this section to confirm when each route starts. No technical syntax is needed.",
+                  ),
+                  const SizedBox(height: 10),
+                  ...artifact.sealedReleaseCandidate.entries.map(
+                    (entry) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFEFF6F5),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.assetLabel,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(_triggerSummaryText(entry)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
                     "Sealed release package",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
@@ -249,5 +294,27 @@ class IntentArtifactReviewScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _triggerSummaryText(SealedReleaseEntryModel entry) {
+    if (entry.triggerMode == "manual_release") {
+      return "Starts only when emergency release is approved, then waits ${entry.graceDays} day(s) before final release.";
+    }
+    if (entry.triggerMode == "exact_date") {
+      final scheduled = entry.scheduledAtUtc;
+      if (scheduled == null) {
+        return "Starts on an exact date/time, but no schedule is recorded yet. Review this route before production use.";
+      }
+      return "Starts at ${_formatDateTime(scheduled.toLocal())}, then waits ${entry.graceDays} day(s) before final release.";
+    }
+    return "Starts after ${entry.inactivityDays} day(s) of inactivity, then waits ${entry.graceDays} day(s) before final release.";
+  }
+
+  String _formatDateTime(DateTime value) {
+    final month = value.month.toString().padLeft(2, "0");
+    final day = value.day.toString().padLeft(2, "0");
+    final hour = value.hour.toString().padLeft(2, "0");
+    final minute = value.minute.toString().padLeft(2, "0");
+    return "${value.year}-$month-$day $hour:$minute";
   }
 }
