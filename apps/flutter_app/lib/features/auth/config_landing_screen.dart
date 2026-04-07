@@ -59,7 +59,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     _thaiMode = locale.languageCode.toLowerCase().startsWith('th');
   }
 
-  String _tr(String th, String en) => en;
+  String _tr(String th, String en) => _isThai ? th : en;
 
   DemoScenario get _selectedScenario {
     return demoScenarioById(_selectedScenarioId) ?? demoScenarios.first;
