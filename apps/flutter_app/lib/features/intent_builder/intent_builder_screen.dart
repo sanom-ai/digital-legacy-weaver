@@ -112,7 +112,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   void _completeSetupFlow() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text("Setup complete. Your handoff plan is ready."),
+        content: Text("ตั้งค่าเสร็จแล้ว แผนส่งมอบของคุณพร้อมใช้งาน"),
       ),
     );
     Navigator.of(context).maybePop();
@@ -363,16 +363,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.family_restroom_outlined),
-              title: const Text("Legacy delivery"),
+              title: const Text("ส่งต่อให้ผู้รับ"),
               subtitle: const Text(
-                "Send a secure path to a beneficiary after long inactivity",
+                "ส่งต่อข้อมูลแบบปลอดภัยให้ผู้รับ เมื่อถึงเงื่อนไขที่ตั้งไว้",
               ),
               onTap: () => Navigator.of(context).pop("legacy_delivery"),
             ),
             ListTile(
               leading: const Icon(Icons.shield_outlined),
-              title: const Text("Self-recovery"),
-              subtitle: const Text("Keep a recovery route ready for the owner"),
+              title: const Text("กู้คืนด้วยตัวเอง"),
+              subtitle: const Text("เตรียมเส้นทางกู้คืนสำหรับเจ้าของบัญชี"),
               onTap: () => Navigator.of(context).pop("self_recovery"),
             ),
           ],
@@ -407,8 +407,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     await _persistDocument(
       _document.copyWith(entries: [..._document.entries, next]),
       message: nextKind == "self_recovery"
-          ? "Self-recovery draft added and saved locally with device encryption."
-          : "Legacy delivery draft added and saved locally with device encryption.",
+          ? "?????????????????????????????????????????????????????????????"
+          : "????????????????????????????????????????????????????????????",
     );
   }
 
@@ -1169,7 +1169,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               const Text("????????????????????????????????????????????..."),
               const SizedBox(height: 12),
             ],
-            const Text("????????????????????????????? verify ????????????"),
+            const Text("????????????????????????????? ?????? ????????????"),
             const SizedBox(height: 12),
             if (_verifiedLegalPartners.isEmpty)
               Container(
@@ -1183,7 +1183,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "???????????????????????????????? verify ??????????????? ????? admin ????????????????????????????????",
+                  "???????????????????????????????? ?????? ??????????????? ????? admin ????????????????????????????????",
                 ),
               ),
             ..._verifiedLegalPartners.map((partner) {
@@ -1325,7 +1325,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             Row(
               children: [
                 const Expanded(
-                  child: Text("?????????????????????????? verify ????????????"),
+                  child: Text("?????????????????????????? ?????? ????????????"),
                 ),
                 IconButton(
                   tooltip: '????????????????????',
@@ -1351,7 +1351,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "??????????????? ecosystem ?????????? verify ??????????????? ????? admin ????????????????????????????????",
+                  "??????????????? ecosystem ?????????? ?????? ??????????????? ????? admin ????????????????????????????????",
                 ),
               ),
             ..._verifiedDestinations.map((destination) {
@@ -1796,13 +1796,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       initialValue:
                           _document.globalSafeguards.guardianQuorumPoolSize,
                       decoration: const InputDecoration(
-                        labelText: "Approver group size",
+                        labelText: "จำนวนผู้ยืนยันทั้งหมด",
                       ),
                       items: const [
-                        DropdownMenuItem(value: 2, child: Text("2 approvers")),
-                        DropdownMenuItem(value: 3, child: Text("3 approvers")),
-                        DropdownMenuItem(value: 4, child: Text("4 approvers")),
-                        DropdownMenuItem(value: 5, child: Text("5 approvers")),
+                        DropdownMenuItem(value: 2, child: Text("2 คน")),
+                        DropdownMenuItem(value: 3, child: Text("3 คน")),
+                        DropdownMenuItem(value: 4, child: Text("4 คน")),
+                        DropdownMenuItem(value: 5, child: Text("5 คน")),
                       ],
                       onChanged: (value) {
                         if (value == null) {
@@ -1848,7 +1848,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated approver group size.",
+                          message: "อัปเดตจำนวนผู้ยืนยันทั้งหมดแล้ว",
                         );
                       },
                     ),
@@ -1857,13 +1857,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       initialValue:
                           _document.globalSafeguards.guardianQuorumRequired,
                       decoration: const InputDecoration(
-                        labelText: "Required approvals",
+                        labelText: "จำนวนผู้ยืนยันที่ต้องครบ",
                       ),
                       items: List.generate(
                         _document.globalSafeguards.guardianQuorumPoolSize,
                         (index) => DropdownMenuItem(
                           value: index + 1,
-                          child: Text("${index + 1} approvals"),
+                          child: Text("${index + 1} คน"),
                         ),
                       ),
                       onChanged: (value) {
@@ -3196,7 +3196,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
     if (_editorStep == 1) {
       if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
-        return 'à¸„à¸¸à¸“à¹€à¸¥à¸·à¸­à¸ Exact date à¹à¸¥à¹‰à¸§ à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¹à¸¥à¸°à¹€à¸§à¸¥à¸²à¸à¹ˆà¸­à¸™à¸à¸”à¸–à¸±à¸”à¹„à¸›';
+        return 'à¸„à¸¸à¸“à¹€à¸¥à¸·à¸­à¸ ??????????? à¹à¸¥à¹‰à¸§ à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¹à¸¥à¸°à¹€à¸§à¸¥à¸²à¸à¹ˆà¸­à¸™à¸à¸”à¸–à¸±à¸”à¹„à¸›';
       }
       if (_triggerMode == 'inactivity' && inactivityDays < 30) {
         return 'à¸Šà¹ˆà¸§à¸‡à¹„à¸¡à¹ˆà¸žà¸šà¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸„à¸§à¸£à¹„à¸¡à¹ˆà¸™à¹‰à¸­à¸¢à¸à¸§à¹ˆà¸² 30 à¸§à¸±à¸™';
@@ -3209,7 +3209,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
     if (_editorStep == 2) {
       if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
-        return 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸”à¹‰ à¹€à¸žà¸£à¸²à¸°à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸•à¸±à¹‰à¸‡à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸ªà¸³à¸«à¸£à¸±à¸š Exact date';
+        return 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸”à¹‰ à¹€à¸žà¸£à¸²à¸°à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸•à¸±à¹‰à¸‡à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸ªà¸³à¸«à¸£à¸±à¸š ???????????';
       }
       if (graceDays < 1 || graceDays > 30) {
         return 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸”à¹‰ à¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸Šà¹ˆà¸§à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³ (1-30 à¸§à¸±à¸™)';
@@ -3348,7 +3348,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               TextField(
                 controller: _bankAssetsController,
                 decoration: const InputDecoration(
-                  labelText: '???????????? (Bank/Exchange/Gold)',
+                  labelText: '???????????? (??????/??????/?????)',
                   hintText: '???? KBank, Bitkub, ??????? A',
                 ),
               ),
@@ -3528,7 +3528,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     setState(() => _triggerMode = 'exact_date');
                   }
                 },
-                title: const Text('???????????????????????? (Exact date)'),
+                title: const Text('???????????????????????? (วันที่กำหนด)'),
               ),
               if (_triggerMode == 'exact_date') ...[
                 const SizedBox(height: 8),
@@ -3555,7 +3555,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     _triggerMode = value == true ? 'manual_release' : 'inactivity';
                   });
                 },
-                title: const Text('?????????????? (Emergency Access)'),
+                title: const Text('?????????????? (โหมดฉุกเฉิน)'),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -3591,8 +3591,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     Expanded(
                       child: Text(
                         _safetyLevel == 'high'
-                            ? 'High: ????????????????????'
-                            : 'Standard: ?????????? Email + SMS',
+                            ? 'เข้มงวด: ????????????????????'
+                            : 'มาตรฐาน: ?????????? Email + SMS',
                       ),
                     ),
                   ],
@@ -3604,11 +3604,11 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 segments: const [
                   ButtonSegment(
                     value: 'standard',
-                    label: Text('Standard'),
+                    label: Text('มาตรฐาน'),
                   ),
                   ButtonSegment(
                     value: 'high',
-                    label: Text('High'),
+                    label: Text('เข้มงวด'),
                   ),
                 ],
                 selected: {_safetyLevel},
