@@ -1540,7 +1540,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  "à¹ƒà¸„à¸£à¸ˆà¸°à¹„à¸”à¹‰à¸£à¸±à¸šà¸­à¸°à¹„à¸£",
+                  "Routes you will manage",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -1548,7 +1548,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 onPressed: () {
                   _addDraftEntry();
                 },
-                child: const Text("à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡"),
+                child: const Text("Add route"),
               ),
             ],
           ),
@@ -1562,17 +1562,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡",
+                      "No route yet",
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "à¹€à¸£à¸´à¹ˆà¸¡à¸ˆà¸²à¸à¹€à¸žà¸´à¹ˆà¸¡à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡ à¹€à¸Šà¹ˆà¸™ à¸ªà¹ˆà¸‡à¹ƒà¸«à¹‰à¸„à¸™à¸—à¸µà¹ˆà¸„à¸¸à¸“à¸£à¸±à¸ à¸«à¸£à¸·à¸­à¸à¸¹à¹‰à¸„à¸·à¸™à¸šà¸±à¸à¸Šà¸µà¸•à¸±à¸§à¹€à¸­à¸‡",
+                      "Start with at least 1 route, for example family handoff or owner self-recovery.",
                     ),
                     const SizedBox(height: 10),
                     FilledButton.tonal(
                       onPressed: _addDraftEntry,
-                      child: const Text("à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¹à¸£à¸"),
+                      child: const Text("Add first route"),
                     ),
                   ],
                 ),
@@ -1605,35 +1605,36 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¹ƒà¸Šà¹‰à¸‡à¸²à¸™",
+                    "Create a release version",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "à¹€à¸¡à¸·à¹ˆà¸­à¸žà¸£à¹‰à¸­à¸¡à¹à¸¥à¹‰à¸§ à¸à¸”à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¹€à¸žà¸·à¹ˆà¸­à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸œà¸™à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¹à¸šà¸šà¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡",
+                    "When ready, create a new version and review it before marking as ready.",
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      FilledButton(
+                      FilledButton.icon(
                         onPressed: _isExporting
                             ? null
                             : () {
                                 _exportCanonicalArtifact(report, ptnPreview);
                               },
-                        child: Text(
+                        icon: const Icon(Icons.publish_rounded),
+                        label: Text(
                           _isExporting
                               ? "Exporting..."
-                              : "à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¸¥à¹ˆà¸²à¸ªà¸¸à¸”",
+                              : "Create latest version",
                         ),
                       ),
-                      const SizedBox(width: 8),
                       OutlinedButton(
                         onPressed:
                             _artifact == null ? null : _clearCanonicalArtifact,
-                        child: const Text("à¸¥à¹‰à¸²à¸‡à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¸—à¸µà¹ˆà¸ªà¸£à¹‰à¸²à¸‡à¹„à¸§à¹‰"),
+                        child: const Text("Clear created version"),
                       ),
-                      const SizedBox(width: 8),
                       OutlinedButton(
                         onPressed: _artifact == null
                             ? null
@@ -2582,12 +2583,19 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: const Color(0xFFE5D7C5),
+        color: const Color(0xFFF2E9DC),
+        border: Border.all(color: const Color(0xFFE1D0BC)),
       ),
-      child: Text(label),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: const Color(0xFF4E3B2A),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }
