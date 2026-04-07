@@ -654,6 +654,38 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 
+  Widget _buildReceiverFirstMessageCard() {
+    return _buildPanel(
+      color: const Color(0xFFFFF8EF),
+      borderColor: const Color(0xFFE6D0AA),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "ข้อความแรกที่ควรเห็น",
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          SizedBox(height: 6),
+          Text(
+            "คุณได้รับการแจ้งเตือนนี้ตามแผนที่เจ้าของตั้งไว้ล่วงหน้า",
+          ),
+          SizedBox(height: 4),
+          Text(
+            "ระบบจะไม่ขอข้อมูลลับ ไม่ขอรหัสผ่าน และไม่ขอให้โอนเงินในข้อความนี้",
+          ),
+          SizedBox(height: 4),
+          Text(
+            "วิธีที่ปลอดภัย: เปิดแอปเอง แล้วกรอกข้อมูลรับมอบที่ได้รับจากช่องทางที่ยืนยันไว้เท่านั้น",
+          ),
+          SizedBox(height: 4),
+          Text(
+            "ถ้ายังไม่แน่ใจ ให้ปรึกษาพยานหรือญาติก่อน ไม่ต้องรีบดำเนินการทันที",
+          ),
+        ],
+      ),
+    );
+  }
+
   bool _looksLikeNetworkError(String text) {
     final lower = text.toLowerCase();
     return lower.contains("socketexception") ||
@@ -980,6 +1012,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
+                  _buildReceiverFirstMessageCard(),
+                  const SizedBox(height: 12),
                   _buildSecurityNoticeCard(),
                   const SizedBox(height: 12),
                   _buildAntiScamChecklistCard(),
@@ -1103,7 +1137,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     obscureText: _obscureAccessKey,
                     decoration: _unlockInputDecoration(
                       label: "Access Key (กุญแจรับมอบ)",
-                      helper: "เก็บเป็นความลับ ห้ามส่งต่อเหมือนโทเค็นปลอดภัย",
+                      helper:
+                          "ใช้เฉพาะในแอปนี้เท่านั้น ห้ามส่งต่อ และอย่าพิมพ์ลงโซเชียล/แชตสาธารณะ",
                       suffixIcon: IconButton(
                         onPressed: () => setState(
                             () => _obscureAccessKey = !_obscureAccessKey),
@@ -1119,7 +1154,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _canRequestCode ? _requestCode : null,
-                          child: const Text("ขอรหัสยืนยัน | Request code"),
+                          child: const Text("ขอรหัสยืนยันในแอป"),
                         ),
                       ),
                     ],
@@ -1193,9 +1228,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: _canUnlock ? _unlock : null,
-                      child: Text(_busy
-                          ? "กำลังดำเนินการ..."
-                          : "เปิดชุดรับมอบ | Open bundle"),
+                      child:
+                          Text(_busy ? "กำลังดำเนินการ..." : "เปิดชุดรับมอบ"),
                     ),
                   ),
                   if (_message != null) ...[
@@ -1261,7 +1295,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Delivery Bundle Receipt",
+                      "ใบรับมอบข้อมูล",
                       style:
                           TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                     ),
@@ -1272,14 +1306,14 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       children: [
                         Expanded(
                           child: _buildReceiptMetric(
-                            "Receipt status",
-                            "Opened",
+                            "สถานะใบรับมอบ",
+                            "เปิดแล้ว",
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: _buildReceiptMetric(
-                            "Total items",
+                            "จำนวนรายการ",
                             _items.length.toString(),
                           ),
                         ),
@@ -1290,21 +1324,21 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       children: [
                         Expanded(
                           child: _buildReceiptMetric(
-                            "Phase 1",
+                            "เฟส 1",
                             _countByVisibility("existence_only").toString(),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: _buildReceiptMetric(
-                            "Phase 2",
+                            "เฟส 2",
                             _countByVisibility("route_only").toString(),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: _buildReceiptMetric(
-                            "Phase 3",
+                            "เฟส 3",
                             _countByVisibility("route_and_instructions")
                                 .toString(),
                           ),
@@ -1323,7 +1357,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Safe next steps",
+                            "ขั้นตอนถัดไปที่ปลอดภัย",
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           SizedBox(height: 6),

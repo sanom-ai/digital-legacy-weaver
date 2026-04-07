@@ -14,8 +14,8 @@ void main() {
     expect(find.widgetWithText(TextField, 'Access Key (กุญแจรับมอบ)'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'รหัสยืนยัน | Verification code'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'ชื่อผู้รับที่ลงทะเบียนไว้'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, 'ขอรหัสยืนยัน | Request code'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'ขอรหัสยืนยันในแอป'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, 'ไม่ใช่ของฉัน | This receipt is not mine'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'เปิดชุดรับมอบ | Open bundle'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'เปิดชุดรับมอบ'), findsOneWidget);
   });
 }
