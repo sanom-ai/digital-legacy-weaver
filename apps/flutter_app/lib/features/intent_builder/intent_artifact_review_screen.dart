@@ -221,8 +221,51 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                     ...artifact.report.issues.map(
                       (issue) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          "[${issue.severity}] ${issue.code}: ${issue.message}",
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: _issueBackground(issue.severity),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _severityLabel(issue.severity),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(_issueTitle(issue.code)),
+                              const SizedBox(height: 4),
+                              Text(
+                                _issueAdvice(issue.code),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 6),
+                              ExpansionTile(
+                                tilePadding: EdgeInsets.zero,
+                                title: const Text("ดูรายละเอียดเทคนิค"),
+                                childrenPadding: EdgeInsets.zero,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      "[${issue.severity}] ${issue.code}: ${issue.message}",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            fontFamily: "Consolas",
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -324,5 +367,61 @@ class IntentArtifactReviewScreen extends StatelessWidget {
       return "กู้คืนด้วยตัวเอง";
     }
     return "ส่งต่อมรดกดิจิทัล";
+  }
+
+  String _severityLabel(String value) {
+    if (value == "error") {
+      return "ต้องแก้ก่อนใช้งาน";
+    }
+    return "ข้อแนะนำก่อนปล่อยจริง";
+  }
+
+  Color _issueBackground(String value) {
+    if (value == "error") {
+      return const Color(0xFFFFF0F0);
+    }
+    return const Color(0xFFFFF7E8);
+  }
+
+  String _issueTitle(String code) {
+    switch (code) {
+      case "intent_validation_error":
+        return "ข้อมูลสำคัญยังไม่ครบ";
+      case "inactive_entry_skipped":
+        return "เส้นทางนี้ยังไม่เปิดใช้งาน";
+      case "exact_date_in_past":
+        return "วันเวลาเริ่มทำงานอยู่ในอดีต";
+      case "missing_beneficiary_identity":
+        return "ยังไม่ได้ระบุตัวตนผู้รับให้ชัดเจน";
+      case "missing_beneficiary_verification_hint":
+        return "ยังไม่ได้ตั้งคำใบ้ยืนยันตัวตนผู้รับ";
+      case "missing_multi_channel_fallback":
+        return "ช่องทางสำรองผู้รับยังไม่พอ";
+      case "pretrigger_visibility_too_open":
+        return "การมองเห็นก่อนถึงเงื่อนไขเปิดกว้างเกินไป";
+      default:
+        return "พบจุดที่ควรตรวจทานก่อนปล่อยจริง";
+    }
+  }
+
+  String _issueAdvice(String code) {
+    switch (code) {
+      case "intent_validation_error":
+        return "กรอกข้อมูลที่ขาดให้ครบ แล้ว export ใหม่อีกครั้ง";
+      case "inactive_entry_skipped":
+        return "เปิดใช้งานเส้นทางที่ต้องการให้ส่งมอบจริง";
+      case "exact_date_in_past":
+        return "เปลี่ยนวันเวลาเป็นอนาคต เพื่อกันการส่งมอบทันทีโดยไม่ตั้งใจ";
+      case "missing_beneficiary_identity":
+        return "ใส่ชื่อผู้รับตามเอกสารจริง เพื่อลดความสับสนตอนรับมรดก";
+      case "missing_beneficiary_verification_hint":
+        return "เพิ่มคำใบ้ที่มีแค่ผู้รับจริงตอบได้ เพื่อกันมิจฉาชีพ";
+      case "missing_multi_channel_fallback":
+        return "เพิ่มช่องทางสำรองอย่างน้อย 2 ช่องทาง เช่น Email และ SMS";
+      case "pretrigger_visibility_too_open":
+        return "ตั้งค่าให้ข้อมูลก่อนถึงเงื่อนไขเป็นแบบซ่อน เพื่อความเป็นส่วนตัว";
+      default:
+        return "ตรวจทานรายการนี้ก่อน release เพื่อความมั่นใจของผู้ใช้";
+    }
   }
 }
