@@ -179,10 +179,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         asset: const IntentAssetModel(
           assetId: "legacy_asset_primary",
           assetType: "vault_item",
-          displayName: "Primary legacy bundle",
+          displayName: "ชุดส่งมอบหลัก",
           payloadMode: "secure_link",
           payloadRef: "",
-          notes: "Main beneficiary delivery bundle",
+          notes: "ชุดส่งมอบหลักสำหรับผู้รับ",
         ),
         recipient: IntentRecipientModel(
           recipientId: "beneficiary_primary",
@@ -229,7 +229,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         asset: IntentAssetModel(
           assetId: "self_recovery_backup",
           assetType: "backup_email_route",
-          displayName: "Backup recovery route",
+          displayName: "เส้นทางกู้คืนสำรอง",
           payloadMode: "self_recovery_route",
           payloadRef: widget.profile.backupEmail,
           notes: "เส้นทางกู้คืนของเจ้าของบัญชี",
@@ -430,7 +430,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             item.entryId == entry.entryId ? updated : item,
         ],
       ),
-      message: "Draft changes saved locally with device encryption.",
+      message: "บันทึกการแก้ไขร่างไว้ในเครื่องแบบเข้ารหัสแล้ว",
     );
   }
 
@@ -504,7 +504,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   ) async {
     if (!report.ok) {
       setState(() {
-        _saveMessage = "กรุณาแก้รายการที่ยังบล็อกก่อน Export เวอร์ชัน";
+        _saveMessage = "กรุณาแก้รายการที่ยังบล็อกก่อนส่งออกเวอร์ชัน";
       });
       return;
     }
@@ -515,7 +515,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     if (activeEntries.isEmpty) {
       setState(() {
         _saveMessage =
-            "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อน Export เวอร์ชัน";
+            "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อนส่งออกเวอร์ชัน";
       });
       return;
     }
@@ -557,7 +557,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = [artifact, ..._artifactHistory];
       _artifact = artifact;
       _isExporting = false;
-      _saveMessage = "สร้างและผนึกเวอร์ชันที่ Export ในเครื่องนี้แล้ว";
+      _saveMessage = "สร้างและผนึกเวอร์ชันที่ส่งออกในเครื่องนี้แล้ว";
     });
   }
 
@@ -606,7 +606,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifact = null;
       _artifactHistory = const [];
-      _saveMessage = "ลบเวอร์ชันที่ Export และผนึกไว้ ออกจากเครื่องนี้แล้ว";
+      _saveMessage = "ลบเวอร์ชันที่ส่งออกและผนึกไว้ ออกจากเครื่องนี้แล้ว";
     });
   }
 
@@ -629,7 +629,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifactHistory = nextHistory;
       _artifact = nextHistory.isEmpty ? null : nextHistory.first;
-      _saveMessage = "ลบเวอร์ชันที่ Export ออกจากประวัติในเครื่องแล้ว 1 รายการ";
+      _saveMessage = "ลบเวอร์ชันที่ส่งออก ออกจากประวัติในเครื่องแล้ว 1 รายการ";
     });
   }
 
@@ -659,7 +659,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = nextHistory;
       _artifact = promoted;
       _saveMessage =
-          "คัดลอกเวอร์ชันเก่ามาสร้าง Export ใหม่แล้ว เพื่อทบทวนซ้ำโดยไม่เสียประวัติเดิม";
+          "คัดลอกเวอร์ชันเก่ามาสร้างการส่งออกใหม่แล้ว เพื่อทบทวนซ้ำโดยไม่เสียประวัติเดิม";
     });
   }
 
@@ -1109,12 +1109,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               children: [
                 const Expanded(
                   child: Text(
-                    "Legal Partner Network",
+                    "เครือข่ายสำนักงานกฎหมาย",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Refresh partner list',
+                  tooltip: 'รีเฟรชรายชื่อพาร์ทเนอร์',
                   onPressed: _partnerCatalogLoading
                       ? null
                       : () {
@@ -1173,7 +1173,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               const SizedBox(height: 12),
             ],
             const Text(
-              "แสดงเฉพาะพาร์ทเนอร์ที่ผ่านการ verify แล้วเท่านั้น",
+              "แสดงเฉพาะพาร์ทเนอร์ที่ผ่านการยืนยันแล้วเท่านั้น",
             ),
             const SizedBox(height: 12),
             if (_verifiedLegalPartners.isEmpty)
@@ -1188,7 +1188,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "ยังไม่มีสำนักงานกฎหมายที่ผ่านการ verify จากระบบหลังบ้าน เมื่อ admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
+                  "ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบหลังบ้าน เมื่อ Admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
                 ),
               ),
             ..._verifiedLegalPartners.map((partner) {
@@ -1223,12 +1223,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             ),
                           ),
                           if (partner.isVerified)
-                            const _Pill(label: "Verified"),
+                            const _Pill(label: "ยืนยันแล้ว"),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "${partner.province} • SLA ${partner.slaHours} ชม. • Rating ${partner.rating.toStringAsFixed(1)}",
+                        "${partner.province} • SLA ${partner.slaHours} ชม. • คะแนนรีวิว ${partner.rating.toStringAsFixed(1)}",
                       ),
                       const SizedBox(height: 6),
                       Text(
@@ -1301,12 +1301,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Ecosystem destinations",
+              "ปลายทางใน Ecosystem",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             const Text(
-              "Choose institutions to receive policy packet + document request. No automatic transfer is executed by the app.",
+              "เลือกหน่วยงานปลายทางที่จะรับ policy packet และคำขอเอกสาร โดยแอปจะไม่ทำการโอนอัตโนมัติ",
             ),
             const SizedBox(height: 4),
             Container(
@@ -1338,7 +1338,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             Row(
               children: [
                 const Expanded(
-                  child: Text("แสดงเฉพาะปลายทางที่ผ่านการ verify แล้วเท่านั้น"),
+                  child: Text("แสดงเฉพาะปลายทางที่ผ่านการยืนยันแล้ว"),
                 ),
                 IconButton(
                   tooltip: 'Refresh ecosystem list',
@@ -1364,7 +1364,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "ยังไม่มีปลายทาง ecosystem ที่ผ่านการ verify จากระบบหลังบ้าน เมื่อ admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
+                  "ยังไม่มีปลายทาง Ecosystem ที่ผ่านการยืนยันจากระบบหลังบ้าน เมื่อ Admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
                 ),
               ),
             ..._verifiedDestinations.map((destination) {
@@ -1390,7 +1390,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             if (_selectedDestinationIds.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                "Selected destinations: ${_selectedDestinationIds.length}",
+                "จำนวนปลายทางที่เลือก: ${_selectedDestinationIds.length}",
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ],
@@ -3216,7 +3216,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
     if (_editorStep == 1) {
       if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
-        return 'คุณเลือก Exact date แล้ว กรุณาเลือกวันและเวลาก่อนกดถัดไป';
+        return 'คุณเลือกวันกำหนดแล้ว กรุณาเลือกวันและเวลาก่อนกดถัดไป';
       }
       if (_triggerMode == 'inactivity' && inactivityDays < 30) {
         return 'ช่วงไม่พบการใช้งานควรไม่น้อยกว่า 30 วัน';
@@ -3229,7 +3229,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
     if (_editorStep == 2) {
       if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
-        return 'ยังไม่สามารถบันทึกได้ เพราะยังไม่ได้ตั้งวันเวลาสำหรับ Exact date';
+        return 'ยังไม่สามารถบันทึกได้ เพราะยังไม่ได้ตั้งวันเวลาสำหรับวันกำหนด';
       }
       if (graceDays < 1 || graceDays > 30) {
         return 'ยังไม่สามารถบันทึกได้ กรุณาตรวจช่วงยืนยันซ้ำ (1-30 วัน)';
@@ -3258,14 +3258,14 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Step ${_editorStep + 1} of 3',
+                'ขั้นที่ ${_editorStep + 1} จาก 3',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             const SizedBox(height: 8),
             if (_editorStep == 0) ...[
               const Text(
-                'Step 1: ใครคือผู้รับ?',
+                'ขั้นที่ 1: ใครคือผู้รับ?',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -3473,7 +3473,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         const Padding(
                           padding: EdgeInsets.only(bottom: 8),
                           child: Text(
-                            'ยังไม่มีสำนักงานกฎหมายที่ผ่านการ verify จากระบบ admin',
+                            'ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบ Admin',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         )
@@ -3528,7 +3528,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               ),
             ] else if (_editorStep == 1) ...[
               const Text(
-                'Step 2: ส่งมอบเมื่อไหร่?',
+                'ขั้นที่ 2: ส่งมอบเมื่อไหร่?',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -3563,7 +3563,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     setState(() => _triggerMode = 'exact_date');
                   }
                 },
-                title: const Text('กำหนดวันและเวลาแบบตายตัว (Exact date)'),
+                title: const Text('กำหนดวันและเวลาแบบตายตัว (วันกำหนด)'),
               ),
               if (_triggerMode == 'exact_date') ...[
                 const SizedBox(height: 4),
@@ -3604,7 +3604,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               ),
             ] else ...[
               const Text(
-                'Step 3: ระดับความปลอดภัย',
+                'ขั้นที่ 3: ระดับความปลอดภัย',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -3628,8 +3628,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     Expanded(
                       child: Text(
                         _safetyLevel == 'high'
-                            ? 'High: ต้องมีพยานร่วมยืนยัน'
-                            : 'Standard: ยืนยันผ่าน Email + SMS',
+                            ? 'เข้มงวด: ต้องมีพยานร่วมยืนยัน'
+                            : 'มาตรฐาน: ยืนยันผ่าน Email + SMS',
                       ),
                     ),
                   ],
@@ -3641,11 +3641,11 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 segments: const [
                   ButtonSegment(
                     value: 'standard',
-                    label: Text('Standard'),
+                    label: Text('มาตรฐาน'),
                   ),
                   ButtonSegment(
                     value: 'high',
-                    label: Text('High'),
+                    label: Text('เข้มงวด'),
                   ),
                 ],
                 selected: {_safetyLevel},
@@ -3842,7 +3842,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       ? 'owner'
                       : widget.entry.recipient.role,
                   registeredLegalName: _kind == 'self_recovery'
-                      ? 'Owner'
+                      ? 'เจ้าของบัญชี'
                       : _recipientNameController.text.trim(),
                   verificationHint: _kind == 'self_recovery'
                       ? ''
