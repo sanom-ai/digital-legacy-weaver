@@ -7,6 +7,29 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "== Local Quality Gate ==" -ForegroundColor Cyan
 
+function Ensure-PythonUserSiteOnPath {
+  $userSite = (python -c "import site; print(site.getusersitepackages())").Trim()
+  if (-not $userSite) {
+    return
+  }
+
+  if (-not (Test-Path $userSite)) {
+    return
+  }
+
+  if ($env:PYTHONPATH) {
+    $paths = $env:PYTHONPATH -split ';'
+    if ($paths -contains $userSite) {
+      return
+    }
+    $env:PYTHONPATH = "$userSite;$env:PYTHONPATH"
+  } else {
+    $env:PYTHONPATH = $userSite
+  }
+
+  Write-Host "Python user site added to PYTHONPATH: $userSite" -ForegroundColor DarkGray
+}
+
 function Run-Step([string]$label, [scriptblock]$cmd) {
   Write-Host $label -ForegroundColor Yellow
   & $cmd
@@ -14,6 +37,8 @@ function Run-Step([string]$label, [scriptblock]$cmd) {
     throw "Step failed: $label (exit code $LASTEXITCODE)"
   }
 }
+
+Ensure-PythonUserSiteOnPath
 
 if (-not $SkipCompile) {
   Run-Step "[1/8] Python compile check..." { python -m compileall -q . }

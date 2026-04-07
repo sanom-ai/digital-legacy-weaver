@@ -7,16 +7,14 @@ void main() {
   testWidgets('AuthGate shows missing config guidance without supabase defines',
       (tester) async {
     await tester.pumpWidget(const MaterialApp(home: AuthGate()));
-    expect(
-        find.text('Start now with private-first local mode'), findsOneWidget);
-    expect(find.text('Choose your first real user journey'), findsOneWidget);
+    expect(find.text('Start now in private local mode'), findsOneWidget);
+    expect(find.text('Choose your first journey'), findsOneWidget);
     expect(find.text('Digital Legacy Handoff'), findsWidgets);
     expect(find.text('Owner Self-Recovery'), findsOneWidget);
     expect(find.text('Private-first Archive'), findsOneWidget);
-    expect(find.text('Start in Private Local Mode'), findsWidgets);
+    expect(find.text('Start in private mode'), findsOneWidget);
     expect(find.text('Cloud setup later'), findsOneWidget);
-    expect(find.textContaining('Start immediately without backend setup'),
-        findsOneWidget);
+    expect(find.textContaining('No cloud setup needed'), findsOneWidget);
   });
 
   test('SafetySettingsModel reads private-first defaults', () {
