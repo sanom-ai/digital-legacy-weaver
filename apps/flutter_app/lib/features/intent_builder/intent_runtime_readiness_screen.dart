@@ -9,7 +9,7 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Release Readiness")),
+      appBar: AppBar(title: const Text("ความพร้อมก่อนปล่อยใช้งานจริง")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -20,12 +20,12 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "What this means for users",
+                    "สรุปสำหรับผู้ใช้จริง",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Readiness is the checkpoint between a draft plan and a safe, real handoff path. Treat this screen as your go/no-go decision before relying on delivery.",
+                    "หน้านี้คือด่านสุดท้ายก่อนเปิดใช้การส่งมอบจริง เพื่อให้มั่นใจว่าแผนปลอดภัยและใช้งานได้จริง ไม่ใช่แค่ร่างทดลอง",
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -48,31 +48,31 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Readiness criteria",
+                    "รายการตรวจพร้อมใช้งาน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   _CriterionRow(
-                    label: "An exported handoff version exists",
+                    label: "มีเวอร์ชันที่ Export แล้ว",
                     satisfied: readiness.hasArtifact,
                   ),
                   _CriterionRow(
-                    label: "Exported version is marked ready",
+                    label: "เวอร์ชันที่ Export ถูกตั้งเป็นพร้อมใช้งาน",
                     satisfied:
                         readiness.currentArtifact?.artifactState.name ==
                         'ready',
                   ),
                   _CriterionRow(
-                    label: "At least one active route exists",
+                    label: "มีเส้นทางที่เปิดใช้งานอย่างน้อย 1 รายการ",
                     satisfied:
                         (readiness.currentArtifact?.activeEntryCount ?? 0) > 0,
                   ),
                   _CriterionRow(
-                    label: "No blocking issues",
+                    label: "ไม่มีปัญหาระดับบล็อกการปล่อยใช้งาน",
                     satisfied: !readiness.hasBlockingErrors,
                   ),
                   _CriterionRow(
-                    label: "Draft is still in sync",
+                    label: "ร่างปัจจุบันตรงกับเวอร์ชันล่าสุด",
                     satisfied: readiness.draftInSync,
                   ),
                 ],
@@ -87,19 +87,19 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Readiness metrics",
+                    "ตัวชี้วัดความพร้อม",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Text("History versions: ${readiness.historyCount}"),
-                  Text("Ready artifacts: ${readiness.readyArtifactCount}"),
+                  Text("จำนวนเวอร์ชันย้อนหลัง: ${readiness.historyCount}"),
+                  Text("เวอร์ชันที่พร้อมใช้งาน: ${readiness.readyArtifactCount}"),
                   Text(
-                    "Reviewed artifacts: ${readiness.reviewedArtifactCount}",
+                    "เวอร์ชันที่รีวิวแล้ว: ${readiness.reviewedArtifactCount}",
                   ),
                   Text(
-                    "Promoted artifacts: ${readiness.promotedArtifactCount}",
+                    "เวอร์ชันที่โปรโมตแล้ว: ${readiness.promotedArtifactCount}",
                   ),
-                  Text("Compiler warnings: ${readiness.warningCount}"),
+                  Text("คำเตือนที่ต้องตรวจ: ${readiness.warningCount}"),
                 ],
               ),
             ),
@@ -112,13 +112,13 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Current blockers",
+                    "จุดที่ยังต้องแก้ก่อนปล่อยจริง",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   if (readiness.blockers.isEmpty)
                     const Text(
-                      "No blockers. The current version is eligible for real release use.",
+                      "ไม่มีตัวบล็อก เวอร์ชันนี้พร้อมสำหรับการใช้งานจริง",
                     )
                   else
                     ...readiness.blockers.map(
@@ -139,20 +139,20 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Three-layer map",
+                    "ภาพรวม 3 ชั้นของระบบ",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "1. User Layer: owners use guided flows for setup, review, and readiness checks.",
+                    "1. ชั้นผู้ใช้: ตั้งค่า ตรวจทาน และเช็กความพร้อมแบบเข้าใจง่าย",
                   ),
                   SizedBox(height: 4),
                   Text(
-                    "2. Policy Core Layer: safety controls and validation logic stay consistent here.",
+                    "2. ชั้นนโยบาย: คุมกฎความปลอดภัยและการตรวจเงื่อนไขให้คงเส้นคงวา",
                   ),
                   SizedBox(height: 4),
                   Text(
-                    "3. Delivery Layer: release paths share only what policy allows for each recipient route.",
+                    "3. ชั้นส่งมอบ: ปล่อยข้อมูลเท่าที่นโยบายอนุญาตในแต่ละเส้นทางผู้รับ",
                   ),
                 ],
               ),

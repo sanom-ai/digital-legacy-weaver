@@ -246,7 +246,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       });
     } catch (e) {
       setState(() {
-        _message = _friendlyActionError("requesting a receipt code", e);
+        _message = _friendlyActionError("request_code", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
         final lower = e.toString().toLowerCase();
@@ -320,7 +320,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       });
     } catch (e) {
       setState(() {
-        _message = _friendlyActionError("opening the delivery bundle", e);
+        _message = _friendlyActionError("unlock", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
         final lower = e.toString().toLowerCase();
@@ -408,7 +408,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       });
     } catch (e) {
       setState(() {
-        _message = _friendlyActionError("reporting wrong recipient", e);
+        _message = _friendlyActionError("report_wrong_recipient", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
       });
@@ -698,6 +698,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   String _friendlyActionError(String action, Object error) {
     final lower = error.toString().toLowerCase();
+    final actionLabel = switch (action) {
+      "request_code" => "การขอรหัสยืนยัน",
+      "unlock" => "การเปิดชุดรับมอบ",
+      "report_wrong_recipient" => "การแจ้งผู้รับไม่ตรง",
+      _ => "การทำรายการนี้",
+    };
     if (lower.contains("temporarily locked")) {
       return "ระบบล็อกชั่วคราวเพื่อความปลอดภัย หลังกรอกผิดหลายครั้ง กรุณารอสักครู่แล้วลองใหม่";
     }
@@ -715,7 +721,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         lower.contains("forbidden")) {
       return "ทำรายการต่อไม่ได้ กรุณาตรวจสอบ Access ID, Access Key และข้อมูลผู้รับ แล้วลองใหม่";
     }
-    return "ทำรายการไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
+    return "$actionLabel ยังไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   Widget _buildStatusCard() {
@@ -747,11 +753,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           const SizedBox(height: 6),
           Text("สถานะ: $statusLabel"),
           const SizedBox(height: 6),
-          Text(
-            _lastAction == "none"
-                ? "การทำงานล่าสุด: ยังไม่มีคำขอ"
-                : "การทำงานล่าสุด: ${_lastAction.replaceAll("_", " ")}",
-          ),
+          Text("การทำงานล่าสุด: ${_lastActionLabel()}"),
           if (_isTemporarilyLocked) ...[
             const SizedBox(height: 6),
             Text("เวลารอก่อนลองใหม่: ${_cooldownRemainingLabel()}"),
@@ -821,6 +823,16 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       return "มี 1 รายการที่เปิดรับมอบแล้ว";
     }
     return "มี ${_items.length} รายการที่เปิดรับมอบแล้ว";
+  }
+
+  String _lastActionLabel() {
+    return switch (_lastAction) {
+      "none" => "ยังไม่มีคำขอ",
+      "request_code" => "ขอรหัสยืนยัน",
+      "unlock" => "เปิดชุดรับมอบ",
+      "report_wrong_recipient" => "แจ้งผู้รับไม่ตรง",
+      _ => "กำลังทำรายการ",
+    };
   }
 
   String _kindLabel(String kind) {
