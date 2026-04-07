@@ -30,6 +30,7 @@ def test_required_migration_files_exist() -> None:
         "20260405_0017_private_first_trace_controls.sql",
         "20260405_0018_trace_privacy_profile.sql",
         "20260405_0019_reliability_and_beneficiary_identity.sql",
+        "20260407_0025_runtime_dispatch_schedules.sql",
     ]
     existing = {p.name for p in MIGRATIONS.glob("*.sql")}
     for name in required:
@@ -139,3 +140,10 @@ def test_reliability_and_beneficiary_identity_defined() -> None:
     assert "add column if not exists ios_background_risk_acknowledged boolean not null default false" in src
     assert "add column if not exists beneficiary_name text" in src
     assert "add column if not exists beneficiary_verification_phrase_hash text" in src
+
+
+def test_runtime_dispatch_schedules_defined() -> None:
+    src = _read("20260407_0025_runtime_dispatch_schedules.sql")
+    assert "create table if not exists public.delivery_trigger_schedules" in src
+    assert "trigger_mode in ('inactivity', 'exact_date', 'manual_release')" in src
+    assert "unique(owner_id, mode)" in src

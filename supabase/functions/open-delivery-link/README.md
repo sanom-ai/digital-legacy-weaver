@@ -17,7 +17,7 @@ Secure delivery unlock endpoint with second-factor verification.
 - apply temporary receipt lock when max challenge attempts are exceeded
 - optionally verify TOTP code when `user_safety_settings.require_totp_unlock = true`
 - consume challenge and access key (one-time)
-- return encrypted recovery bundle items
+- return encrypted recovery bundle items plus runtime delivery context from live dispatch records
 3. Abuse guard:
 - DB-backed rate limits by client IP and access ID
 - temporary blocking window on excessive attempts
@@ -40,6 +40,26 @@ Secure delivery unlock endpoint with second-factor verification.
   "access_key": "...",
   "verification_code": "123456",
   "totp_code": "123456"
+}
+```
+
+Example unlock response (trimmed):
+
+```json
+{
+  "ok": true,
+  "mode": "legacy",
+  "item_count": 2,
+  "items": [],
+  "delivery_context": {
+    "owner_reference": "...",
+    "mode": "legacy",
+    "source": "live_runtime",
+    "trigger_cycle_date": "2026-04-07",
+    "trigger_stage": "final_release",
+    "trigger_status": "sent",
+    "trigger_reason": "secure-link sent"
+  }
 }
 ```
 

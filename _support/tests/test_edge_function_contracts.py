@@ -72,6 +72,14 @@ def test_dispatch_runtime_supports_compiler_emitted_requirement_controls() -> No
     assert 'requirement === "server_heartbeat_fallback"' in src
 
 
+def test_dispatch_runtime_supports_inactivity_and_exact_date_schedules() -> None:
+    src = _read(DISPATCH_FN)
+    assert "delivery_trigger_schedules" in src
+    assert 'triggerMode === "exact_date"' in src
+    assert 'triggerMode === "inactivity"' in src
+    assert 'triggerMode === "manual_release"' in src
+
+
 def test_unlock_accepts_request_code_and_unlock_actions() -> None:
     src = _read(UNLOCK_FN)
     assert "request_code" in src
@@ -126,6 +134,13 @@ def test_unlock_supports_totp_code_contract() -> None:
     assert "verification_phrase" in src
     assert "verifyLegacyBeneficiaryIdentity" in src
     assert "pre-registered name" in src or "pre-registered identity" in src
+
+
+def test_unlock_returns_live_delivery_context() -> None:
+    src = _read(UNLOCK_FN)
+    assert "delivery_context" in src
+    assert "source: \"live_runtime\"" in src
+    assert "trigger_dispatch_events" in src
 
 
 def test_totp_management_actions_present() -> None:

@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { compilePTN, evaluatePolicy, type PrivacyProfile, type RequirementControl } from "./ptn_policy.ts";
 
 type Profile = {
@@ -8,6 +8,15 @@ type Profile = {
   legacy_inactivity_days: number;
   self_recovery_inactivity_days: number;
   last_active_at: string;
+};
+
+type TriggerMode = "inactivity" | "exact_date" | "manual_release";
+
+type TriggerSchedule = {
+  triggerMode: TriggerMode;
+  inactivityDays: number;
+  exactDateUtc: string | null;
+  graceDays: number;
 };
 
 type SafetySettings = {
@@ -61,6 +70,27 @@ function daysSince(iso: string): number {
   return Math.floor((now - then) / (1000 * 60 * 60 * 24));
 }
 
+function dateIsoNow(): string {
+  return new Date().toISOString();
+}
+
+function cycleDateToday(): string {
+  return dateIsoNow().slice(0, 10);
+}
+
+function parseDateMs(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  const ms = new Date(iso).getTime();
+  if (Number.isNaN(ms)) return null;
+  return ms;
+}
+
+function daysUntil(iso: string): number {
+  const targetMs = parseDateMs(iso);
+  if (targetMs === null) return Number.NaN;
+  return Math.floor((targetMs - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
 function actionFor(mode: "legacy" | "self_recovery"): string {
   return mode === "legacy" ? "trigger_legacy_delivery" : "trigger_self_recovery_delivery";
 }
@@ -77,41 +107,32 @@ function extractPacketValue(secureLink: string, key: "access_id" | "access_key")
 function buildProviderHandoffHtml(args: {
   secureLink: string;
   mode: "legacy" | "self_recovery";
-  inactiveDays: number;
-  threshold: number;
+  triggerSummary: string;
   ownerRef: string;
 }): string {
-  const roleLabelTh = args.mode === "legacy" ? "ผู้รับมรดกดิจิทัล" : "ผู้ช่วยกู้คืนบัญชี";
   const roleLabelEn = args.mode === "legacy" ? "beneficiary" : "recovery contact";
   const accessId = extractPacketValue(args.secureLink, "access_id");
   const accessKey = extractPacketValue(args.secureLink, "access_key");
   return `
-  <p>คุณได้รับข้อความนี้เพราะคุณถูกแต่งตั้งเป็น <strong>${roleLabelTh}</strong> (${roleLabelEn}) ของเจ้าของรหัส <strong>${args.ownerRef}</strong> ไว้ล่วงหน้า</p>
   <p>You received this because you were pre-assigned as a <strong>${roleLabelEn}</strong> for owner reference <strong>${args.ownerRef}</strong>.</p>
-  <p><strong>ระบบจะไม่ขอให้คุณโอนเงิน ขอรหัสผ่าน หรือเรียกเก็บค่าธรรมเนียมทางข้อความนี้</strong></p>
   <p><strong>We never ask for bank transfer, password reset, or private account fees in this message.</strong></p>
-  <p>คุณไม่จำเป็นต้องรีบดำเนินการทันที หากยังไม่มั่นใจ ให้หยุดและปรึกษาพยานหรือญาติอีกคนก่อน</p>
   <p>You do not need to act immediately. If you are unsure, pause and confirm with another guardian or family member first.</p>
-  <p><strong>วิธีที่ปลอดภัยกว่า:</strong> เปิดแอป Digital Legacy Weaver ด้วยตัวเอง แล้วกรอกข้อมูลชุดรับมอบด้านล่าง</p>
   <p><strong>Recommended safe path:</strong> open the Digital Legacy Weaver app yourself and enter the handoff packet below.</p>
-  <p>Handoff packet / ชุดข้อมูลรับมอบ</p>
+  <p>Handoff packet:</p>
   <pre>access_id: ${accessId || "(missing)"}\naccess_key: ${accessKey || "(missing)"}</pre>
-  <p>ลิงก์ทางเลือก (ใช้เมื่อยืนยันแล้วเท่านั้น): <a href="${args.secureLink}">${args.secureLink}</a></p>
   <p>Optional direct route (only if already verified): <a href="${args.secureLink}">${args.secureLink}</a></p>
-  <p>จำนวนวันที่ไม่พบกิจกรรม: ${args.inactiveDays} / ${args.threshold}</p>
-  <p>Inactive days: ${args.inactiveDays} / ${args.threshold}</p>
-  <p>รายการตรวจสอบก่อนดำเนินการ / Provider handoff checklist:</p>
+  <p>Trigger summary: ${args.triggerSummary}</p>
+  <p>Provider handoff checklist:</p>
   <ul>
-    <li>ติดต่อผู้ให้บริการปลายทางโดยตรงก่อนทำรายการสำคัญ</li>
-    <li>ส่งเอกสารสิทธิ์ตามกระบวนการของผู้ให้บริการปลายทาง (ไม่ใช่ส่งให้แพลตฟอร์มนี้)</li>
-    <li>ทำขั้นตอนยืนยันตัวตน/KYC/AML ตามที่ผู้ให้บริการปลายทางกำหนด</li>
+    <li>Contact the destination app/provider directly before any critical action.</li>
+    <li>Submit legal entitlement evidence through the destination process (not this platform).</li>
+    <li>Complete required KYC/AML or identity checks required by the destination.</li>
   </ul>
   <p>Legal entitlement verification must be completed directly with the destination app/provider.</p>
   <p>Technical-layer disclaimer: this platform is a technical coordination layer only and coordinates notification and secure access workflow only. It is not the legal decision authority.</p>
   <p>For safety, this link is one-time and must pass a second factor in unlock flow.</p>
   `;
 }
-
 async function sendEmail(to: string, subject: string, html: string) {
   let lastError = "";
 
@@ -239,6 +260,103 @@ async function getSafetySettings(ownerId: string): Promise<SafetySettings> {
     };
   }
   return data as SafetySettings;
+}
+
+async function getTriggerSchedule(
+  profile: Profile,
+  mode: "legacy" | "self_recovery",
+): Promise<TriggerSchedule> {
+  const fallbackInactivity = mode === "legacy"
+    ? profile.legacy_inactivity_days
+    : profile.self_recovery_inactivity_days;
+  const { data, error } = await supabase
+    .from("delivery_trigger_schedules")
+    .select("trigger_mode, inactivity_days, exact_date_utc, grace_days, enabled")
+    .eq("owner_id", profile.id)
+    .eq("mode", mode)
+    .eq("enabled", true)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`trigger schedule read failed: ${error.message}`);
+  }
+  if (!data) {
+    return {
+      triggerMode: "inactivity",
+      inactivityDays: fallbackInactivity,
+      exactDateUtc: null,
+      graceDays: 7,
+    };
+  }
+  const triggerModeRaw = String(data.trigger_mode ?? "inactivity").trim().toLowerCase();
+  const triggerMode: TriggerMode = triggerModeRaw === "exact_date"
+    ? "exact_date"
+    : triggerModeRaw === "manual_release"
+    ? "manual_release"
+    : "inactivity";
+  return {
+    triggerMode,
+    inactivityDays: Number(data.inactivity_days ?? fallbackInactivity),
+    exactDateUtc: (data.exact_date_utc as string | null) ?? null,
+    graceDays: Math.max(1, Number(data.grace_days ?? 7)),
+  };
+}
+
+function computeTriggerSnapshot(args: {
+  schedule: TriggerSchedule;
+  inactiveDays: number;
+  nowMs: number;
+}): {
+  readyForFinalRelease: boolean;
+  reminderDaysUntilTrigger: number | null;
+  triggerSummary: string;
+  referenceThreshold: number | null;
+  referenceExactDate: string | null;
+  graceDays: number;
+} {
+  const schedule = args.schedule;
+  const graceDays = Math.max(1, schedule.graceDays);
+  if (schedule.triggerMode === "manual_release") {
+    return {
+      readyForFinalRelease: false,
+      reminderDaysUntilTrigger: null,
+      triggerSummary: "manual release only (auto dispatch disabled)",
+      referenceThreshold: null,
+      referenceExactDate: null,
+      graceDays,
+    };
+  }
+  if (schedule.triggerMode === "exact_date") {
+    const triggerMs = parseDateMs(schedule.exactDateUtc);
+    if (triggerMs === null) {
+      return {
+        readyForFinalRelease: false,
+        reminderDaysUntilTrigger: null,
+        triggerSummary: "exact-date schedule missing timestamp",
+        referenceThreshold: null,
+        referenceExactDate: null,
+        graceDays,
+      };
+    }
+    const releaseMs = triggerMs + graceDays * 24 * 60 * 60 * 1000;
+    return {
+      readyForFinalRelease: args.nowMs >= releaseMs,
+      reminderDaysUntilTrigger: daysUntil(schedule.exactDateUtc ?? ""),
+      triggerSummary:
+        `exact-date dispatch on ${new Date(triggerMs).toISOString()} + ${graceDays}d grace`,
+      referenceThreshold: null,
+      referenceExactDate: new Date(triggerMs).toISOString(),
+      graceDays,
+    };
+  }
+  const threshold = Math.max(30, schedule.inactivityDays);
+  return {
+    readyForFinalRelease: args.inactiveDays >= threshold + graceDays,
+    reminderDaysUntilTrigger: threshold - args.inactiveDays,
+    triggerSummary: `inactivity ${args.inactiveDays}/${threshold} days + ${graceDays}d grace`,
+    referenceThreshold: threshold,
+    referenceExactDate: null,
+    graceDays,
+  };
 }
 
 type RequirementTraceEntry = {
@@ -570,24 +688,73 @@ async function submitPartnerHandoffNotice(args: {
 }
 
 async function processMode(profile: Profile, mode: "legacy" | "self_recovery", policySource: string) {
-  const cycleDate = new Date().toISOString().slice(0, 10);
+  const cycleDate = cycleDateToday();
+  const nowMs = Date.now();
   const inactiveDays = daysSince(profile.last_active_at);
-  const threshold = mode === "legacy" ? profile.legacy_inactivity_days : profile.self_recovery_inactivity_days;
+  const schedule = await getTriggerSchedule(profile, mode);
+  const triggerSnapshot = computeTriggerSnapshot({
+    schedule,
+    inactiveDays,
+    nowMs,
+  });
   const safety = await getSafetySettings(profile.id);
   const pauseUntil = safety.emergency_pause_until ? new Date(safety.emergency_pause_until).getTime() : 0;
-  if (pauseUntil > Date.now()) {
-    await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "emergency pause active", {
-      pauseUntil: safety.emergency_pause_until,
+  const action = actionFor(mode);
+
+  if (schedule.triggerMode === "manual_release") {
+    await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "manual release route excludes auto dispatch", {
+      triggerMode: schedule.triggerMode,
+      triggerSummary: triggerSnapshot.triggerSummary,
+    });
+    await supabase.from("trigger_logs").insert({
+      owner_id: profile.id,
+      mode,
+      action,
+      status: "skipped",
+      reason: "manual release route excludes auto dispatch",
+      metadata: {
+        triggerMode: schedule.triggerMode,
+        triggerSummary: triggerSnapshot.triggerSummary,
+      },
+      processed_at: dateIsoNow(),
     });
     return;
   }
+
+  if (schedule.triggerMode === "exact_date" && !triggerSnapshot.referenceExactDate) {
+    await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "exact-date route has no valid timestamp", {
+      triggerMode: schedule.triggerMode,
+    });
+    await supabase.from("trigger_logs").insert({
+      owner_id: profile.id,
+      mode,
+      action,
+      status: "skipped",
+      reason: "exact-date route has no valid timestamp",
+      metadata: {
+        triggerMode: schedule.triggerMode,
+      },
+      processed_at: dateIsoNow(),
+    });
+    return;
+  }
+
+  if (pauseUntil > nowMs) {
+    await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "emergency pause active", {
+      triggerMode: schedule.triggerMode,
+      pauseUntil: safety.emergency_pause_until,
+      triggerSummary: triggerSnapshot.triggerSummary,
+    });
+    return;
+  }
+
   if (safety.device_rebind_in_progress) {
     const startedAt = safety.device_rebind_started_at
       ? new Date(safety.device_rebind_started_at).getTime()
-      : Date.now();
+      : nowMs;
     const graceMs = Math.max(safety.device_rebind_grace_hours, 24) * 60 * 60 * 1000;
     const rebindUntil = startedAt + graceMs;
-    if (Date.now() < rebindUntil) {
+    if (nowMs < rebindUntil) {
       await insertDispatchEvent(
         profile.id,
         mode,
@@ -595,6 +762,8 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         "skipped",
         "device rebind window active",
         {
+          triggerMode: schedule.triggerMode,
+          triggerSummary: triggerSnapshot.triggerSummary,
           deviceRebindStartedAt: safety.device_rebind_started_at,
           deviceRebindGraceHours: safety.device_rebind_grace_hours,
           deviceRebindUntil: new Date(rebindUntil).toISOString(),
@@ -604,26 +773,31 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       await supabase.from("trigger_logs").insert({
         owner_id: profile.id,
         mode,
-        action: actionFor(mode),
+        action,
         status: "skipped",
         reason: "device rebind window active",
         metadata: {
+          triggerMode: schedule.triggerMode,
+          triggerSummary: triggerSnapshot.triggerSummary,
           deviceRebindStartedAt: safety.device_rebind_started_at,
           deviceRebindGraceHours: safety.device_rebind_grace_hours,
           deviceRebindUntil: new Date(rebindUntil).toISOString(),
           recoveryKeyEnabled: safety.recovery_key_enabled,
         },
-        processed_at: new Date().toISOString(),
+        processed_at: dateIsoNow(),
       });
       return;
     }
   }
+
   if (!safety.legal_disclaimer_accepted) {
-    await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "legal consent missing", {});
+    await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "legal consent missing", {
+      triggerMode: schedule.triggerMode,
+      triggerSummary: triggerSnapshot.triggerSummary,
+    });
     return;
   }
 
-  const action = actionFor(mode);
   const compiled = compilePTN(policySource);
   const decision = evaluatePolicy(compiled, "system_scheduler", action);
   const traceProfile = effectiveTraceProfile(safety, decision.privacyProfile);
@@ -636,8 +810,11 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       status: "skipped",
       reason: decision.reasons.join("; "),
       metadata: {
+        triggerMode: schedule.triggerMode,
+        triggerSummary: triggerSnapshot.triggerSummary,
         inactiveDays,
-        threshold,
+        threshold: triggerSnapshot.referenceThreshold,
+        exactDateUtc: triggerSnapshot.referenceExactDate,
         required: decision.required,
         privateFirstMode: safety.private_first_mode,
         tracePrivacyProfile: traceProfile,
@@ -652,6 +829,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
     safety,
     requiredControls: decision.requiredControls,
   });
+
   if (requirementGate.advisoryUnmet.length > 0) {
     await supabase.from("trigger_logs").insert({
       owner_id: profile.id,
@@ -660,21 +838,28 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       status: "pending",
       reason: `advisory controls unmet: ${requirementGate.advisoryUnmet.join("; ")}`,
       metadata: buildPrivateFirstMetadata({
+        triggerMode: schedule.triggerMode,
+        triggerSummary: triggerSnapshot.triggerSummary,
         inactiveDays,
-        threshold,
+        threshold: triggerSnapshot.referenceThreshold,
+        exactDateUtc: triggerSnapshot.referenceExactDate,
         required: decision.required,
         advisoryUnmet: requirementGate.advisoryUnmet,
       }, safety, traceProfile, requirementGate.trace),
-      processed_at: new Date().toISOString(),
+      processed_at: dateIsoNow(),
     });
   }
+
   if (!requirementGate.allowed) {
     await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "required controls are not satisfied", {
+      triggerMode: schedule.triggerMode,
+      triggerSummary: triggerSnapshot.triggerSummary,
       required: decision.required,
       strictMissing: requirementGate.strictMissing,
       advisoryUnmet: requirementGate.advisoryUnmet,
       inactiveDays,
-      threshold,
+      threshold: triggerSnapshot.referenceThreshold,
+      exactDateUtc: triggerSnapshot.referenceExactDate,
       privateFirstMode: safety.private_first_mode,
       traceRetentionDays: safety.trace_retention_days,
       tracePrivacyProfile: traceProfile,
@@ -686,38 +871,53 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
       status: "skipped",
       reason: `required controls are not satisfied: ${requirementGate.strictMissing.join("; ")}`,
       metadata: buildPrivateFirstMetadata({
+        triggerMode: schedule.triggerMode,
+        triggerSummary: triggerSnapshot.triggerSummary,
         inactiveDays,
-        threshold,
+        threshold: triggerSnapshot.referenceThreshold,
+        exactDateUtc: triggerSnapshot.referenceExactDate,
         required: decision.required,
         strictMissing: requirementGate.strictMissing,
         advisoryUnmet: requirementGate.advisoryUnmet,
       }, safety, traceProfile, requirementGate.trace),
-      processed_at: new Date().toISOString(),
+      processed_at: dateIsoNow(),
     });
     return;
   }
 
   if (safety.reminders_enabled) {
-    for (const offset of safety.reminder_offsets_days) {
-      const stage = `reminder_${offset}d` as "reminder_14d" | "reminder_7d" | "reminder_1d";
-      if (inactiveDays === threshold - offset && (offset === 14 || offset === 7 || offset === 1)) {
-        const isFresh = await insertDispatchEvent(profile.id, mode, stage, "pending", "awaiting email send", {
-          inactiveDays,
-          threshold,
-        });
-        if (!isFresh) continue;
-        await sendEmail(
-          profile.backup_email,
-          `Reminder: ${offset} day(s) before ${mode} trigger`,
-          `<p>Your ${mode} trigger is approaching.</p><p>Inactive days: ${inactiveDays} / ${threshold}</p><p>Please open the app and confirm "I am still alive" if this is not intended.</p>`,
-        );
-        await supabase.from("trigger_dispatch_events").update({ status: "sent", reason: "reminder sent" }).eq("cycle_date", new Date().toISOString().slice(0, 10)).eq("owner_id", profile.id).eq("mode", mode).eq("stage", stage);
+    const daysUntilTrigger = triggerSnapshot.reminderDaysUntilTrigger;
+    if (daysUntilTrigger !== null) {
+      for (const offset of safety.reminder_offsets_days) {
+        const stage = `reminder_${offset}d` as "reminder_14d" | "reminder_7d" | "reminder_1d";
+        if (daysUntilTrigger === offset && (offset === 14 || offset === 7 || offset === 1)) {
+          const isFresh = await insertDispatchEvent(profile.id, mode, stage, "pending", "awaiting email send", {
+            triggerMode: schedule.triggerMode,
+            triggerSummary: triggerSnapshot.triggerSummary,
+            inactiveDays,
+            threshold: triggerSnapshot.referenceThreshold,
+            exactDateUtc: triggerSnapshot.referenceExactDate,
+            daysUntilTrigger,
+          });
+          if (!isFresh) continue;
+          await sendEmail(
+            profile.backup_email,
+            `Reminder: ${offset} day(s) before ${mode} trigger`,
+            `<p>Your ${mode} trigger is approaching.</p><p>Trigger summary: ${triggerSnapshot.triggerSummary}</p><p>Please open the app and confirm "I am still alive" if this is not intended.</p>`,
+          );
+          await supabase
+            .from("trigger_dispatch_events")
+            .update({ status: "sent", reason: "reminder sent" })
+            .eq("cycle_date", cycleDateToday())
+            .eq("owner_id", profile.id)
+            .eq("mode", mode)
+            .eq("stage", stage);
+        }
       }
     }
   }
 
-  const effectiveGraceDays = Math.max(7, safety.grace_period_days);
-  if (inactiveDays < threshold + effectiveGraceDays) {
+  if (!triggerSnapshot.readyForFinalRelease) {
     return;
   }
 
@@ -729,8 +929,11 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
     );
     if (hasSignals) {
       await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "recent multi-signal proof-of-life detected", {
+        triggerMode: schedule.triggerMode,
+        triggerSummary: triggerSnapshot.triggerSummary,
         inactiveDays,
-        threshold,
+        threshold: triggerSnapshot.referenceThreshold,
+        exactDateUtc: triggerSnapshot.referenceExactDate,
         signalWindowHours: safety.recent_signal_window_hours,
         minimumSignalTypes: safety.minimum_recent_signal_types,
       });
@@ -741,12 +944,15 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         status: "skipped",
         reason: "recent multi-signal proof-of-life detected",
         metadata: {
+          triggerMode: schedule.triggerMode,
+          triggerSummary: triggerSnapshot.triggerSummary,
           inactiveDays,
-          threshold,
+          threshold: triggerSnapshot.referenceThreshold,
+          exactDateUtc: triggerSnapshot.referenceExactDate,
           signalWindowHours: safety.recent_signal_window_hours,
           minimumSignalTypes: safety.minimum_recent_signal_types,
         },
-        processed_at: new Date().toISOString(),
+        processed_at: dateIsoNow(),
       });
       return;
     }
@@ -757,20 +963,29 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
     const requiredApprovals = safety.guardian_quorum_enabled
       ? Math.max(safety.guardian_quorum_required, 1)
       : 1;
-    if (inactiveDays < threshold + effectiveGraceDays + guardianGraceDays) {
-      await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "guardian grace window still active", {
-        inactiveDays,
-        threshold,
-        guardianGraceHours: safety.guardian_grace_hours,
-      });
-      return;
+
+    if (schedule.triggerMode === "inactivity" && triggerSnapshot.referenceThreshold !== null) {
+      if (inactiveDays < triggerSnapshot.referenceThreshold + triggerSnapshot.graceDays + guardianGraceDays) {
+        await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "guardian grace window still active", {
+          triggerMode: schedule.triggerMode,
+          triggerSummary: triggerSnapshot.triggerSummary,
+          inactiveDays,
+          threshold: triggerSnapshot.referenceThreshold,
+          guardianGraceHours: safety.guardian_grace_hours,
+        });
+        return;
+      }
     }
+
     const guardianApproved = await hasGuardianApproval(profile.id, mode, cycleDate, requiredApprovals);
     if (!guardianApproved) {
       const approvalCount = await getGuardianApprovalCount(profile.id, mode, cycleDate);
       await insertDispatchEvent(profile.id, mode, "final_release", "skipped", "guardian approval missing for legacy release", {
+        triggerMode: schedule.triggerMode,
+        triggerSummary: triggerSnapshot.triggerSummary,
         inactiveDays,
-        threshold,
+        threshold: triggerSnapshot.referenceThreshold,
+        exactDateUtc: triggerSnapshot.referenceExactDate,
         cycleDate,
         guardianGraceHours: safety.guardian_grace_hours,
         guardianQuorumEnabled: safety.guardian_quorum_enabled,
@@ -784,15 +999,18 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
         status: "skipped",
         reason: "guardian approval missing for legacy release",
         metadata: {
+          triggerMode: schedule.triggerMode,
+          triggerSummary: triggerSnapshot.triggerSummary,
           inactiveDays,
-          threshold,
+          threshold: triggerSnapshot.referenceThreshold,
+          exactDateUtc: triggerSnapshot.referenceExactDate,
           cycleDate,
           guardianGraceHours: safety.guardian_grace_hours,
           guardianQuorumEnabled: safety.guardian_quorum_enabled,
           guardianApprovalsRequired: requiredApprovals,
           guardianApprovalsReceived: approvalCount,
         },
-        processed_at: new Date().toISOString(),
+        processed_at: dateIsoNow(),
       });
       return;
     }
@@ -802,9 +1020,12 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
   if (!receiver) return;
 
   const isFresh = await insertDispatchEvent(profile.id, mode, "final_release", "pending", "awaiting secure-link email", {
+    triggerMode: schedule.triggerMode,
+    triggerSummary: triggerSnapshot.triggerSummary,
     inactiveDays,
-    threshold,
-    gracePeriodDays: effectiveGraceDays,
+    threshold: triggerSnapshot.referenceThreshold,
+    exactDateUtc: triggerSnapshot.referenceExactDate,
+    gracePeriodDays: triggerSnapshot.graceDays,
   });
   if (!isFresh) return;
 
@@ -812,16 +1033,16 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
   await sendEmail(
     receiver,
     mode === "legacy"
-      ? "แจ้งเตือนแผนรับมรดกดิจิทัลที่ตั้งไว้ล่วงหน้า | Digital Legacy Weaver"
-      : "แจ้งเตือนแผนกู้คืนบัญชีที่ตั้งไว้ล่วงหน้า | Digital Legacy Weaver",
+      ? "Digital legacy handoff is now active | Digital Legacy Weaver"
+      : "Self-recovery handoff is now active | Digital Legacy Weaver",
     buildProviderHandoffHtml({
       secureLink,
       mode,
-      inactiveDays,
-      threshold,
+      triggerSummary: triggerSnapshot.triggerSummary,
       ownerRef: profile.id,
     }),
   );
+
   await submitPartnerHandoffNotice({
     ownerId: profile.id,
     mode,
@@ -832,7 +1053,7 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
   await supabase
     .from("trigger_dispatch_events")
     .update({ status: "sent", reason: "secure-link sent" })
-    .eq("cycle_date", new Date().toISOString().slice(0, 10))
+    .eq("cycle_date", cycleDateToday())
     .eq("owner_id", profile.id)
     .eq("mode", mode)
     .eq("stage", "final_release");
@@ -844,18 +1065,20 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
     status: "sent",
     reason: "policy-approved",
     metadata: {
+      triggerMode: schedule.triggerMode,
+      triggerSummary: triggerSnapshot.triggerSummary,
       inactiveDays,
-      threshold,
+      threshold: triggerSnapshot.referenceThreshold,
+      exactDateUtc: triggerSnapshot.referenceExactDate,
       required: decision.required,
       privateFirstMode: safety.private_first_mode,
       traceRetentionDays: safety.trace_retention_days,
       tracePrivacyProfile: traceProfile,
       requirementTrace: buildTraceMetadata(requirementGate.trace, traceProfile),
     },
-    processed_at: new Date().toISOString(),
+    processed_at: dateIsoNow(),
   });
 }
-
 Deno.serve(async () => {
   const startedAt = Date.now();
   try {
@@ -906,3 +1129,5 @@ Deno.serve(async () => {
     });
   }
 });
+
+

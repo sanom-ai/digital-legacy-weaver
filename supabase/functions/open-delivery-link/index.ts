@@ -24,6 +24,16 @@ type DeliveryReceiptItem = {
   instruction_summary?: string;
 };
 
+type DeliveryContext = {
+  owner_reference: string;
+  mode: "legacy" | "self_recovery";
+  source: "live_runtime";
+  trigger_cycle_date: string | null;
+  trigger_stage: string | null;
+  trigger_status: string | null;
+  trigger_reason: string | null;
+};
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -154,6 +164,30 @@ function buildReceiptItems(items: Array<Record<string, unknown>>): DeliveryRecei
 
     return receiptItem;
   });
+}
+
+async function getDeliveryContext(ownerId: string, mode: "legacy" | "self_recovery"): Promise<DeliveryContext> {
+  const { data, error } = await supabase
+    .from("trigger_dispatch_events")
+    .select("cycle_date, stage, status, reason")
+    .eq("owner_id", ownerId)
+    .eq("mode", mode)
+    .eq("stage", "final_release")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Dispatch context read failed: ${error.message}`);
+  }
+  return {
+    owner_reference: ownerId,
+    mode,
+    source: "live_runtime",
+    trigger_cycle_date: (data?.cycle_date as string | undefined) ?? null,
+    trigger_stage: (data?.stage as string | undefined) ?? null,
+    trigger_status: (data?.status as string | undefined) ?? null,
+    trigger_reason: (data?.reason as string | undefined) ?? null,
+  };
 }
 
 function normalizeIdentityText(value: string): string {
@@ -797,6 +831,7 @@ async function unlock(
     .eq("is_active", true);
   if (itemsError) throw new Error(itemsError.message);
   const receiptItems = buildReceiptItems((items ?? []) as Array<Record<string, unknown>>);
+  const deliveryContext = await getDeliveryContext(valid.owner_id, valid.mode);
 
   await supabase.from("trigger_logs").insert({
     owner_id: valid.owner_id,
@@ -822,6 +857,8 @@ async function unlock(
     ok: true,
     mode: valid.mode,
     items: receiptItems,
+    delivery_context: deliveryContext,
+    item_count: receiptItems.length,
   };
 }
 

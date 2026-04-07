@@ -133,5 +133,15 @@ if ($positiveUnlock.status -ne 200) {
   throw "positive unlock failed with HTTP $($positiveUnlock.status)"
 }
 
+try {
+  $positiveJson = $positiveUnlock.body | ConvertFrom-Json
+} catch {
+  throw "positive unlock response is not valid JSON."
+}
+
+if ($positiveJson.delivery_context.source -ne "live_runtime") {
+  throw "positive unlock response missing live runtime delivery context."
+}
+
 Write-Host ""
 Write-Host "Integration unlock flow passed." -ForegroundColor Green
