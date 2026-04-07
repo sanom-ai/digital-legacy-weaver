@@ -3133,6 +3133,50 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     );
   }
 
+  String? _stepValidationMessage() {
+    final recipientRef = _recipientController.text.trim();
+    final recipientName = _recipientNameController.text.trim();
+    final graceDays = int.tryParse(_graceDaysController.text.trim()) ?? 0;
+    final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ?? 0;
+
+    if (_editorStep == 0) {
+      if (_kind != 'self_recovery' && recipientName.isEmpty) {
+        return 'กรุณาระบุชื่อผู้รับก่อนกดถัดไป';
+      }
+      if (recipientRef.isEmpty) {
+        return 'กรุณาระบุช่องทางติดต่อผู้รับก่อนกดถัดไป';
+      }
+      if (_payloadRefController.text.trim().isEmpty &&
+          _structuredAssetLines().isEmpty) {
+        return 'กรุณาระบุรายการสินทรัพย์หรือข้อมูลอ้างอิงอย่างน้อย 1 รายการ';
+      }
+      return null;
+    }
+
+    if (_editorStep == 1) {
+      if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
+        return 'คุณเลือก Exact date แล้ว กรุณาเลือกวันและเวลาก่อนกดถัดไป';
+      }
+      if (_triggerMode == 'inactivity' && inactivityDays < 30) {
+        return 'ช่วงไม่พบการใช้งานควรไม่น้อยกว่า 30 วัน';
+      }
+      if (graceDays < 1 || graceDays > 30) {
+        return 'ช่วงยืนยันซ้ำควรอยู่ระหว่าง 1-30 วัน';
+      }
+      return null;
+    }
+
+    if (_editorStep == 2) {
+      if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
+        return 'ยังไม่สามารถบันทึกได้ เพราะยังไม่ได้ตั้งวันเวลาสำหรับ Exact date';
+      }
+      if (graceDays < 1 || graceDays > 30) {
+        return 'ยังไม่สามารถบันทึกได้ กรุณาตรวจช่วงยืนยันซ้ำ (1-30 วัน)';
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ??
@@ -3691,6 +3735,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
           ),
         FilledButton(
           onPressed: () {
+            final validation = _stepValidationMessage();
+            if (validation != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(validation)),
+              );
+              return;
+            }
             if (_editorStep < 2) {
               setState(() => _editorStep += 1);
               return;
