@@ -729,17 +729,17 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           items: const [
                             DropdownMenuItem(
                               value: 'half_life_soft_checkin',
-                              child: Text("Soft check-in (recommended)"),
+                              child: Text("เช็กแบบนุ่มนวล (แนะนำ)"),
                             ),
                             DropdownMenuItem(
                                 value: 'biometric_tap',
-                                child: Text("Biometric tap (strict)")),
+                                child: Text("แตะยืนยันด้วยชีวมิติ (เข้มงวด)")),
                             DropdownMenuItem(
                                 value: 'single_tap',
-                                child: Text("Single tap (light)")),
+                                child: Text("แตะครั้งเดียว (เบา)")),
                             DropdownMenuItem(
                                 value: 'verification_code',
-                                child: Text("Verification code (very strict)")),
+                                child: Text("รหัสยืนยัน (เข้มงวดมาก)")),
                           ],
                           onChanged: (value) {
                             if (value != null) {
@@ -928,13 +928,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                             title: const Text(
                                 "ฉันตรวจคำเตือนแล้ว และต้องการดำเนินการต่อ"),
                             subtitle: const Text(
-                              "Warnings are allowed, but they must be acknowledged before activation.",
+                              "ระบบอนุญาตให้มีคำเตือนได้ แต่ต้องยืนยันรับทราบก่อนเริ่มใช้งาน",
                             ),
                           ),
                         ],
                         const SizedBox(height: 8),
                         const Text(
-                          "This product helps coordinate secure access handoff. It does not replace a legal will.",
+                          "ผลิตภัณฑ์นี้ช่วยประสานการส่งต่อการเข้าถึงอย่างปลอดภัย และไม่ใช่เอกสารพินัยกรรมทางกฎหมาย",
                         ),
                       ],
                     ),
