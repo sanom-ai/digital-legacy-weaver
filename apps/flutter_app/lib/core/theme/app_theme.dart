@@ -120,10 +120,81 @@ class AppTheme {
         side: const BorderSide(color: warmOutline, width: 1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          backgroundColor: bronze,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          textStyle: GoogleFonts.notoSerifThai(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: onyx,
+          side: const BorderSide(color: warmOutline, width: 1.1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          textStyle: GoogleFonts.notoSerifThai(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF5B3E26),
+          textStyle: GoogleFonts.notoSerifThai(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return bronze.withValues(alpha: 0.45);
+          }
+          return softTrack;
+        }),
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const Color(0xFF6B4A2F);
+          }
+          return Colors.white;
+        }),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return bronze;
+          }
+          return Colors.white;
+        }),
+        side: const BorderSide(color: warmOutline, width: 1.1),
+      ),
       dropdownMenuTheme: DropdownMenuThemeData(
         textStyle: GoogleFonts.notoSerifThai(
           color: onyx,
           fontSize: 14,
+        ),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(Colors.white.withValues(alpha: 0.98)),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: warmOutline, width: 1),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
         ),
       ),
     );
