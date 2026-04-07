@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/totp_factor_screen.dart';
@@ -842,35 +843,24 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
         loading: () => const Center(
           child: Padding(
             padding: EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                SizedBox(width: 10),
-                Text("กำลังโหลดตั้งค่าความปลอดภัย..."),
-              ],
+            child: AppStatePanel(
+              title: "กำลังโหลดการตั้งค่า",
+              message: "กำลังโหลดตั้งค่าความปลอดภัย...",
+              tone: AppStateTone.loading,
+              layout: AppStateLayout.centered,
             ),
           ),
         ),
         error: (_, __) => Center(
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "ยังโหลดตั้งค่าความปลอดภัยไม่ได้ในตอนนี้ กรุณาลองใหม่",
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton(
-                  onPressed: () => ref.invalidate(safetySettingsProvider),
-                  child: const Text("ลองใหม่ | Retry"),
-                ),
-              ],
+            child: AppStatePanel(
+              title: "ยังเปิดหน้าความปลอดภัยไม่ได้",
+              message: "ยังโหลดตั้งค่าความปลอดภัยไม่ได้ในตอนนี้ กรุณาลองใหม่",
+              tone: AppStateTone.error,
+              layout: AppStateLayout.centered,
+              actionLabel: "ลองใหม่",
+              onAction: () => ref.invalidate(safetySettingsProvider),
             ),
           ),
         ),

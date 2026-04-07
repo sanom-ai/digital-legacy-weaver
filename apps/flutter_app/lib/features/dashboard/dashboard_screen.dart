@@ -1,5 +1,6 @@
-﻿import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
+import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
 import 'package:digital_legacy_weaver/features/connectors/presentation/connectors_screen.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_history_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_review_screen.dart';
@@ -130,10 +131,12 @@ class DashboardScreen extends ConsumerWidget {
                       );
                     },
                     loading: () => const _InlineStateCard(
-                      message: "กำลังตรวจสอบความครบถ้วนของการตั้งค่าเริ่มต้น...",
+                      message:
+                          "กำลังตรวจสอบความครบถ้วนของการตั้งค่าเริ่มต้น...",
                     ),
                     error: (_, __) => const _InlineStateCard(
-                      message: "ยืนยันความครบถ้วนของการตั้งค่าเริ่มต้นไม่สำเร็จ",
+                      message:
+                          "ยืนยันความครบถ้วนของการตั้งค่าเริ่มต้นไม่สำเร็จ",
                       isError: true,
                     ),
                   ),
@@ -144,13 +147,10 @@ class DashboardScreen extends ConsumerWidget {
               message: "กำลังโหลดข้อมูลเจ้าของและสถานะแผนปัจจุบัน...",
               showSpinner: true,
             ),
-            error: (_, __) => const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
+            error: (_, __) => const _InlineStateCard(
+              message:
                   "ยังโหลดข้อมูลเจ้าของไม่สำเร็จ กรุณารีเฟรชแล้วลองใหม่อีกครั้ง",
-                ),
-              ),
+              isError: true,
             ),
           ),
           const SizedBox(height: 16),
@@ -588,8 +588,8 @@ class DashboardScreen extends ConsumerWidget {
                   ],
                 );
               },
-              loading: () =>
-                  const _InlineStateCard(message: "กำลังโหลดการตั้งค่าความปลอดภัย..."),
+              loading: () => const _InlineStateCard(
+                  message: "กำลังโหลดการตั้งค่าความปลอดภัย..."),
               error: (_, __) => const _InlineStateCard(
                 message: "โหลดการตั้งค่าความปลอดภัยของพื้นที่นี้ไม่สำเร็จ",
                 isError: true,
@@ -607,8 +607,8 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           safetyAsync.when(
             data: (settings) => _PolicySelectorCard(settings: settings),
-            loading: () =>
-                const _InlineStateCard(message: "กำลังโหลดโปรไฟล์ความเป็นส่วนตัว..."),
+            loading: () => const _InlineStateCard(
+                message: "กำลังโหลดโปรไฟล์ความเป็นส่วนตัว..."),
             error: (_, __) => const _InlineStateCard(
               message: "โหลดโปรไฟล์ความเป็นส่วนตัวไม่สำเร็จ",
               isError: true,
@@ -617,8 +617,7 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           _DashboardActionCard(
             title: "ปลายทางที่พร้อมใช้งานร่วมพาร์ทเนอร์",
-            subtitle:
-                "จัดการปลายทางและรายการอ้างอิงก่อนส่งต่อตามแผน",
+            subtitle: "จัดการปลายทางและรายการอ้างอิงก่อนส่งต่อตามแผน",
             icon: Icons.hub_outlined,
             onTap: () {
               Navigator.of(context).push(
@@ -1455,7 +1454,8 @@ class _ControlRoomCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 _MetricChip(label: "เวอร์ชันทั้งหมด ${readiness.historyCount}"),
-                _MetricChip(label: "พร้อมใช้งาน ${readiness.readyArtifactCount}"),
+                _MetricChip(
+                    label: "พร้อมใช้งาน ${readiness.readyArtifactCount}"),
                 _MetricChip(
                   label: "รีวิวแล้ว ${readiness.reviewedArtifactCount}",
                 ),
@@ -1463,8 +1463,9 @@ class _ControlRoomCard extends StatelessWidget {
                   label: "โปรโมตแล้ว ${readiness.promotedArtifactCount}",
                 ),
                 _MetricChip(
-                  label:
-                      readiness.draftInSync ? "แบบร่างตรงกับเวอร์ชัน" : "แบบร่างมีการเปลี่ยนแปลง",
+                  label: readiness.draftInSync
+                      ? "แบบร่างตรงกับเวอร์ชัน"
+                      : "แบบร่างมีการเปลี่ยนแปลง",
                 ),
               ],
             ),
@@ -1566,8 +1567,7 @@ class _ControlRoomCard extends StatelessWidget {
           title: "ยังเป็นโหมดร่างในเครื่อง",
           body:
               "ตอนนี้มีแบบร่างที่ใช้งานได้แล้ว แต่ยังไม่มีฉบับพร้อมส่ง ให้สร้างฉบับแรกก่อน เพื่อให้การรีวิว ประวัติ และความพร้อมอ้างอิงข้อมูลจริงชุดเดียวกัน",
-          cue:
-              "แนะนำ: สร้างฉบับพร้อมส่งแรกจากหน้าจัดแผน",
+          cue: "แนะนำ: สร้างฉบับพร้อมส่งแรกจากหน้าจัดแผน",
           actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
@@ -1621,8 +1621,7 @@ class _ControlRoomCard extends StatelessWidget {
           title: "รีวิวแล้ว แต่แบบร่างเปลี่ยนหลังรีวิว",
           body:
               "เวอร์ชันนี้เคยรีวิวแล้ว แต่มีการแก้แบบร่างหลังจากนั้น ให้ถือว่ารีวิวเดิมล้าสมัยจนกว่าจะสร้างฉบับใหม่จากแบบร่างล่าสุด",
-          cue:
-              "แนะนำ: สร้างฉบับใหม่จากแบบร่างล่าสุดก่อนทำเครื่องหมายว่าพร้อม",
+          cue: "แนะนำ: สร้างฉบับใหม่จากแบบร่างล่าสุดก่อนทำเครื่องหมายว่าพร้อม",
           actionLabel: "ดูประวัติเวอร์ชัน",
           onTap: onOpenArtifactHistory,
         ),
@@ -1635,8 +1634,7 @@ class _ControlRoomCard extends StatelessWidget {
           title: "รีวิวแล้ว และตรงกับแบบร่างปัจจุบัน",
           body:
               "เวอร์ชันที่รีวิวยังตรงกับแบบร่างปัจจุบัน นี่คือช่วงที่เหมาะที่สุดในการทำเครื่องหมายว่าพร้อมใช้งานจริง",
-          cue:
-              "แนะนำ: ทำเครื่องหมายพร้อมใช้งานขณะที่ข้อมูลยังตรงกัน",
+          cue: "แนะนำ: ทำเครื่องหมายพร้อมใช้งานขณะที่ข้อมูลยังตรงกัน",
           actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
@@ -1712,7 +1710,7 @@ class _RuntimeReadinessCard extends StatelessWidget {
                 const Icon(Icons.fact_check_outlined),
                 const SizedBox(width: 10),
                 Expanded(
-                    child: Text(
+                  child: Text(
                     "ความพร้อมสำหรับใช้งานจริง",
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
@@ -1783,35 +1781,14 @@ class _InlineStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      color: isError
-          ? scheme.errorContainer.withValues(alpha: 0.35)
-          : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            if (showSpinner)
-              const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            else
-              Icon(
-                isError ? Icons.warning_amber_rounded : Icons.info_outline,
-                size: 20,
-              ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-      ),
+    return AppStatePanel(
+      message: message,
+      tone: showSpinner
+          ? AppStateTone.loading
+          : isError
+              ? AppStateTone.error
+              : AppStateTone.info,
+      compact: true,
     );
   }
 }
@@ -1960,5 +1937,3 @@ class _PolicySelectorCard extends StatelessWidget {
     );
   }
 }
-
-

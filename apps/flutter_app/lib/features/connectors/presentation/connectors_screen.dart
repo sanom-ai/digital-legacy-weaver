@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/connectors/data/connector_models.dart';
 import 'package:digital_legacy_weaver/features/connectors/data/connectors_provider.dart';
 import 'package:flutter/material.dart';
@@ -415,46 +416,19 @@ class _StatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final color = isError
-        ? scheme.errorContainer.withValues(alpha: 0.35)
-        : highlighted
-            ? scheme.primaryContainer.withValues(alpha: 0.3)
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.5);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (showSpinner)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                Icon(
-                  isError ? Icons.warning_amber_rounded : Icons.info_outline,
-                  size: 20,
-                ),
-              const SizedBox(width: 8),
-              Expanded(child: Text(message)),
-            ],
-          ),
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 8),
-            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
-          ],
-        ],
-      ),
+    return AppStatePanel(
+      message: message,
+      tone: showSpinner
+          ? AppStateTone.loading
+          : isError
+              ? (appStateLooksOfflineMessage(message)
+                  ? AppStateTone.offline
+                  : AppStateTone.error)
+              : highlighted
+                  ? AppStateTone.empty
+                  : AppStateTone.success,
+      actionLabel: actionLabel,
+      onAction: onAction,
     );
   }
 }

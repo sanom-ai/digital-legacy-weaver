@@ -1,3 +1,4 @@
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/vault/data/recovery_item_model.dart';
 import 'package:digital_legacy_weaver/features/vault/data/vault_provider.dart';
 import 'package:digital_legacy_weaver/features/vault/presentation/recovery_item_form_dialog.dart';
@@ -78,7 +79,8 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
           );
       _setMessage("บันทึกรายการกู้คืนสำเร็จ");
     } catch (error) {
-      _setMessage(_friendlyActionError("บันทึกรายการกู้คืน", error), isError: true);
+      _setMessage(_friendlyActionError("บันทึกรายการกู้คืน", error),
+          isError: true);
     } finally {
       if (mounted) {
         setState(() => _adding = false);
@@ -148,13 +150,14 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
                       contentPadding: EdgeInsets.zero,
                       title: Text(item.title),
                       subtitle: Text(
-                          "${item.releaseNotes ?? "รายการเข้ารหัส"}\nการมองเห็น: ${item.postTriggerVisibility} | การเปิดเผยมูลค่า: ${item.valueDisclosureMode}",
+                        "${item.releaseNotes ?? "รายการเข้ารหัส"}\nการมองเห็น: ${item.postTriggerVisibility} | การเปิดเผยมูลค่า: ${item.valueDisclosureMode}",
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
                               color: const Color(0xFFE5D7C5),
@@ -162,12 +165,14 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
                             child: Text(item.kind.label),
                           ),
                           IconButton(
-                            onPressed: deleting ? null : () => _handleDelete(item.id),
+                            onPressed:
+                                deleting ? null : () => _handleDelete(item.id),
                             icon: deleting
                                 ? const SizedBox(
                                     width: 18,
                                     height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   )
                                 : const Icon(Icons.delete_outline),
                           ),
@@ -214,44 +219,19 @@ class _VaultStatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isError
-        ? const Color(0xFFFFF1F1)
-        : highlighted
-            ? const Color(0xFFFFF7ED)
-            : const Color(0xFFF7F1E8);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (showSpinner)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                Icon(
-                  isError ? Icons.warning_amber_rounded : Icons.info_outline,
-                  size: 20,
-                ),
-              const SizedBox(width: 8),
-              Expanded(child: Text(message)),
-            ],
-          ),
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 8),
-            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
-          ],
-        ],
-      ),
+    return AppStatePanel(
+      message: message,
+      tone: showSpinner
+          ? AppStateTone.loading
+          : isError
+              ? (appStateLooksOfflineMessage(message)
+                  ? AppStateTone.offline
+                  : AppStateTone.error)
+              : highlighted
+                  ? AppStateTone.empty
+                  : AppStateTone.success,
+      actionLabel: actionLabel,
+      onAction: onAction,
     );
   }
 }

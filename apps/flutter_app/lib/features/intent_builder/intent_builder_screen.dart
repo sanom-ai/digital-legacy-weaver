@@ -1,4 +1,4 @@
-﻿import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
+import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_history_screen.dart';
@@ -16,6 +16,7 @@ import 'package:digital_legacy_weaver/features/partner_network/verified_ecosyste
 import 'package:digital_legacy_weaver/features/partner_network/verified_partner_catalog_source.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -208,9 +209,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         _hasLocalDraft = stored != null;
         _isLoading = false;
         _loadError = null;
-        _saveMessage = stored != null
-            ? "กู้คืนร่างเข้ารหัสจากเครื่องนี้แล้ว"
-            : null;
+        _saveMessage =
+            stored != null ? "กู้คืนร่างเข้ารหัสจากเครื่องนี้แล้ว" : null;
       });
     } catch (error) {
       if (!mounted) {
@@ -219,8 +219,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       setState(() {
         _document = widget.initialDocument ?? _seedDocument();
         _isLoading = false;
-        _loadError =
-            "ยังกู้คืนร่างในเครื่องไม่ได้ตอนนี้ กรุณาลองใหม่อีกครั้ง";
+        _loadError = "ยังกู้คืนร่างในเครื่องไม่ได้ตอนนี้ กรุณาลองใหม่อีกครั้ง";
       });
     }
   }
@@ -496,7 +495,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
     await _persistDocument(
       document,
-      message: "ใช้ตัวอย่าง ${_scenarioTitleHuman(scenario)} แล้ว และบันทึกในเครื่องแบบเข้ารหัสเรียบร้อย",
+      message:
+          "ใช้ตัวอย่าง ${_scenarioTitleHuman(scenario)} แล้ว และบันทึกในเครื่องแบบเข้ารหัสเรียบร้อย",
     );
     await _restoreArtifact();
   }
@@ -567,8 +567,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
     if (activeEntries.isEmpty) {
       setState(() {
-        _saveMessage =
-            "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อนสร้างฉบับพร้อมส่ง";
+        _saveMessage = "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อนสร้างฉบับพร้อมส่ง";
       });
       return;
     }
@@ -829,7 +828,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         : "${partner.officeName} (${partner.province})";
     final destinationLine = selectedDestinations.isEmpty
         ? "ยังไม่ได้เลือก"
-        : selectedDestinations.join(", " );
+        : selectedDestinations.join(", ");
 
     return '''
 เอกสารสรุปนโยบายมรดกดิจิทัล (ฉบับสุดท้าย)
@@ -986,30 +985,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     required bool isError,
     VoidCallback? onRetry,
   }) {
-    final scheme = Theme.of(context).colorScheme;
-    final background = isError
-        ? scheme.errorContainer.withValues(alpha: 0.35)
-        : scheme.tertiaryContainer.withValues(alpha: 0.38);
-    final icon =
-        isError ? Icons.warning_amber_rounded : Icons.check_circle_outline;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 8),
-          Expanded(child: Text(message)),
-          if (isError && onRetry != null)
-            TextButton(onPressed: onRetry, child: const Text("ลองใหม่")),
-        ],
-      ),
+    return AppStatePanel(
+      message: message,
+      tone: isError ? AppStateTone.error : AppStateTone.success,
+      actionLabel: isError && onRetry != null ? "ลองใหม่" : null,
+      onAction: isError ? onRetry : null,
+      compact: true,
     );
   }
 
@@ -1477,16 +1458,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 12),
-                Text(
+            child: AppStatePanel(
+              title: "กำลังเตรียมแผนของคุณ",
+              message:
                   "กำลังโหลดร่างเข้ารหัสในเครื่องและประวัติเวอร์ชันล่าสุด...",
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              tone: AppStateTone.loading,
+              layout: AppStateLayout.centered,
             ),
           ),
         ),
@@ -1608,11 +1585,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
-                        Text("1. มีรายการส่งต่อที่เปิดใช้งานอย่างน้อย 1 รายการ"),
+                        Text(
+                            "1. มีรายการส่งต่อที่เปิดใช้งานอย่างน้อย 1 รายการ"),
                         SizedBox(height: 4),
                         Text("2. สร้างฉบับพร้อมส่ง แล้วดูคำเตือน"),
                         SizedBox(height: 4),
-                        Text("3. กดพร้อมใช้งาน เมื่อร่างล่าสุดตรงกับฉบับพร้อมส่ง"),
+                        Text(
+                            "3. กดพร้อมใช้งาน เมื่อร่างล่าสุดตรงกับฉบับพร้อมส่ง"),
                       ],
                     ),
                   ),
@@ -1671,9 +1650,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             : "ใช้ค่าตั้งต้นเริ่มต้น",
                       ),
                       _Pill(
-                        label: "ระดับความเป็นส่วนตัว: ${_document.defaultPrivacyProfile}",
+                        label:
+                            "ระดับความเป็นส่วนตัว: ${_document.defaultPrivacyProfile}",
                       ),
-                      _Pill(label: "รายการทั้งหมด: ${_document.entries.length}"),
+                      _Pill(
+                          label: "รายการทั้งหมด: ${_document.entries.length}"),
                       _Pill(label: "เปิดใช้งาน: $activeEntryCount"),
                       _Pill(
                         label: "ฉบับที่บันทึก: ${_artifactHistory.length}",
@@ -2339,9 +2320,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             : null,
                         icon: const Icon(Icons.publish_rounded),
                         label: Text(
-                          _isExporting
-                              ? "กำลังสร้าง..."
-                              : "สร้างฉบับพร้อมส่ง",
+                          _isExporting ? "กำลังสร้าง..." : "สร้างฉบับพร้อมส่ง",
                         ),
                       ),
                       if (!partnerTermsGateSatisfied)
@@ -2515,73 +2494,73 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     ],
                     if (_showAdvanced)
                       Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        ChoiceChip(
-                          label: const Text("ทั้งหมด"),
-                          selected: _historyFilter == 'all',
-                          onSelected: (_) {
-                            setState(() {
-                              _historyFilter = 'all';
-                            });
-                          },
-                        ),
-                        ChoiceChip(
-                          label: const Text("พร้อมใช้งาน"),
-                          selected: _historyFilter == 'ready',
-                          onSelected: (_) {
-                            setState(() {
-                              _historyFilter = 'ready';
-                            });
-                          },
-                        ),
-                        ChoiceChip(
-                          label: const Text("คัดลอกมา"),
-                          selected: _historyFilter == 'promoted',
-                          onSelected: (_) {
-                            setState(() {
-                              _historyFilter = 'promoted';
-                            });
-                          },
-                        ),
-                        ChoiceChip(
-                          label: const Text("มีปัญหา"),
-                          selected: _historyFilter == 'issues',
-                          onSelected: (_) {
-                            setState(() {
-                              _historyFilter = 'issues';
-                            });
-                          },
-                        ),
-                        DropdownButton<String>(
-                          value: _historySort,
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'newest',
-                              child: Text("ใหม่สุดก่อน"),
-                            ),
-                            DropdownMenuItem(
-                              value: 'oldest',
-                              child: Text("เก่าสุดก่อน"),
-                            ),
-                            DropdownMenuItem(
-                              value: 'state',
-                              child: Text("เรียงตามสถานะ"),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            if (value == null) {
-                              return;
-                            }
-                            setState(() {
-                              _historySort = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          ChoiceChip(
+                            label: const Text("ทั้งหมด"),
+                            selected: _historyFilter == 'all',
+                            onSelected: (_) {
+                              setState(() {
+                                _historyFilter = 'all';
+                              });
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text("พร้อมใช้งาน"),
+                            selected: _historyFilter == 'ready',
+                            onSelected: (_) {
+                              setState(() {
+                                _historyFilter = 'ready';
+                              });
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text("คัดลอกมา"),
+                            selected: _historyFilter == 'promoted',
+                            onSelected: (_) {
+                              setState(() {
+                                _historyFilter = 'promoted';
+                              });
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text("มีปัญหา"),
+                            selected: _historyFilter == 'issues',
+                            onSelected: (_) {
+                              setState(() {
+                                _historyFilter = 'issues';
+                              });
+                            },
+                          ),
+                          DropdownButton<String>(
+                            value: _historySort,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'newest',
+                                child: Text("ใหม่สุดก่อน"),
+                              ),
+                              DropdownMenuItem(
+                                value: 'oldest',
+                                child: Text("เก่าสุดก่อน"),
+                              ),
+                              DropdownMenuItem(
+                                value: 'state',
+                                child: Text("เรียงตามสถานะ"),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value == null) {
+                                return;
+                              }
+                              setState(() {
+                                _historySort = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 12),
                     if (_showAdvanced && visibleArtifactHistory.isEmpty)
                       const Text(
@@ -2711,7 +2690,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 8),
-                        Text("1) ถึงเงื่อนไขวันเวลา หรือขาดการติดต่อที่ตั้งไว้"),
+                        Text(
+                            "1) ถึงเงื่อนไขวันเวลา หรือขาดการติดต่อที่ตั้งไว้"),
                         Text("2) ระบบตรวจความปลอดภัยก่อนทุกครั้ง"),
                         Text("3) ผู้รับเห็นขั้นตอนที่ชัดเจนและทำตามได้ทันที"),
                         Text("4) ทุกเหตุการณ์ถูกบันทึกไว้เพื่อตรวจสอบย้อนหลัง"),
@@ -3002,9 +2982,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   }
 
   String _selectedEcosystemSummary() {
-    return _selectedEcosystemConnectors
-        .map(_ecosystemTargetLabel)
-        .join(', ');
+    return _selectedEcosystemConnectors.map(_ecosystemTargetLabel).join(', ');
   }
 
   @override
@@ -3289,7 +3267,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     final recipientRef = _recipientController.text.trim();
     final recipientName = _recipientNameController.text.trim();
     final graceDays = int.tryParse(_graceDaysController.text.trim()) ?? 0;
-    final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ?? 0;
+    final inactivityDays =
+        int.tryParse(_triggerDaysController.text.trim()) ?? 0;
 
     if (_editorStep == 0) {
       if (_kind != 'self_recovery' && recipientName.isEmpty) {
