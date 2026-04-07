@@ -155,7 +155,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         _isLoading = false;
         _loadError = null;
         _saveMessage = stored != null
-            ? "Restored encrypted local draft from this device."
+            ? "กู้คืนร่างเข้ารหัสจากเครื่องนี้แล้ว"
             : null;
       });
     } catch (error) {
@@ -166,7 +166,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         _document = widget.initialDocument ?? _seedDocument();
         _isLoading = false;
         _loadError =
-            "We could not restore your local draft right now. Please retry in a moment.";
+            "ยังกู้คืนร่างในเครื่องไม่ได้ตอนนี้ กรุณาลองใหม่อีกครั้ง";
       });
     }
   }
@@ -232,7 +232,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           displayName: "Backup recovery route",
           payloadMode: "self_recovery_route",
           payloadRef: widget.profile.backupEmail,
-          notes: "Owner recovery route",
+          notes: "เส้นทางกู้คืนของเจ้าของบัญชี",
         ),
         recipient: IntentRecipientModel(
           recipientId: "owner_primary",
@@ -240,7 +240,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           deliveryChannel: "email",
           destinationRef: widget.profile.backupEmail,
           role: "owner",
-          registeredLegalName: "Owner",
+          registeredLegalName: "เจ้าของบัญชี",
           verificationHint: "",
           fallbackChannels: const ["email"],
         ),
@@ -350,7 +350,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _document = seed;
       _hasLocalDraft = false;
-      _saveMessage = "Reset to a fresh encrypted local draft.";
+      _saveMessage = "รีเซ็ตร่างเข้ารหัสในเครื่องเป็นฉบับใหม่แล้ว";
     });
   }
 
@@ -504,7 +504,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   ) async {
     if (!report.ok) {
       setState(() {
-        _saveMessage = "Resolve blocking items before exporting this version.";
+        _saveMessage = "กรุณาแก้รายการที่ยังบล็อกก่อน Export เวอร์ชัน";
       });
       return;
     }
@@ -515,7 +515,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     if (activeEntries.isEmpty) {
       setState(() {
         _saveMessage =
-            "Activate at least one route before exporting this version.";
+            "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อน Export เวอร์ชัน";
       });
       return;
     }
@@ -557,7 +557,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = [artifact, ..._artifactHistory];
       _artifact = artifact;
       _isExporting = false;
-      _saveMessage = "Exported version created and sealed on this device.";
+      _saveMessage = "สร้างและผนึกเวอร์ชันที่ Export ในเครื่องนี้แล้ว";
     });
   }
 
@@ -606,7 +606,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifact = null;
       _artifactHistory = const [];
-      _saveMessage = "Cleared the sealed exported version from this device.";
+      _saveMessage = "ลบเวอร์ชันที่ Export และผนึกไว้ ออกจากเครื่องนี้แล้ว";
     });
   }
 
@@ -629,7 +629,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifactHistory = nextHistory;
       _artifact = nextHistory.isEmpty ? null : nextHistory.first;
-      _saveMessage = "Removed one exported version from local history.";
+      _saveMessage = "ลบเวอร์ชันที่ Export ออกจากประวัติในเครื่องแล้ว 1 รายการ";
     });
   }
 
@@ -659,7 +659,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = nextHistory;
       _artifact = promoted;
       _saveMessage =
-          "Copied one historical version into a new export so it can be reviewed again without losing history.";
+          "คัดลอกเวอร์ชันเก่ามาสร้าง Export ใหม่แล้ว เพื่อทบทวนซ้ำโดยไม่เสียประวัติเดิม";
     });
   }
 
@@ -742,7 +742,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final beneficiaryName =
         widget.profile.beneficiaryName?.trim().isNotEmpty == true
             ? widget.profile.beneficiaryName!.trim()
-            : "Primary beneficiary";
+            : "ผู้รับหลัก";
     final beneficiaryEmail =
         widget.profile.beneficiaryEmail?.trim().isNotEmpty == true
             ? widget.profile.beneficiaryEmail!.trim()
@@ -1067,9 +1067,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _partnerCatalogSourceText() {
     switch (_partnerCatalogSourceLabel) {
       case 'admin_api':
-        return 'Source: Admin API';
+        return 'แหล่งข้อมูล: Admin API';
       case 'admin_config':
-        return 'Source: Admin Config';
+        return 'แหล่งข้อมูล: Admin Config';
       case 'unavailable':
         return 'Source unavailable';
       default:
@@ -1080,9 +1080,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _ecosystemCatalogSourceText() {
     switch (_ecosystemCatalogSourceLabel) {
       case 'admin_api':
-        return 'Source: Admin API';
+        return 'แหล่งข้อมูล: Admin API';
       case 'admin_config':
-        return 'Source: Admin Config';
+        return 'แหล่งข้อมูล: Admin Config';
       case 'unavailable':
         return 'Source unavailable';
       default:
@@ -1383,7 +1383,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final screenTitle = widget.screenTitle ?? "Your handoff plan";
+    final screenTitle = widget.screenTitle ?? "แผนส่งมอบของคุณ";
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: Text(screenTitle)),
@@ -1396,7 +1396,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 CircularProgressIndicator(),
                 SizedBox(height: 12),
                 Text(
-                  "Loading your local encrypted draft and recent version history...",
+                  "กำลังโหลดร่างเข้ารหัสในเครื่องและประวัติเวอร์ชันล่าสุด...",
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -1700,12 +1700,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Private local draft",
+                    "ร่างส่วนตัวในเครื่อง",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "Your plan is encrypted on this device. Nothing is published until you export and confirm readiness.",
+                    "แผนของคุณถูกเข้ารหัสในเครื่องนี้ และจะยังไม่เผยแพร่จนกว่าจะ Export และยืนยันความพร้อม",
                   ),
                 ],
               ),
@@ -1725,12 +1725,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Shared approval & emergency access",
+                    "การยืนยันร่วมกันและโหมดฉุกเฉิน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Use shared approval for sensitive releases, and keep emergency access as a separate incapacity path.",
+                    "ใช้การยืนยันร่วมกันกับการส่งมอบที่สำคัญ และแยกโหมดฉุกเฉินไว้สำหรับกรณีเจ้าของไม่สามารถตอบสนองได้",
                   ),
                   const SizedBox(height: 12),
                   SwitchListTile.adaptive(
@@ -1781,14 +1781,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           iosBackgroundRiskAcknowledged: _document
                               .globalSafeguards.iosBackgroundRiskAcknowledged,
                         ),
-                        message: "Updated shared approval settings.",
+                        message: "อัปเดตการตั้งค่าการยืนยันร่วมกันแล้ว",
                       );
                     },
                   ),
                   if (_document.globalSafeguards.guardianQuorumEnabled) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "Current approval threshold: ${_document.globalSafeguards.guardianQuorumRequired}-of-${_document.globalSafeguards.guardianQuorumPoolSize}",
+                      "เกณฑ์ยืนยันปัจจุบัน: ${_document.globalSafeguards.guardianQuorumRequired} จาก ${_document.globalSafeguards.guardianQuorumPoolSize} คน",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
@@ -1909,7 +1909,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated required approvals.",
+                          message: "อัปเดตจำนวนผู้ยืนยันที่ต้องครบแล้ว",
                         );
                       },
                     ),
@@ -2066,13 +2066,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
                           message:
-                              "Updated emergency shared-approval requirement.",
+                              "อัปเดตเงื่อนไขการยืนยันร่วมกันในโหมดฉุกเฉินแล้ว",
                         );
                       },
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Emergency access waiting window: ${_document.globalSafeguards.emergencyAccessGraceHours} hours",
+                      "ระยะเวลารอก่อนปลดโหมดฉุกเฉิน: ${_document.globalSafeguards.emergencyAccessGraceHours} ชั่วโมง",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Slider(
@@ -2124,7 +2124,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated emergency waiting window.",
+                          message: "อัปเดตระยะเวลารอโหมดฉุกเฉินแล้ว",
                         );
                       },
                     ),
@@ -2869,11 +2869,11 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   bool _expandDigitalAccounts = false;
 
   static const List<String> _personalSecretItems = [
-    'recovery codes',
+    'โค้ดกู้คืนบัญชี (Recovery codes)',
     'crypto wallet seed',
-    'password vault export',
-    'private keys',
-    'PIN / passphrase',
+    'ไฟล์ส่งออกรหัสผ่าน (Password vault export)',
+    'กุญแจส่วนตัว (Private keys)',
+    'PIN / รหัสวลี (Passphrase)',
   ];
   static const List<String> _importantDocumentItems = [
     'à¸žà¸´à¸™à¸±à¸¢à¸à¸£à¸£à¸¡ (reference)',
@@ -2884,15 +2884,15 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   ];
   static const List<String> _digitalAccountItems = [
     'email / social accounts',
-    'cloud storage access',
-    'subscription services',
-    'domain / hosting',
-    'crypto exchange login',
+    'สิทธิ์เข้าถึงคลาวด์สตอเรจ',
+    'บริการสมัครสมาชิก',
+    'โดเมน / โฮสติ้ง',
+    'บัญชีเข้าใช้เว็บเทรดคริปโต',
   ];
   static const List<String> _ecosystemTargets = [
-    'Bank connector',
-    'Exchange connector',
-    'Gold broker connector',
+    'เชื่อมต่อธนาคาร',
+    'เชื่อมต่อ Exchange',
+    'เชื่อมต่อผู้ให้บริการทองคำ',
   ];
 
   @override
@@ -3805,7 +3805,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       ? 'owner'
                       : widget.entry.recipient.role,
                   registeredLegalName: _kind == 'self_recovery'
-                      ? 'Owner'
+                      ? 'เจ้าของบัญชี'
                       : _recipientNameController.text.trim(),
                   verificationHint: _kind == 'self_recovery'
                       ? ''
