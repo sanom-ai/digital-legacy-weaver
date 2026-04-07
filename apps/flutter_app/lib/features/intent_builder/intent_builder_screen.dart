@@ -1,4 +1,4 @@
-﻿import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
+import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_history_screen.dart';
@@ -541,8 +541,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       ownerRef: exportDocument.ownerRef,
       generatedAt: generatedAt,
       sourceDraftSignature: buildIntentDocumentSignature(exportDocument),
-      activeEntryCount:
-          exportDocument.entries.where((entry) => entry.status == "active").length,
+      activeEntryCount: exportDocument.entries
+          .where((entry) => entry.status == "active")
+          .length,
       ptn: _redactMoneyLikeText(ptnPreview),
       trace: buildDraftIntentTrace(exportDocument),
       report: report,
@@ -756,7 +757,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         : "à¸¡à¸²à¸•à¸£à¸à¸²à¸™";
     final partner = _selectedPartner;
     final selectedDestinations = _destinations
-        .where((destination) => _selectedDestinationIds.contains(destination.id))
+        .where(
+            (destination) => _selectedDestinationIds.contains(destination.id))
         .map((destination) => destination.name)
         .toList();
     final partnerLine = partner == null
@@ -839,8 +841,8 @@ Section 4: Partner delivery scope
                     data: verifyUrl,
                     size: 140,
                     eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square),
-                    dataModuleStyle:
-                        const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square),
+                    dataModuleStyle: const QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -858,7 +860,9 @@ Section 4: Partner delivery scope
             onPressed: () {
               Clipboard.setData(ClipboardData(text: paper));
               messenger.showSnackBar(
-                const SnackBar(content: Text("à¸„à¸±à¸”à¸¥à¸­à¸ Policy Paper à¹à¸¥à¹‰à¸§")),
+                const SnackBar(
+                    content:
+                        Text("à¸„à¸±à¸”à¸¥à¸­à¸ Policy Paper à¹à¸¥à¹‰à¸§")),
               );
             },
             child: const Text("à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸­à¸à¸ªà¸²à¸£"),
@@ -921,8 +925,10 @@ Section 4: Partner delivery scope
     required bool isError,
     VoidCallback? onRetry,
   }) {
-    final background =
-        isError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
+    final scheme = Theme.of(context).colorScheme;
+    final background = isError
+        ? scheme.errorContainer.withValues(alpha: 0.35)
+        : scheme.tertiaryContainer.withValues(alpha: 0.38);
     final icon =
         isError ? Icons.warning_amber_rounded : Icons.check_circle_outline;
     return Container(
@@ -931,6 +937,7 @@ Section 4: Partner delivery scope
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1051,10 +1058,15 @@ Section 4: Partner delivery scope
   }
 
   Widget _buildPartnerNetworkCard() {
+    final scheme = Theme.of(context).colorScheme;
     final assetValue = _assetValueOrFallback();
     final selected = _selectedPartner;
     final estimate = selected?.estimate(assetValue);
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1089,8 +1101,10 @@ Section 4: Partner delivery scope
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
-                color: const Color(0xFFF3EFE8),
-                border: Border.all(color: const Color(0xFFE6D8C7)),
+                color: scheme.surfaceContainerHighest,
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.55),
+                ),
               ),
               child: Text(
                 _partnerCatalogSourceText(),
@@ -1104,9 +1118,15 @@ Section 4: Partner delivery scope
             TextField(
               controller: _assetValueController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: "มูลค่าประมาณการ (THB)",
                 prefixText: "THB ",
+                filled: true,
+                fillColor:
+                    scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -1129,8 +1149,10 @@ Section 4: Partner delivery scope
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: const Color(0xFFF8F4ED),
-                  border: Border.all(color: const Color(0xFFE8DDCF)),
+                  color: scheme.surfaceContainerLowest,
+                  border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: const Text(
                   "ยังไม่มีสำนักงานกฎหมายที่ผ่านการ verify จากระบบหลังบ้าน เมื่อ admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
@@ -1146,12 +1168,11 @@ Section 4: Partner delivery scope
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
                     color: isSelected
-                        ? const Color(0xFFEAF6F6)
-                        : const Color(0xFFFAF7F2),
+                        ? scheme.tertiaryContainer.withValues(alpha: 0.45)
+                        : scheme.surfaceContainerLowest,
                     border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFF1E6C77)
-                          : const Color(0xFFE7D9C8),
+                      color:
+                          isSelected ? scheme.tertiary : scheme.outlineVariant,
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -1235,7 +1256,12 @@ Section 4: Partner delivery scope
   }
 
   Widget _buildEcosystemCard() {
+    final scheme = Theme.of(context).colorScheme;
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1285,6 +1311,7 @@ Section 4: Partner delivery scope
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final screenTitle = widget.screenTitle ?? "Legacy plan workspace";
     if (_isLoading) {
       return Scaffold(
@@ -1370,6 +1397,12 @@ Section 4: Partner delivery scope
         physics: const BouncingScrollPhysics(),
         children: [
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -1386,8 +1419,11 @@ Section 4: Partner delivery scope
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEAF6F6),
+                      color: scheme.tertiaryContainer.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1410,8 +1446,13 @@ Section 4: Partner delivery scope
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F1E8),
+                        color: scheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                         borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: scheme.outlineVariant.withValues(alpha: 0.45),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1466,6 +1507,12 @@ Section 4: Partner delivery scope
           ),
           const SizedBox(height: 12),
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -1500,8 +1547,13 @@ Section 4: Partner delivery scope
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F1E8),
+                        color: scheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                         borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: scheme.outlineVariant.withValues(alpha: 0.45),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1534,9 +1586,15 @@ Section 4: Partner delivery scope
           const SizedBox(height: 12),
           _buildEcosystemCard(),
           const SizedBox(height: 12),
-          const Card(
-            color: Color(0xFFFFF7ED),
-            child: Padding(
+          Card(
+            color: scheme.primaryContainer.withValues(alpha: 0.28),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
+            child: const Padding(
               padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1555,6 +1613,12 @@ Section 4: Partner delivery scope
           ),
           const SizedBox(height: 12),
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -2079,8 +2143,7 @@ Section 4: Partner delivery scope
                             ? () {
                                 _exportCanonicalArtifact(report, ptnPreview);
                               }
-                            : null
-                        ,
+                            : null,
                         icon: const Icon(Icons.publish_rounded),
                         label: Text(
                           _isExporting
@@ -2438,35 +2501,41 @@ Section 4: Partner delivery scope
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 8),
-                        Text("1) à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¸„à¸£à¸šà¸•à¸²à¸¡à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰"),
-                        Text("2) à¸£à¸°à¸šà¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¸à¹ˆà¸­à¸™"),
-                        Text("3) à¸ªà¹ˆà¸‡à¸¥à¸´à¸‡à¸à¹Œà¸«à¸£à¸·à¸­à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸šà¸•à¸²à¸¡à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡"),
-                        Text("4) à¸šà¸±à¸™à¸—à¸¶à¸à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡à¹€à¸žà¸·à¹ˆà¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸¢à¹‰à¸­à¸™à¸«à¸¥à¸±à¸‡"),
+                        Text(
+                            "1) à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¸„à¸£à¸šà¸•à¸²à¸¡à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰"),
+                        Text(
+                            "2) à¸£à¸°à¸šà¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¸à¹ˆà¸­à¸™"),
+                        Text(
+                            "3) à¸ªà¹ˆà¸‡à¸¥à¸´à¸‡à¸à¹Œà¸«à¸£à¸·à¸­à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸šà¸•à¸²à¸¡à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡"),
+                        Text(
+                            "4) à¸šà¸±à¸™à¸—à¸¶à¸à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡à¹€à¸žà¸·à¹ˆà¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸¢à¹‰à¸­à¸™à¸«à¸¥à¸±à¸‡"),
                       ],
                     ),
                   ),
                   const SizedBox(height: 10),
                   ExpansionTile(
                     tilePadding: EdgeInsets.zero,
-                    title: const Text("à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„ (PTN)"),
-                    subtitle: const Text("à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥à¸£à¸°à¸šà¸šà¸«à¸£à¸·à¸­à¸—à¸µà¸¡à¹€à¸—à¸„à¸™à¸´à¸„"),
+                    title: const Text(
+                        "à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„ (PTN)"),
+                    subtitle: const Text(
+                        "à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥à¸£à¸°à¸šà¸šà¸«à¸£à¸·à¸­à¸—à¸µà¸¡à¹€à¸—à¸„à¸™à¸´à¸„"),
                     children: [
                       const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: const Color(0xFFF7F2EA),
-                    ),
-                    child: SelectableText(
-                      ptnPreview,
-                      style: const TextStyle(
-                        fontFamily: 'Consolas',
-                        fontSize: 12,
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFF7F2EA),
+                        ),
+                        child: SelectableText(
+                          ptnPreview,
+                          style: const TextStyle(
+                            fontFamily: 'Consolas',
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
                     ],
                   ),
                 ],
@@ -2502,10 +2571,16 @@ class _IntentEntryCard extends StatelessWidget {
     final startCondition =
         'เริ่มเมื่อไม่พบการใช้งาน ${entry.trigger.inactivityDays} วัน และรอยืนยันอีก ${entry.trigger.graceDays} วัน';
     final statusLabel = entry.status == 'active' ? 'กำลังใช้งาน' : 'พักไว้';
-    final kindLabel =
-        entry.kind == 'legacy_delivery' ? 'ส่งต่อให้ผู้รับ' : 'กู้คืนด้วยตัวเอง';
+    final kindLabel = entry.kind == 'legacy_delivery'
+        ? 'ส่งต่อให้ผู้รับ'
+        : 'กู้คืนด้วยตัวเอง';
 
+    final scheme = Theme.of(context).colorScheme;
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -2544,7 +2619,8 @@ class _IntentEntryCard extends StatelessWidget {
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
               title: const Text('ดูรายละเอียดเพิ่มเติม'),
-              subtitle: const Text('ช่องทางส่ง การยืนยันตัวตน และความเป็นส่วนตัว'),
+              subtitle:
+                  const Text('ช่องทางส่ง การยืนยันตัวตน และความเป็นส่วนตัว'),
               children: [
                 const SizedBox(height: 6),
                 Text('ช่องทางติดต่อผู้รับ: ${entry.recipient.deliveryChannel}'),
@@ -2553,7 +2629,8 @@ class _IntentEntryCard extends StatelessWidget {
                   Text('คำใบ้ยืนยันตัวตน: ${entry.recipient.verificationHint}'),
                   const SizedBox(height: 4),
                 ],
-                Text('ช่องทางสำรอง: ${entry.recipient.fallbackChannels.join(', ')}'),
+                Text(
+                    'ช่องทางสำรอง: ${entry.recipient.fallbackChannels.join(', ')}'),
                 const SizedBox(height: 4),
                 Text(
                   'รูปแบบการส่ง: ${entry.delivery.method}'
@@ -2565,7 +2642,8 @@ class _IntentEntryCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text('ก่อนปล่อยให้เห็น: ${entry.privacy.preTriggerVisibility}'),
                 const SizedBox(height: 4),
-                Text('หลังปล่อยให้เห็น: ${entry.privacy.postTriggerVisibility}'),
+                Text(
+                    'หลังปล่อยให้เห็น: ${entry.privacy.postTriggerVisibility}'),
                 const SizedBox(height: 4),
                 Text('การเปิดเผยมูลค่า: ${entry.privacy.valueDisclosureMode}'),
                 const SizedBox(height: 4),
@@ -2735,9 +2813,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     final fallbackChannels = widget.entry.recipient.fallbackChannels.toSet();
     _fallbackEmail = fallbackChannels.contains('email');
     _fallbackSms = fallbackChannels.contains('sms');
-    _safetyLevel = (_requireGuardianApproval || _requireMultisignal)
-        ? 'high'
-        : 'standard';
+    _safetyLevel =
+        (_requireGuardianApproval || _requireMultisignal) ? 'high' : 'standard';
   }
 
   @override
@@ -2783,16 +2860,20 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       lines.add('ไฟล์สำคัญ: ${_fileAssetsController.text.trim()}');
     }
     if (_personalSecretsNoteController.text.trim().isNotEmpty) {
-      lines.add('หมายเหตุความลับส่วนตัว: ${_personalSecretsNoteController.text.trim()}');
+      lines.add(
+          'หมายเหตุความลับส่วนตัว: ${_personalSecretsNoteController.text.trim()}');
     }
     if (_importantDocsNoteController.text.trim().isNotEmpty) {
-      lines.add('หมายเหตุเอกสารสำคัญ: ${_importantDocsNoteController.text.trim()}');
+      lines.add(
+          'หมายเหตุเอกสารสำคัญ: ${_importantDocsNoteController.text.trim()}');
     }
     if (_digitalAccountsNoteController.text.trim().isNotEmpty) {
-      lines.add('หมายเหตุบัญชีดิจิทัล: ${_digitalAccountsNoteController.text.trim()}');
+      lines.add(
+          'หมายเหตุบัญชีดิจิทัล: ${_digitalAccountsNoteController.text.trim()}');
     }
     if (_selectedEcosystemConnectors.isNotEmpty) {
-      lines.add('เชื่อมต่อ ecosystem: ${_selectedEcosystemConnectors.join(', ')}');
+      lines.add(
+          'เชื่อมต่อ ecosystem: ${_selectedEcosystemConnectors.join(', ')}');
     }
     if (_connectLegalPartner && _selectedLegalPartner != null) {
       lines.add('ประสานงานสำนักงานกฎหมาย: $_selectedLegalPartner');
@@ -2809,7 +2890,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       _payloadRefController.text = lines.join('\n');
     }
     if (_displayNameController.text.trim().isEmpty) {
-      _displayNameController.text = 'ชุดสินทรัพย์ดิจิทัล (${lines.length} หมวด)';
+      _displayNameController.text =
+          'ชุดสินทรัพย์ดิจิทัล (${lines.length} หมวด)';
     }
   }
 
@@ -2917,9 +2999,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final inactivityDays =
-        int.tryParse(_triggerDaysController.text.trim()) ??
-            widget.entry.trigger.inactivityDays;
+    final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ??
+        widget.entry.trigger.inactivityDays;
     final emergencyEnabled = _triggerMode == 'manual_release';
     return AlertDialog(
       title: const Text('ตั้งค่าแผนส่งต่อ'),
@@ -3135,7 +3216,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                                 }
                               });
                             },
-                      title: const Text('เชื่อมต่อสำนักงานกฎหมายให้ช่วยประสานงาน'),
+                      title:
+                          const Text('เชื่อมต่อสำนักงานกฎหมายให้ช่วยประสานงาน'),
                     ),
                     if (widget.verifiedLegalPartners.isEmpty)
                       const Padding(
@@ -3237,7 +3319,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 value: emergencyEnabled,
                 onChanged: (value) {
                   setState(() {
-                    _triggerMode = value == true ? 'manual_release' : 'inactivity';
+                    _triggerMode =
+                        value == true ? 'manual_release' : 'inactivity';
                   });
                 },
                 title: const Text('ใช้โหมดฉุกเฉิน (Emergency Access)'),
@@ -3358,7 +3441,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
                     labelText: 'ข้อมูลที่ส่งมอบ (อ้างอิง)',
-                    helperText: 'ไม่ต้องใส่ยอดเงินจริง ระบบยืนยันยอดกับปลายทางเท่านั้น',
+                    helperText:
+                        'ไม่ต้องใส่ยอดเงินจริง ระบบยืนยันยอดกับปลายทางเท่านั้น',
                   ),
                 ),
                 if (_containsMoneyLikeText(_payloadRefController.text)) ...[
@@ -3386,12 +3470,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         OutlinedButton.icon(
                           onPressed: () {
                             setState(() {
-                              _payloadRefController.text =
-                                  _redactMoneyLikeText(_payloadRefController.text)
-                                      .replaceAll(
-                                        '[institution-verified amount]',
-                                        'ตรวจที่ปลายทาง',
-                                      );
+                              _payloadRefController.text = _redactMoneyLikeText(
+                                      _payloadRefController.text)
+                                  .replaceAll(
+                                '[institution-verified amount]',
+                                'ตรวจที่ปลายทาง',
+                              );
                             });
                           },
                           icon: const Icon(Icons.shield_outlined),
@@ -3406,7 +3490,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _verificationHintController,
-                  decoration: const InputDecoration(labelText: 'คำใบ้ยืนยันตัวตน'),
+                  decoration:
+                      const InputDecoration(labelText: 'คำใบ้ยืนยันตัวตน'),
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile.adaptive(
@@ -3449,10 +3534,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
             _applyStructuredAssetsTemplate();
             final sanitizedPayloadRef =
                 _redactMoneyLikeText(_payloadRefController.text.trim());
-            final sanitizedAssetNotes =
-                widget.entry.asset.notes == null
-                    ? null
-                    : _redactMoneyLikeText(widget.entry.asset.notes!);
+            final sanitizedAssetNotes = widget.entry.asset.notes == null
+                ? null
+                : _redactMoneyLikeText(widget.entry.asset.notes!);
             final inactivityDays =
                 int.tryParse(_triggerDaysController.text.trim()) ??
                     widget.entry.trigger.inactivityDays;
@@ -3530,6 +3614,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     );
   }
 }
+
 class _Pill extends StatelessWidget {
   const _Pill({required this.label});
 
@@ -3537,19 +3622,20 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: const Color(0xFFF2E9DC),
-        border: Border.all(color: const Color(0xFFE1D0BC)),
+        color: scheme.surfaceContainerHighest,
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: const Color(0xFF4E3B2A),
-          fontWeight: FontWeight.w600,
-        ),
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
       ),
     );
   }
