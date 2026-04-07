@@ -289,6 +289,7 @@ class DashboardScreen extends ConsumerWidget {
                           children: [
                             _LegacyLedgerDashboardCard(
                               profile: profile,
+                              settings: settings,
                               readiness: readiness,
                               onAddPlan: openBuilder,
                               onHeartbeatCheck: () async {
@@ -296,6 +297,69 @@ class DashboardScreen extends ConsumerWidget {
                                     .read(profileRepositoryProvider)
                                     .markAlive();
                                 ref.invalidate(profileProvider);
+                              },
+                              onSetKillSwitch: (enabled) async {
+                                await ref
+                                    .read(safetySettingsProvider.notifier)
+                                    .save(
+                                      remindersEnabled:
+                                          settings.remindersEnabled,
+                                      reminderOffsetsDays:
+                                          settings.reminderOffsetsDays,
+                                      gracePeriodDays: settings.gracePeriodDays,
+                                      proofOfLifeCheckMode:
+                                          settings.proofOfLifeCheckMode,
+                                      proofOfLifeFallbackChannels:
+                                          settings.proofOfLifeFallbackChannels,
+                                      serverHeartbeatFallbackEnabled: settings
+                                          .serverHeartbeatFallbackEnabled,
+                                      iosBackgroundRiskAcknowledged: settings
+                                          .iosBackgroundRiskAcknowledged,
+                                      legalDisclaimerAccepted:
+                                          settings.legalDisclaimerAccepted,
+                                      emergencyPauseUntil: enabled
+                                          ? DateTime.now().add(
+                                              const Duration(days: 7),
+                                            )
+                                          : null,
+                                      requireTotpUnlock:
+                                          settings.requireTotpUnlock,
+                                      guardianQuorumEnabled:
+                                          settings.guardianQuorumEnabled,
+                                      guardianQuorumRequired:
+                                          settings.guardianQuorumRequired,
+                                      guardianQuorumPoolSize:
+                                          settings.guardianQuorumPoolSize,
+                                      emergencyAccessEnabled:
+                                          settings.emergencyAccessEnabled,
+                                      emergencyAccessRequiresBeneficiaryRequest:
+                                          settings
+                                              .emergencyAccessRequiresBeneficiaryRequest,
+                                      emergencyAccessRequiresGuardianQuorum:
+                                          settings
+                                              .emergencyAccessRequiresGuardianQuorum,
+                                      emergencyAccessGraceHours:
+                                          settings.emergencyAccessGraceHours,
+                                      deviceRebindInProgress:
+                                          settings.deviceRebindInProgress,
+                                      deviceRebindStartedAt:
+                                          settings.deviceRebindStartedAt,
+                                      deviceRebindGraceHours:
+                                          settings.deviceRebindGraceHours,
+                                      recoveryKeyEnabled:
+                                          settings.recoveryKeyEnabled,
+                                      deliveryAccessTtlHours:
+                                          settings.deliveryAccessTtlHours,
+                                      payloadRetentionDays:
+                                          settings.payloadRetentionDays,
+                                      auditLogRetentionDays:
+                                          settings.auditLogRetentionDays,
+                                      privateFirstMode:
+                                          settings.privateFirstMode,
+                                      tracePrivacyProfile:
+                                          settings.tracePrivacyProfile,
+                                    );
+                                ref.invalidate(safetySettingsProvider);
                               },
                             ),
                             const SizedBox(height: 12),
@@ -933,15 +997,19 @@ class _ProductConcretenessCard extends StatelessWidget {
 class _LegacyLedgerDashboardCard extends StatelessWidget {
   const _LegacyLedgerDashboardCard({
     required this.profile,
+    required this.settings,
     required this.readiness,
     required this.onAddPlan,
     required this.onHeartbeatCheck,
+    required this.onSetKillSwitch,
   });
 
   final ProfileModel profile;
+  final SafetySettingsModel settings;
   final IntentRuntimeReadinessModel readiness;
   final VoidCallback onAddPlan;
   final Future<void> Function() onHeartbeatCheck;
+  final Future<void> Function(bool enabled) onSetKillSwitch;
 
   String _relative(DateTime time) {
     final diff = DateTime.now().difference(time);
@@ -958,11 +1026,23 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final entries = readiness.currentArtifact?.sealedReleaseCandidate.entries ??
         const <SealedReleaseEntryModel>[];
-    final heartbeatOk =
-        DateTime.now().difference(profile.lastActiveAt).inDays <= 1;
+    final now = DateTime.now();
+    final inactiveDays = now.difference(profile.lastActiveAt).inDays;
+    final daysLeft =
+        (profile.legacyInactivityDays - inactiveDays).clamp(0, 9999);
+    final triggerProgress =
+        (inactiveDays / profile.legacyInactivityDays).clamp(0.0, 1.0);
+    final heartbeatOk = now.difference(profile.lastActiveAt).inDays <= 1;
     final statusText = heartbeatOk ? "ปลอดภัย" : "ต้องตรวจสอบ";
     final statusColor =
         heartbeatOk ? const Color(0xFFE9F6EF) : const Color(0xFFFFF7ED);
+    final killSwitchOn = settings.emergencyPauseUntil?.isAfter(now) ?? false;
+    final proofModeLabel = switch (settings.proofOfLifeCheckMode) {
+      "half_life_soft_checkin" => "Half-life soft check-in",
+      "single_tap" => "Single tap",
+      "verification_code" => "Verification code",
+      _ => "Biometric tap",
+    };
 
     return Card(
       margin: EdgeInsets.zero,
@@ -1052,6 +1132,77 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFF243246),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Dead-Man Timer + Kill Switch",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "เหลืออีก $daysLeft วันก่อนเข้าเงื่อนไขส่งมอบ",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: triggerProgress,
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(999),
+                    backgroundColor: Colors.white24,
+                    color: const Color(0xFF8AC7FF),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "โหมดเช็กอิน: $proofModeLabel",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: onHeartbeatCheck,
+                        icon: const Icon(Icons.favorite_border),
+                        label: const Text("เช็กอินตอนนี้"),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: () => onSetKillSwitch(!killSwitchOn),
+                        icon: Icon(
+                          killSwitchOn
+                              ? Icons.play_circle_outline
+                              : Icons.pause_circle_outline,
+                        ),
+                        label: Text(
+                          killSwitchOn
+                              ? "ยกเลิก Kill Switch"
+                              : "เปิด Kill Switch 7 วัน",
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (killSwitchOn) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      "Kill Switch เปิดอยู่จนถึง ${settings.emergencyPauseUntil!.toLocal()}",
+                      style: const TextStyle(color: Color(0xFFFFD7A8)),
+                    ),
+                  ],
                 ],
               ),
             ),
