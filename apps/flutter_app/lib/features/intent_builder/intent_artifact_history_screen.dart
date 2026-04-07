@@ -34,9 +34,9 @@ class _IntentArtifactHistoryScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("คัดลอกเป็นเวอร์ชันล่าสุด"),
+        title: const Text("คัดลอกเป็นฉบับล่าสุด"),
         content: Text(
-          "ต้องการสร้างเวอร์ชันส่งออกใหม่จาก ${artifact.artifactId} ใช่ไหม? ประวัติเดิมจะยังอยู่เหมือนเดิม",
+          "ต้องการสร้างฉบับพร้อมส่งใหม่จาก ${artifact.artifactId} ใช่ไหม? ประวัติเดิมจะยังอยู่เหมือนเดิม",
         ),
         actions: [
           TextButton(
@@ -59,7 +59,7 @@ class _IntentArtifactHistoryScreenState
       builder: (context) => AlertDialog(
         title: const Text("ลบเวอร์ชัน"),
         content: Text(
-          "ต้องการลบ ${artifact.artifactId} ออกจากประวัติเวอร์ชันในเครื่องนี้ใช่ไหม?",
+          "ต้องการลบ ${artifact.artifactId} ออกจากประวัติในเครื่องนี้ใช่ไหม?",
         ),
         actions: [
           TextButton(
@@ -89,7 +89,7 @@ class _IntentArtifactHistoryScreenState
     if (artifact.artifactState == IntentArtifactState.ready) {
       badges.add("พร้อมใช้งาน");
     } else if (artifact.artifactState == IntentArtifactState.reviewed) {
-      badges.add("รีวิวแล้ว");
+      badges.add("ตรวจทานแล้ว");
     }
     if (artifact.report.errorCount > 0) {
       badges.add("มีประเด็น");
@@ -117,7 +117,9 @@ class _IntentArtifactHistoryScreenState
         case 'oldest':
           return left.generatedAt.compareTo(right.generatedAt);
         case 'state':
-          return left.artifactState.name.compareTo(right.artifactState.name);
+          return _stateLabel(left.artifactState).compareTo(
+            _stateLabel(right.artifactState),
+          );
         default:
           return right.generatedAt.compareTo(left.generatedAt);
       }
@@ -129,7 +131,7 @@ class _IntentArtifactHistoryScreenState
   Widget build(BuildContext context) {
     final visibleArtifactHistory = _visibleArtifactHistory();
     return Scaffold(
-      appBar: AppBar(title: const Text("ประวัติเวอร์ชันที่ส่งออก")),
+      appBar: AppBar(title: const Text("ประวัติฉบับพร้อมส่ง")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -140,20 +142,20 @@ class _IntentArtifactHistoryScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "ประวัติเวอร์ชันทั้งหมด",
+                    "ประวัติทั้งหมด",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Text("เวอร์ชันที่เก็บไว้: ${widget.artifactHistory.length}"),
+                  Text("ฉบับที่เก็บไว้: ${widget.artifactHistory.length}"),
                   if (widget.currentArtifact != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "เวอร์ชันล่าสุด: ${widget.currentArtifact!.artifactId} | ${_stateLabel(widget.currentArtifact!.artifactState)}",
+                      "ฉบับล่าสุด: ${widget.currentArtifact!.artifactId} | ${_stateLabel(widget.currentArtifact!.artifactState)}",
                     ),
                   ],
                   const SizedBox(height: 8),
                   const Text(
-                    "คุณสามารถรีวิว เทียบ และคัดลอกเวอร์ชันเดิมได้โดยไม่ทำให้ประวัติหาย",
+                    "คุณสามารถรีวิว เทียบ และคัดลอกเวอร์ชันเดิมได้ โดยไม่ทำให้ประวัติเดิมหาย",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -229,7 +231,7 @@ class _IntentArtifactHistoryScreenState
                     "${artifact.generatedAt.toLocal()} | ${_stateLabel(artifact.artifactState)}",
                   ),
                   subtitle: Text(
-                    "เวอร์ชัน ${artifact.artifactId} | แผนที่เปิดใช้งาน ${artifact.activeEntryCount}",
+                    "เวอร์ชัน ${artifact.artifactId} | รายการที่เปิดใช้งาน ${artifact.activeEntryCount}",
                   ),
                   isThreeLine: _artifactBadges(artifact).isNotEmpty,
                   leading: _artifactBadges(artifact).isEmpty
@@ -293,7 +295,7 @@ class _IntentArtifactHistoryScreenState
                                 messenger.showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      "คัดลอกเวอร์ชันประวัติเป็นเวอร์ชันส่งออกใหม่เรียบร้อยแล้ว",
+                                      "คัดลอกเวอร์ชันประวัติเป็นฉบับพร้อมส่งใหม่เรียบร้อยแล้ว",
                                     ),
                                   ),
                                 );
@@ -337,9 +339,9 @@ class _IntentArtifactHistoryScreenState
       case IntentArtifactState.draft:
         return 'แบบร่าง';
       case IntentArtifactState.exported:
-        return 'ส่งออกแล้ว';
+        return 'ฉบับพร้อมส่ง';
       case IntentArtifactState.reviewed:
-        return 'รีวิวแล้ว';
+        return 'ตรวจทานแล้ว';
       case IntentArtifactState.ready:
         return 'พร้อมใช้งาน';
     }

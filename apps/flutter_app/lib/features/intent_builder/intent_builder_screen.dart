@@ -529,7 +529,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   ) async {
     if (!report.ok) {
       setState(() {
-        _saveMessage = "กรุณาแก้รายการที่ยังบล็อกก่อนส่งออกเวอร์ชัน";
+        _saveMessage = "กรุณาแก้รายการที่ยังบล็อกก่อนสร้างฉบับพร้อมส่ง";
       });
       return;
     }
@@ -540,7 +540,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     if (activeEntries.isEmpty) {
       setState(() {
         _saveMessage =
-            "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อนส่งออกเวอร์ชัน";
+            "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อนสร้างฉบับพร้อมส่ง";
       });
       return;
     }
@@ -582,7 +582,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = [artifact, ..._artifactHistory];
       _artifact = artifact;
       _isExporting = false;
-      _saveMessage = "สร้างและผนึกเวอร์ชันที่ส่งออกในเครื่องนี้แล้ว";
+      _saveMessage = "สร้างและผนึกฉบับพร้อมส่งในเครื่องนี้แล้ว";
     });
   }
 
@@ -631,7 +631,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifact = null;
       _artifactHistory = const [];
-      _saveMessage = "ลบเวอร์ชันที่ส่งออกและผนึกไว้ ออกจากเครื่องนี้แล้ว";
+      _saveMessage = "ลบฉบับพร้อมส่งที่ผนึกไว้ ออกจากเครื่องนี้แล้ว";
     });
   }
 
@@ -654,7 +654,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifactHistory = nextHistory;
       _artifact = nextHistory.isEmpty ? null : nextHistory.first;
-      _saveMessage = "ลบเวอร์ชันที่ส่งออก ออกจากประวัติในเครื่องแล้ว 1 รายการ";
+      _saveMessage = "ลบฉบับพร้อมส่งออกจากประวัติในเครื่องแล้ว 1 รายการ";
     });
   }
 
@@ -684,7 +684,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = nextHistory;
       _artifact = promoted;
       _saveMessage =
-          "คัดลอกเวอร์ชันเก่ามาสร้างการส่งออกใหม่แล้ว เพื่อทบทวนซ้ำโดยไม่เสียประวัติเดิม";
+          "คัดลอกเวอร์ชันเก่ามาสร้างฉบับพร้อมส่งใหม่แล้ว เพื่อทบทวนซ้ำโดยไม่เสียประวัติเดิม";
     });
   }
 
@@ -709,7 +709,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           if (item.artifactId != updated.artifactId) item,
       ]..sort((left, right) => right.generatedAt.compareTo(left.generatedAt));
       _artifact = updated;
-      _saveMessage = "อัปเดตสถานะสแนปช็อตเป็น ${nextState.name} แล้ว";
+      _saveMessage =
+          "อัปเดตสถานะฉบับพร้อมส่งเป็น ${_artifactStateLabel(nextState)} แล้ว";
     });
   }
 
@@ -745,20 +746,33 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       return "เงื่อนไขสถานะ: ต้องแก้ปัญหาแบบบล็อกก่อน จึงจะตรวจทานหรือพร้อมใช้งานได้";
     }
     if (artifact.artifactState == IntentArtifactState.exported) {
-      return "เงื่อนไขสถานะ: หลังสร้างสแนปช็อตแล้ว ให้ตรวจทานได้เมื่อไม่มีปัญหาแบบบล็อกและยังมีรายการที่เปิดใช้งาน";
+      return "เงื่อนไขสถานะ: หลังสร้างฉบับพร้อมส่งแล้ว ให้ตรวจทานได้เมื่อไม่มีปัญหาแบบบล็อกและยังมีรายการที่เปิดใช้งาน";
     }
     if (artifact.artifactState == IntentArtifactState.reviewed &&
         !artifactInSync) {
-      return "เงื่อนไขสถานะ: สแนปช็อตที่ตรวจทานแล้วจะพร้อมใช้งานได้ เมื่อร่างล่าสุดยังตรงกับสแนปช็อต";
+      return "เงื่อนไขสถานะ: ฉบับที่ตรวจทานแล้วจะพร้อมใช้งานได้ เมื่อร่างล่าสุดยังตรงกับฉบับนี้";
     }
     if (artifact.artifactState == IntentArtifactState.reviewed &&
         artifactInSync) {
-      return "เงื่อนไขสถานะ: สแนปช็อตนี้พร้อมเลื่อนไปสถานะพร้อมใช้งาน เพราะร่างล่าสุดยังตรงกัน";
+      return "เงื่อนไขสถานะ: ฉบับนี้พร้อมเลื่อนไปสถานะพร้อมใช้งาน เพราะร่างล่าสุดยังตรงกัน";
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      return "เงื่อนไขสถานะ: สถานะพร้อมใช้งานจะเชื่อถือได้ ตราบใดที่ร่างล่าสุดยังตรงกับสแนปช็อต";
+      return "เงื่อนไขสถานะ: สถานะพร้อมใช้งานจะเชื่อถือได้ ตราบใดที่ร่างล่าสุดยังตรงกับฉบับนี้";
     }
-    return "เงื่อนไขสถานะ: ให้สร้างสแนปช็อตก่อน จากนั้นตรวจทาน แล้วค่อยตั้งเป็นพร้อมใช้งาน";
+    return "เงื่อนไขสถานะ: ให้สร้างฉบับพร้อมส่งก่อน จากนั้นตรวจทาน แล้วค่อยตั้งเป็นพร้อมใช้งาน";
+  }
+
+  String _artifactStateLabel(IntentArtifactState state) {
+    switch (state) {
+      case IntentArtifactState.draft:
+        return "แบบร่าง";
+      case IntentArtifactState.exported:
+        return "ฉบับพร้อมส่ง";
+      case IntentArtifactState.reviewed:
+        return "ตรวจทานแล้ว";
+      case IntentArtifactState.ready:
+        return "พร้อมใช้งาน";
+    }
   }
 
   String _buildPolicyPaper(IntentCanonicalArtifactModel artifact) {
@@ -817,7 +831,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 - สถานะการยอมรับค่าธรรมเนียมพาร์ทเนอร์: ${_partnerTermsAccepted ? "ยอมรับแล้ว" : "ยังไม่ยอมรับ"}
 
 หมายเหตุ
-- สรุปนี้อ้างอิงจากเอกสารที่ export ล่าสุด
+- สรุปนี้อ้างอิงจากฉบับพร้อมส่งล่าสุด
 - แอปไม่เก็บยอดเงินจริง และไม่ถือครองเงินผู้ใช้
 - ยอดเงินจริงต้องตรวจสอบกับปลายทางโดยตรง (ธนาคาร/Exchange/พาร์ทเนอร์กฎหมาย)
 ''';
@@ -1568,9 +1582,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         SizedBox(height: 6),
                         Text("1. มีรายการส่งต่อที่เปิดใช้งานอย่างน้อย 1 รายการ"),
                         SizedBox(height: 4),
-                        Text("2. สร้างสแนปช็อตแผน แล้วดูคำเตือน"),
+                        Text("2. สร้างฉบับพร้อมส่ง แล้วดูคำเตือน"),
                         SizedBox(height: 4),
-                        Text("3. กดพร้อมใช้งาน เมื่อร่างล่าสุดตรงกับสแนปช็อต"),
+                        Text("3. กดพร้อมใช้งาน เมื่อร่างล่าสุดตรงกับฉบับพร้อมส่ง"),
                       ],
                     ),
                   ),
@@ -1611,7 +1625,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   if (!canMarkReady) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "ต้องมีรายการที่เปิดใช้งานอย่างน้อย 1 รายการ สร้างสแนปช็อต และตรวจทานก่อน",
+                      "ต้องมีรายการที่เปิดใช้งานอย่างน้อย 1 รายการ สร้างฉบับพร้อมส่ง และตรวจทานก่อน",
                       style: TextStyle(
                         color: scheme.onSurfaceVariant,
                         fontSize: 12,
@@ -1634,7 +1648,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       _Pill(label: "รายการทั้งหมด: ${_document.entries.length}"),
                       _Pill(label: "เปิดใช้งาน: $activeEntryCount"),
                       _Pill(
-                        label: "สแนปช็อต: ${_artifactHistory.length}",
+                        label: "ฉบับที่บันทึก: ${_artifactHistory.length}",
                       ),
                     ],
                   ),
@@ -1754,7 +1768,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "แผนของคุณถูกเข้ารหัสในเครื่องนี้ และจะยังไม่เผยแพร่จนกว่าจะ Export และยืนยันความพร้อม",
+                    "แผนของคุณถูกเข้ารหัสในเครื่องนี้ และจะยังไม่เผยแพร่จนกว่าจะสร้างฉบับพร้อมส่งและยืนยันความพร้อม",
                   ),
                 ],
               ),
@@ -2282,7 +2296,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "สร้างสแนปช็อตของแผน ตรวจทาน แล้วตั้งเป็นพร้อมใช้งาน",
+                    "สร้างฉบับพร้อมส่งของแผน ตรวจทาน แล้วตั้งเป็นพร้อมใช้งาน",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -2299,14 +2313,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         label: Text(
                           _isExporting
                               ? "กำลังสร้าง..."
-                              : "สร้างสแนปช็อตแผน",
+                              : "สร้างฉบับพร้อมส่ง",
                         ),
                       ),
                       if (!partnerTermsGateSatisfied)
                         const Padding(
                           padding: EdgeInsets.only(top: 6),
                           child: Text(
-                            "โปรดยอมรับเงื่อนไขค่าธรรมเนียมพาร์ทเนอร์ก่อนสร้างสแนปช็อต",
+                            "โปรดยอมรับเงื่อนไขค่าธรรมเนียมพาร์ทเนอร์ก่อนสร้างฉบับพร้อมส่ง",
                             style: TextStyle(
                               color: Color(0xFF8A5A00),
                               fontWeight: FontWeight.w600,
@@ -2316,7 +2330,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       OutlinedButton(
                         onPressed:
                             _artifact == null ? null : _clearCanonicalArtifact,
-                        child: const Text("ล้างสแนปช็อตนี้"),
+                        child: const Text("ล้างฉบับนี้"),
                       ),
                       OutlinedButton(
                         onPressed: _artifact == null
@@ -2330,7 +2344,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                   ),
                                 );
                               },
-                        child: const Text("ตรวจทานสแนปช็อต"),
+                        child: const Text("ตรวจทานฉบับนี้"),
                       ),
                     ],
                   ),
@@ -2344,14 +2358,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       const SizedBox(height: 8),
                       Text("สัญญาเวอร์ชัน: ${_artifact!.contractVersion}"),
                       const SizedBox(height: 4),
-                      Text("สถานะสแนปช็อต: ${_artifact!.artifactState.name}"),
-                      const SizedBox(height: 4),
                       Text(
-                        "รายการที่เปิดใช้งานในสแนปช็อต: ${_artifact!.activeEntryCount}",
+                        "สถานะฉบับพร้อมส่ง: ${_artifactStateLabel(_artifact!.artifactState)}",
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "รายการ trace: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}",
+                        "รายการที่เปิดใช้งานในฉบับนี้: ${_artifact!.activeEntryCount}",
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "ร่องรอยการทำงาน: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}",
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -2366,8 +2382,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 8),
                     Text(
                       artifactInSync
-                          ? "สถานะ: ร่างล่าสุดตรงกับสแนปช็อต"
-                          : "สถานะ: มีการแก้ร่างหลังสร้างสแนปช็อตล่าสุด",
+                          ? "สถานะ: ร่างล่าสุดตรงกับฉบับพร้อมส่ง"
+                          : "สถานะ: มีการแก้ร่างหลังสร้างฉบับพร้อมส่งล่าสุด",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: artifactInSync
@@ -2425,15 +2441,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 12),
                     Text(
                       activeEntryCount > 0
-                          ? "ยังไม่มีสแนปช็อตสำหรับร่างที่กำลังใช้งาน"
-                          : "โปรดเปิดใช้งานอย่างน้อย 1 รายการก่อนสร้างสแนปช็อต",
+                          ? "ยังไม่มีฉบับพร้อมส่งสำหรับร่างที่กำลังใช้งาน"
+                          : "โปรดเปิดใช้งานอย่างน้อย 1 รายการก่อนสร้างฉบับพร้อมส่ง",
                     ),
                   ],
                   if (_artifactHistory.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     if (_showAdvanced) ...[
                       const Text(
-                        "ประวัติสแนปช็อต",
+                        "ประวัติฉบับพร้อมส่ง",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -2441,7 +2457,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        "ทุกการสร้างสแนปช็อตจะถูกเก็บแยกเป็นประวัติในเครื่อง",
+                        "ทุกการสร้างฉบับพร้อมส่งจะถูกเก็บแยกเป็นประวัติในเครื่อง",
                       ),
                       const SizedBox(height: 12),
                       Align(
@@ -2465,7 +2481,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       const SizedBox(height: 12),
                     ] else ...[
                       Text(
-                        "สแนปช็อตที่บันทึกไว้: ${_artifactHistory.length} (เปิดโหมดขั้นสูงเพื่อจัดการประวัติทั้งหมด)",
+                        "ฉบับที่บันทึกไว้: ${_artifactHistory.length} (เปิดโหมดขั้นสูงเพื่อจัดการประวัติทั้งหมด)",
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -2549,7 +2565,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(
-                                "${item.generatedAt.toLocal()} | ${item.artifactState.name}",
+                                "${item.generatedAt.toLocal()} | ${_artifactStateLabel(item.artifactState)}",
                               ),
                               subtitle: Text(
                                 "รหัส ${item.artifactId} | รายการที่เปิดใช้งาน ${item.activeEntryCount}",

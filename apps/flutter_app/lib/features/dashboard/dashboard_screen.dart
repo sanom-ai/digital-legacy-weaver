@@ -21,6 +21,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+String _artifactStateUiLabel(IntentArtifactState? state) {
+  switch (state) {
+    case IntentArtifactState.draft:
+      return "แบบร่าง";
+    case IntentArtifactState.exported:
+      return "ฉบับพร้อมส่ง";
+    case IntentArtifactState.reviewed:
+      return "ตรวจทานแล้ว";
+    case IntentArtifactState.ready:
+      return "พร้อมใช้งาน";
+    case null:
+      return "ยังไม่มีฉบับ";
+  }
+}
+
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -422,7 +437,7 @@ class DashboardScreen extends ConsumerWidget {
                     _DashboardActionCard(
                       title: "ตัวสร้างแผนเจตจำนง",
                       subtitle:
-                          "จัดแผนกู้คืนและส่งมอบด้วยภาษาคน ก่อนส่งออกเวอร์ชันใช้งาน",
+                          "จัดแผนกู้คืนและส่งมอบด้วยภาษาคน ก่อนสร้างฉบับพร้อมใช้งาน",
                       icon: Icons.route_outlined,
                       onTap: () {
                         Navigator.of(context).push(
@@ -476,11 +491,11 @@ class DashboardScreen extends ConsumerWidget {
                             children: [
                               ListTile(
                                 leading: const Icon(Icons.verified_outlined),
-                                title: const Text("สถานะชุดเอกสารหลัก"),
+                                title: const Text("สถานะฉบับพร้อมใช้งาน"),
                                 subtitle: Text(
                                   artifact == null
-                                      ? "ยังไม่มีเวอร์ชันส่งมอบที่ส่งออก"
-                                      : "สถานะปัจจุบัน: ${artifact.artifactState.name} • เวอร์ชัน ${artifact.contractVersion} • รายการใช้งานอยู่ ${artifact.activeEntryCount} รายการ • ประวัติทั้งหมด ${history.length} เวอร์ชัน${artifact.promotedFromArtifactId != null ? " (เวอร์ชันล่าสุดมาจากการโปรโมตจากประวัติ)" : ""}",
+                                      ? "ยังไม่มีฉบับพร้อมส่ง"
+                                      : "สถานะปัจจุบัน: ${_artifactStateUiLabel(artifact.artifactState)} • เวอร์ชัน ${artifact.contractVersion} • รายการใช้งานอยู่ ${artifact.activeEntryCount} รายการ • ประวัติทั้งหมด ${history.length} เวอร์ชัน${artifact.promotedFromArtifactId != null ? " (เวอร์ชันล่าสุดมาจากการโปรโมตจากประวัติ)" : ""}",
                                 ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
@@ -528,7 +543,7 @@ class DashboardScreen extends ConsumerWidget {
                                         );
                                       },
                                       child: const Text(
-                                        "Compare latest with previous",
+                                        "เทียบฉบับล่าสุดกับฉบับก่อนหน้า",
                                       ),
                                     ),
                                   ),
@@ -1401,7 +1416,7 @@ class _ControlRoomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final artifact = readiness.currentArtifact;
-    final currentState = artifact?.artifactState.name ?? "draft";
+    final currentState = _artifactStateUiLabel(artifact?.artifactState);
     final modeLabel = setupComplete ? "โหมดพร้อมใช้งาน" : "โหมดเตรียมตั้งค่า";
     final helperCards = _buildHelperCards();
     final scheme = Theme.of(context).colorScheme;
@@ -1550,9 +1565,9 @@ class _ControlRoomCard extends StatelessWidget {
         _StateHelperCard(
           title: "ยังเป็นโหมดร่างในเครื่อง",
           body:
-              "ตอนนี้มีแบบร่างที่ใช้งานได้แล้ว แต่ยังไม่มีเวอร์ชันส่งมอบที่ส่งออก ให้ส่งออกเวอร์ชันแรกก่อน เพื่อให้การรีวิว ประวัติ และความพร้อมอ้างอิงข้อมูลจริงชุดเดียวกัน",
+              "ตอนนี้มีแบบร่างที่ใช้งานได้แล้ว แต่ยังไม่มีฉบับพร้อมส่ง ให้สร้างฉบับแรกก่อน เพื่อให้การรีวิว ประวัติ และความพร้อมอ้างอิงข้อมูลจริงชุดเดียวกัน",
           cue:
-              "แนะนำ: ส่งออกเวอร์ชันส่งมอบแรกจากหน้าจัดแผน",
+              "แนะนำ: สร้างฉบับพร้อมส่งแรกจากหน้าจัดแผน",
           actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
@@ -1589,10 +1604,10 @@ class _ControlRoomCard extends StatelessWidget {
     if (artifact.artifactState == IntentArtifactState.exported) {
       return [
         _StateHelperCard(
-          title: "ส่งออกเวอร์ชันแล้ว",
+          title: "สร้างฉบับพร้อมส่งแล้ว",
           body:
-              "เวอร์ชันที่ส่งออกแล้วกำลังรอรีวิว นี่คือจุดที่เหมาะที่สุดในการตรวจความปลอดภัยและข้อผิดพลาดก่อนเดินหน้าต่อ",
-          cue: "แนะนำ: เปิดรีวิวเวอร์ชันที่ส่งออกตอนนี้",
+              "ฉบับพร้อมส่งล่าสุดกำลังรอการตรวจทาน นี่คือจุดที่เหมาะที่สุดในการตรวจความปลอดภัยและข้อผิดพลาดก่อนเดินหน้าต่อ",
+          cue: "แนะนำ: เปิดรีวิวฉบับพร้อมส่งตอนนี้",
           actionLabel: "เปิดหน้ารีวิว",
           onTap: onOpenArtifactReview,
         ),
@@ -1605,9 +1620,9 @@ class _ControlRoomCard extends StatelessWidget {
         _StateHelperCard(
           title: "รีวิวแล้ว แต่แบบร่างเปลี่ยนหลังรีวิว",
           body:
-              "เวอร์ชันนี้เคยรีวิวแล้ว แต่มีการแก้แบบร่างหลังจากนั้น ให้ถือว่ารีวิวเดิมล้าสมัยจนกว่าจะส่งออกเวอร์ชันใหม่จากแบบร่างล่าสุด",
+              "เวอร์ชันนี้เคยรีวิวแล้ว แต่มีการแก้แบบร่างหลังจากนั้น ให้ถือว่ารีวิวเดิมล้าสมัยจนกว่าจะสร้างฉบับใหม่จากแบบร่างล่าสุด",
           cue:
-              "แนะนำ: ส่งออกใหม่จากแบบร่างล่าสุดก่อนทำเครื่องหมายว่าพร้อม",
+              "แนะนำ: สร้างฉบับใหม่จากแบบร่างล่าสุดก่อนทำเครื่องหมายว่าพร้อม",
           actionLabel: "ดูประวัติเวอร์ชัน",
           onTap: onOpenArtifactHistory,
         ),
@@ -1634,9 +1649,9 @@ class _ControlRoomCard extends StatelessWidget {
         _StateHelperCard(
           title: "เวอร์ชันพร้อมใช้งานไม่ตรงกับแบบร่างล่าสุด",
           body:
-              "เวอร์ชันที่พร้อมใช้งานล่าสุดไม่ตรงกับแบบร่าง เพราะมีการแก้ภายหลัง ให้เก็บเป็นประวัติไว้ก่อนจนกว่าจะส่งออกเวอร์ชันพร้อมใช้งานใหม่",
+              "เวอร์ชันที่พร้อมใช้งานล่าสุดไม่ตรงกับแบบร่าง เพราะมีการแก้ภายหลัง ให้เก็บเป็นประวัติไว้ก่อนจนกว่าจะสร้างฉบับพร้อมใช้งานใหม่",
           cue:
-              "แนะนำ: ส่งออกแบบร่างล่าสุดใหม่ เพื่อคืนความมั่นใจก่อนใช้งานจริง",
+              "แนะนำ: สร้างฉบับใหม่จากแบบร่างล่าสุด เพื่อคืนความมั่นใจก่อนใช้งานจริง",
           actionLabel: "ดูประวัติเวอร์ชัน",
           onTap: onOpenArtifactHistory,
         ),

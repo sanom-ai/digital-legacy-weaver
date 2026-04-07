@@ -40,7 +40,7 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text('เวอร์ชันสัญญา: ${artifact.contractVersion}'),
                   const SizedBox(height: 4),
-                  Text('สถานะ: ${artifact.artifactState.name}'),
+                  Text('สถานะ: ${_artifactStateLabel(artifact.artifactState)}'),
                   const SizedBox(height: 4),
                   Text('เวลาที่สร้าง: ${artifact.generatedAt.toLocal()}'),
                   const SizedBox(height: 4),
@@ -68,12 +68,12 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     artifact.artifactState == IntentArtifactState.ready
-                        ? 'เวอร์ชันนี้พร้อมใช้งานแล้ว เพราะผ่านการส่งออกและรีวิวครบ'
-                        : 'เวอร์ชันที่ส่งออกต้องผ่านการรีวิวก่อน จึงจะถือว่าพร้อมใช้งาน',
+                        ? 'เวอร์ชันนี้พร้อมใช้งานแล้ว เพราะผ่านการสร้างฉบับพร้อมส่งและตรวจทานครบ'
+                        : 'ฉบับพร้อมส่งต้องผ่านการตรวจทานก่อน จึงจะถือว่าพร้อมใช้งาน',
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'หากต้องการย้อนกลับไปใช้จุดก่อนหน้า คุณสามารถคัดลอกเวอร์ชันเก่ามา export ใหม่ได้',
+                    'หากต้องการย้อนกลับไปใช้จุดก่อนหน้า คุณสามารถคัดลอกเวอร์ชันเก่ามาสร้างฉบับใหม่ได้',
                   ),
                 ],
               ),
@@ -198,7 +198,7 @@ class IntentArtifactReviewScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (artifact.report.issues.isEmpty)
-                    const Text('ไม่พบปัญหาในเวอร์ชันที่ส่งออกนี้')
+                    const Text('ไม่พบปัญหาในฉบับพร้อมส่งนี้')
                   else
                     ...artifact.report.issues.map(
                       (issue) => Padding(
@@ -381,7 +381,7 @@ class IntentArtifactReviewScreen extends StatelessWidget {
   String _issueAdvice(String code) {
     switch (code) {
       case 'intent_validation_error':
-        return 'กรอกข้อมูลที่ขาดให้ครบ แล้วส่งออกใหม่อีกครั้ง';
+        return 'กรอกข้อมูลที่ขาดให้ครบ แล้วสร้างฉบับพร้อมส่งใหม่อีกครั้ง';
       case 'inactive_entry_skipped':
         return 'เปิดใช้งานเส้นทางที่ต้องการให้ส่งมอบจริง';
       case 'exact_date_in_past':
@@ -397,7 +397,20 @@ class IntentArtifactReviewScreen extends StatelessWidget {
       case 'pretrigger_visibility_too_open':
         return 'ตั้งค่าให้ข้อมูลก่อนถึงเงื่อนไขเป็นแบบซ่อน เพื่อความเป็นส่วนตัว';
       default:
-        return 'ตรวจทานรายการนี้ก่อน release เพื่อความมั่นใจของผู้ใช้';
+        return 'ตรวจทานรายการนี้ก่อนปล่อยใช้งานจริง เพื่อความมั่นใจของผู้ใช้';
+    }
+  }
+
+  String _artifactStateLabel(IntentArtifactState state) {
+    switch (state) {
+      case IntentArtifactState.draft:
+        return 'แบบร่าง';
+      case IntentArtifactState.exported:
+        return 'ฉบับพร้อมส่ง';
+      case IntentArtifactState.reviewed:
+        return 'ตรวจทานแล้ว';
+      case IntentArtifactState.ready:
+        return 'พร้อมใช้งาน';
     }
   }
 }

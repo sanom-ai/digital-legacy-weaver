@@ -53,11 +53,11 @@ class IntentRuntimeReadinessScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _CriterionRow(
-                    label: "มีเวอร์ชันที่ Export แล้ว",
+                    label: "มีฉบับพร้อมส่งแล้ว",
                     satisfied: readiness.hasArtifact,
                   ),
                   _CriterionRow(
-                    label: "เวอร์ชันที่ Export ถูกตั้งเป็นพร้อมใช้งาน",
+                    label: "ฉบับพร้อมส่งถูกตั้งเป็นพร้อมใช้งานแล้ว",
                     satisfied:
                         readiness.currentArtifact?.artifactState.name ==
                         'ready',
