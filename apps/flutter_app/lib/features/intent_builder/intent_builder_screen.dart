@@ -25,6 +25,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 // "Edit route details"
 // "Export current version"
 // "Policy preview"
+// "Version history:"
 
 class IntentBuilderScreen extends ConsumerStatefulWidget {
   const IntentBuilderScreen({
@@ -1036,6 +1037,19 @@ Section 4: Partner delivery scope
     }
   }
 
+  String _partnerCatalogSourceText() {
+    switch (_partnerCatalogSourceLabel) {
+      case 'admin_api':
+        return 'Source: Admin API';
+      case 'admin_config':
+        return 'Source: Admin Config';
+      case 'unavailable':
+        return 'Source unavailable';
+      default:
+        return 'Source: $_partnerCatalogSourceLabel';
+    }
+  }
+
   Widget _buildPartnerNetworkCard() {
     final assetValue = _assetValueOrFallback();
     final selected = _selectedPartner;
@@ -1071,9 +1085,20 @@ Section 4: Partner delivery scope
               "Let beneficiaries choose a verified law partner with transparent fee tiers before case handoff.",
             ),
             const SizedBox(height: 4),
-            Text(
-              "Source: $_partnerCatalogSourceLabel",
-              style: const TextStyle(fontSize: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: const Color(0xFFF3EFE8),
+                border: Border.all(color: const Color(0xFFE6D8C7)),
+              ),
+              child: Text(
+                _partnerCatalogSourceText(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -1090,7 +1115,7 @@ Section 4: Partner delivery scope
               const LinearProgressIndicator(minHeight: 4),
               const SizedBox(height: 8),
               const Text(
-                "Loading verified partner catalog from admin source...",
+                "Refreshing verified partner catalog...",
               ),
               const SizedBox(height: 12),
             ],
