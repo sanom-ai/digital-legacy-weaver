@@ -587,6 +587,35 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 
+  Widget _buildSecurityNoticeCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF6F6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFB7DCDD)),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Security Notice | ข้อควรรู้ก่อนทำต่อ",
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          SizedBox(height: 6),
+          Text("• แอปนี้ไม่ขอรหัสผ่าน ไม่ขอ PIN และไม่ขอให้โอนเงิน"),
+          SizedBox(height: 4),
+          Text("• อย่ากดลิงก์จากข้อความที่ไม่แน่ใจ แม้ชื่อจะคล้ายกัน"),
+          SizedBox(height: 4),
+          Text("• วิธีที่ถูกต้อง: เปิดแอป Digital Legacy Weaver เอง แล้วกรอกรหัสที่ได้รับ"),
+          SizedBox(height: 4),
+          Text("• หากยังไม่แน่ใจ ให้โทรยืนยันกับญาติ/พยานก่อนทุกครั้ง"),
+        ],
+      ),
+    );
+  }
+
   bool _looksLikeNetworkError(String text) {
     final lower = text.toLowerCase();
     return lower.contains("socketexception") ||
@@ -905,6 +934,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
+                  _buildSecurityNoticeCard(),
+                  const SizedBox(height: 12),
                   _buildAntiScamChecklistCard(),
                   const SizedBox(height: 12),
                   Container(

@@ -9,6 +9,22 @@ class FeeTier {
   final double? maxInclusive;
   final double percent;
 
+  factory FeeTier.fromMap(Map<String, dynamic> map) {
+    return FeeTier(
+      minInclusive: (map['min_inclusive'] as num?)?.toDouble() ?? 0,
+      maxInclusive: (map['max_inclusive'] as num?)?.toDouble(),
+      percent: (map['percent'] as num?)?.toDouble() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'min_inclusive': minInclusive,
+      'max_inclusive': maxInclusive,
+      'percent': percent,
+    };
+  }
+
   String rangeLabel() {
     final min = _formatAmount(minInclusive);
     if (maxInclusive == null) {
@@ -69,6 +85,52 @@ class LegalPartnerProfile {
   final double platformFeePercent;
   final double? feeFloor;
   final double? feeCap;
+
+  factory LegalPartnerProfile.fromMap(Map<String, dynamic> map) {
+    final officeFeeRaw = map['office_fee_tiers'] as List? ?? const [];
+    final lawyerFeeRaw = map['lawyer_fee_tiers'] as List? ?? const [];
+    return LegalPartnerProfile(
+      id: map['id'] as String? ?? '',
+      officeName: map['office_name'] as String? ?? '',
+      province: map['province'] as String? ?? '',
+      specialties: (map['specialties'] as List? ?? const [])
+          .map((item) => item.toString())
+          .toList(),
+      slaHours: (map['sla_hours'] as num?)?.toInt() ?? 48,
+      rating: (map['rating'] as num?)?.toDouble() ?? 0,
+      isVerified: map['is_verified'] as bool? ?? false,
+      officeFeeTiers: officeFeeRaw
+          .whereType<Map>()
+          .map((item) => FeeTier.fromMap(Map<String, dynamic>.from(item)))
+          .toList(),
+      lawyerFeeTiers: lawyerFeeRaw
+          .whereType<Map>()
+          .map((item) => FeeTier.fromMap(Map<String, dynamic>.from(item)))
+          .toList(),
+      otherFeeNote: map['other_fee_note'] as String? ?? '',
+      platformFeePercent: (map['platform_fee_percent'] as num?)?.toDouble() ?? 0,
+      feeFloor: (map['fee_floor'] as num?)?.toDouble(),
+      feeCap: (map['fee_cap'] as num?)?.toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'office_name': officeName,
+      'province': province,
+      'specialties': specialties,
+      'sla_hours': slaHours,
+      'rating': rating,
+      'is_verified': isVerified,
+      'office_fee_tiers': officeFeeTiers.map((tier) => tier.toMap()).toList(),
+      'lawyer_fee_tiers': lawyerFeeTiers.map((tier) => tier.toMap()).toList(),
+      'other_fee_note': otherFeeNote,
+      'platform_fee_percent': platformFeePercent,
+      'fee_floor': feeFloor,
+      'fee_cap': feeCap,
+    };
+  }
 
   FeeBreakdown estimate(double assetValue) {
     final officePercent = _percentFor(assetValue, officeFeeTiers);

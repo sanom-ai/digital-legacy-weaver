@@ -12,6 +12,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_ptn_preview
 import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_trace_preview.dart';
 import 'package:digital_legacy_weaver/features/partner_network/partner_models.dart';
+import 'package:digital_legacy_weaver/features/partner_network/verified_partner_catalog_source.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _historySort = 'newest';
   String? _selectedPartnerId;
   bool _partnerTermsAccepted = false;
+  bool _partnerCatalogLoading = true;
   final Set<String> _selectedDestinationIds = <String>{};
   final TextEditingController _assetValueController =
       TextEditingController(text: '1000000');
@@ -81,55 +83,6 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   List<LegalPartnerProfile> get _verifiedLegalPartners =>
       _partnerCatalog.where((partner) => partner.isVerified).toList();
-
-  static const List<LegalPartnerProfile> _seedLegalPartners = [
-    LegalPartnerProfile(
-      id: 'law_sanom_bkk',
-      officeName: 'Sanom Legal Partners',
-      province: 'Bangkok',
-      specialties: ['Digital asset probate', 'Family estate'],
-      slaHours: 24,
-      rating: 4.8,
-      isVerified: true,
-      officeFeeTiers: [
-        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 2.00),
-        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 1.50),
-        FeeTier(minInclusive: 1000001, percent: 1.10),
-      ],
-      lawyerFeeTiers: [
-        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 1.20),
-        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 1.00),
-        FeeTier(minInclusive: 1000001, percent: 0.80),
-      ],
-      otherFeeNote: 'Court and government charges billed at actual cost.',
-      platformFeePercent: 0.40,
-      feeFloor: 1500,
-      feeCap: 300000,
-    ),
-    LegalPartnerProfile(
-      id: 'law_northern_trust',
-      officeName: 'Northern Trust Counsel',
-      province: 'Chiang Mai',
-      specialties: ['Cross-border inheritance', 'Crypto exchange liaison'],
-      slaHours: 36,
-      rating: 4.6,
-      isVerified: true,
-      officeFeeTiers: [
-        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 1.80),
-        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 1.40),
-        FeeTier(minInclusive: 1000001, percent: 1.00),
-      ],
-      lawyerFeeTiers: [
-        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 1.00),
-        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 0.90),
-        FeeTier(minInclusive: 1000001, percent: 0.70),
-      ],
-      otherFeeNote: 'Notary and translation services are separate.',
-      platformFeePercent: 0.40,
-      feeFloor: 1200,
-      feeCap: 260000,
-    ),
-  ];
 
   static const List<EcosystemDestination> _destinations = [
     EcosystemDestination(
@@ -158,8 +111,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   @override
   void initState() {
     super.initState();
-    _partnerCatalog.addAll(_loadPartnerCatalogSnapshot());
     _document = widget.initialDocument ?? _seedDocument();
+    _loadVerifiedPartnersFromAdminSource();
     _restoreDraft();
     _restoreArtifact();
   }
@@ -467,7 +420,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   Future<void> _editEntry(IntentEntryModel entry) async {
     final updated = await showDialog<IntentEntryModel>(
       context: context,
-      builder: (_) => _IntentEntryEditorDialog(entry: entry),
+      builder: (_) => _IntentEntryEditorDialog(
+        entry: entry,
+        verifiedLegalPartners: _verifiedLegalPartners
+            .map((partner) => partner.officeName)
+            .toList(),
+      ),
     );
     if (updated == null) return;
     await _persistDocument(
@@ -1051,10 +1009,28 @@ Section 4: Partner delivery scope
     );
   }
 
-  List<LegalPartnerProfile> _loadPartnerCatalogSnapshot() {
-    // Placeholder intake point for backend/admin sync in next phase.
-    // Replace this with repository/API data once partner admin portal is ready.
-    return _seedLegalPartners.where((partner) => partner.isVerified).toList();
+  Future<void> _loadVerifiedPartnersFromAdminSource() async {
+    try {
+      final source = VerifiedPartnerCatalogSource();
+      final partners = await source.loadVerifiedPartners();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _partnerCatalog
+          ..clear()
+          ..addAll(partners);
+        _partnerCatalogLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _partnerCatalog.clear();
+        _partnerCatalogLoading = false;
+      });
+    }
   }
 
   Widget _buildPartnerNetworkCard() {
@@ -1086,6 +1062,14 @@ Section 4: Partner delivery scope
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
+            if (_partnerCatalogLoading) ...[
+              const LinearProgressIndicator(minHeight: 4),
+              const SizedBox(height: 8),
+              const Text(
+                "Loading verified partner catalog from admin source...",
+              ),
+              const SizedBox(height: 12),
+            ],
             const Text(
               "Showing verified legal partners only. Partner registration is handled directly by admin onboarding.",
             ),
@@ -2566,9 +2550,13 @@ class _IntentEntryCard extends StatelessWidget {
 }
 
 class _IntentEntryEditorDialog extends StatefulWidget {
-  const _IntentEntryEditorDialog({required this.entry});
+  const _IntentEntryEditorDialog({
+    required this.entry,
+    required this.verifiedLegalPartners,
+  });
 
   final IntentEntryModel entry;
+  final List<String> verifiedLegalPartners;
 
   @override
   State<_IntentEntryEditorDialog> createState() =>
@@ -2645,11 +2633,6 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     'Bank connector',
     'Exchange connector',
     'Gold broker connector',
-  ];
-  // Placeholder verified list for route editor; replace with backend/admin data.
-  static const List<String> _verifiedLegalPartners = [
-    'Sanom Legal Partners',
-    'Northern Trust Counsel',
   ];
 
   @override
@@ -2805,6 +2788,20 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       (_) => '[institution-verified amount]',
     );
     return output;
+  }
+
+  bool _containsMoneyLikeText(String input) {
+    if (input.trim().isEmpty) {
+      return false;
+    }
+    final hasCurrency = RegExp(
+      r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+      caseSensitive: false,
+    ).hasMatch(input);
+    final hasLargeNumber = RegExp(
+      r'(?<!\w)([\d]{1,3}(?:,[\d]{3})+|[\d]{5,})(?:\.\d{1,2})?(?!\w)',
+    ).hasMatch(input);
+    return hasCurrency || hasLargeNumber;
   }
 
   Widget _buildChecklistSection({
@@ -3090,23 +3087,32 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       title: const Text('เชื่อมต่อสำนักงานกฎหมายให้ช่วยประสานงาน'),
                     ),
                     if (_connectLegalPartner)
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedLegalPartner,
-                        decoration: const InputDecoration(
-                          labelText: 'เลือกสำนักงานกฎหมายพาร์ทเนอร์',
+                      if (widget.verifiedLegalPartners.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            'ยังไม่มีสำนักงานกฎหมายที่ผ่านการ verify จากระบบ admin',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        )
+                      else
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedLegalPartner,
+                          decoration: const InputDecoration(
+                            labelText: 'เลือกสำนักงานกฎหมายพาร์ทเนอร์',
+                          ),
+                          items: widget.verifiedLegalPartners
+                              .map(
+                                (partner) => DropdownMenuItem(
+                                  value: partner,
+                                  child: Text(partner),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() => _selectedLegalPartner = value);
+                          },
                         ),
-                        items: _verifiedLegalPartners
-                            .map(
-                              (partner) => DropdownMenuItem(
-                                value: partner,
-                                child: Text(partner),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() => _selectedLegalPartner = value);
-                        },
-                      ),
                     const SizedBox(height: 6),
                     Container(
                       width: double.infinity,
@@ -3290,11 +3296,54 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _payloadRefController,
+                  onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
                     labelText: 'ข้อมูลที่ส่งมอบ (อ้างอิง)',
                     helperText: 'ไม่ต้องใส่ยอดเงินจริง ระบบยืนยันยอดกับปลายทางเท่านั้น',
                   ),
                 ),
+                if (_containsMoneyLikeText(_payloadRefController.text)) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFFFFF4E8),
+                      border: Border.all(color: const Color(0xFFF0C48A)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'พบข้อมูลที่คล้ายยอดเงิน',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'เพื่อความปลอดภัย ระบบนี้ไม่เก็บยอดจริง แนะนำให้แทนคำเป็น "ตรวจที่ปลายทาง"',
+                        ),
+                        const SizedBox(height: 8),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _payloadRefController.text =
+                                  _redactMoneyLikeText(_payloadRefController.text)
+                                      .replaceAll(
+                                        '[institution-verified amount]',
+                                        'ตรวจที่ปลายทาง',
+                                      );
+                            });
+                          },
+                          icon: const Icon(Icons.shield_outlined),
+                          label: const Text(
+                            'แทนคำอัตโนมัติเป็น "ตรวจที่ปลายทาง"',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 TextField(
                   controller: _verificationHintController,
