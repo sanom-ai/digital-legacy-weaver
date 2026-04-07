@@ -2535,6 +2535,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   final Set<String> _selectedEcosystemConnectors = <String>{};
   bool _connectLegalPartner = false;
   String? _selectedLegalPartner;
+  bool _expandPersonalSecrets = true;
+  bool _expandImportantDocs = false;
+  bool _expandDigitalAccounts = false;
 
   static const List<String> _personalSecretItems = [
     'recovery codes',
@@ -2696,6 +2699,68 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     }
   }
 
+  Widget _buildChecklistSection({
+    required String title,
+    required bool expanded,
+    required ValueChanged<bool> onExpanded,
+    required List<String> items,
+    required Set<String> selected,
+    required TextEditingController noteController,
+    required String noteLabel,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F4ED),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE8DDCF)),
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        initiallyExpanded: expanded,
+        onExpansionChanged: onExpanded,
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          "เลือกแล้ว ${selected.length} รายการ",
+        ),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: items
+                .map(
+                  (item) => FilterChip(
+                    selected: selected.contains(item),
+                    label: Text(item),
+                    onSelected: (value) {
+                      setState(() {
+                        if (value) {
+                          selected.add(item);
+                        } else {
+                          selected.remove(item);
+                        }
+                      });
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: noteController,
+            maxLines: 2,
+            decoration: InputDecoration(
+              labelText: noteLabel,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final inactivityDays =
@@ -2796,109 +2861,37 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'ความลับส่วนตัว',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              _buildChecklistSection(
+                title: 'ความลับส่วนตัว',
+                expanded: _expandPersonalSecrets,
+                onExpanded: (value) =>
+                    setState(() => _expandPersonalSecrets = value),
+                items: _personalSecretItems,
+                selected: _selectedPersonalSecrets,
+                noteController: _personalSecretsNoteController,
+                noteLabel: 'หมายเหตุความลับส่วนตัว (เพิ่มเติม)',
               ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _personalSecretItems
-                    .map(
-                      (item) => FilterChip(
-                        selected: _selectedPersonalSecrets.contains(item),
-                        label: Text(item),
-                        onSelected: (value) {
-                          setState(() {
-                            if (value) {
-                              _selectedPersonalSecrets.add(item);
-                            } else {
-                              _selectedPersonalSecrets.remove(item);
-                            }
-                          });
-                        },
-                      ),
-                    )
-                    .toList(),
+              const SizedBox(height: 10),
+              _buildChecklistSection(
+                title: 'เอกสารสำคัญ',
+                expanded: _expandImportantDocs,
+                onExpanded: (value) =>
+                    setState(() => _expandImportantDocs = value),
+                items: _importantDocumentItems,
+                selected: _selectedImportantDocs,
+                noteController: _importantDocsNoteController,
+                noteLabel: 'หมายเหตุเอกสารสำคัญ (เพิ่มเติม)',
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _personalSecretsNoteController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'หมายเหตุความลับส่วนตัว (เพิ่มเติม)',
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'เอกสารสำคัญ',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _importantDocumentItems
-                    .map(
-                      (item) => FilterChip(
-                        selected: _selectedImportantDocs.contains(item),
-                        label: Text(item),
-                        onSelected: (value) {
-                          setState(() {
-                            if (value) {
-                              _selectedImportantDocs.add(item);
-                            } else {
-                              _selectedImportantDocs.remove(item);
-                            }
-                          });
-                        },
-                      ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _importantDocsNoteController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'หมายเหตุเอกสารสำคัญ (เพิ่มเติม)',
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'บัญชีดิจิทัล',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _digitalAccountItems
-                    .map(
-                      (item) => FilterChip(
-                        selected: _selectedDigitalAccounts.contains(item),
-                        label: Text(item),
-                        onSelected: (value) {
-                          setState(() {
-                            if (value) {
-                              _selectedDigitalAccounts.add(item);
-                            } else {
-                              _selectedDigitalAccounts.remove(item);
-                            }
-                          });
-                        },
-                      ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _digitalAccountsNoteController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'หมายเหตุบัญชีดิจิทัล (เพิ่มเติม)',
-                ),
+              const SizedBox(height: 10),
+              _buildChecklistSection(
+                title: 'บัญชีดิจิทัล',
+                expanded: _expandDigitalAccounts,
+                onExpanded: (value) =>
+                    setState(() => _expandDigitalAccounts = value),
+                items: _digitalAccountItems,
+                selected: _selectedDigitalAccounts,
+                noteController: _digitalAccountsNoteController,
+                noteLabel: 'หมายเหตุบัญชีดิจิทัล (เพิ่มเติม)',
               ),
               const SizedBox(height: 12),
               TextField(
@@ -3006,6 +2999,21 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                           setState(() => _selectedLegalPartner = value);
                         },
                       ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xFFF7F1E8),
+                      ),
+                      child: Text(
+                        "สรุปที่จะส่ง: ผู้รับหลัก 1 คน"
+                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ecosystem ${_selectedEcosystemConnectors.length} ปลายทาง" : ""}"
+                        "${_connectLegalPartner && _selectedLegalPartner != null ? " + สำนักงานกฎหมาย 1 แห่ง" : ""}",
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   ],
                 ),
               ),
