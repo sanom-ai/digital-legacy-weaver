@@ -1109,12 +1109,12 @@ Notes
               children: [
                 const Expanded(
                   child: Text(
-                    "Legal Partner Network",
+                    "????????????????",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Refresh partner list',
+                  tooltip: '???????????????????????',
                   onPressed: _partnerCatalogLoading
                       ? null
                       : () {
@@ -1127,7 +1127,7 @@ Notes
             ),
             const SizedBox(height: 8),
             const Text(
-              "à¹€à¸¥à¸·à¸­à¸à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹à¸¥à¹‰à¸§ à¸žà¸£à¹‰à¸­à¸¡à¸•à¸²à¸£à¸²à¸‡à¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸—à¸µà¹ˆà¹‚à¸›à¸£à¹ˆà¸‡à¹ƒà¸ªà¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸‡à¸²à¸™à¸ˆà¸£à¸´à¸‡",
+              "??????????????????????????????????????? ?????????????????????????????????????????",
             ),
             const SizedBox(height: 4),
             Container(
@@ -1152,11 +1152,10 @@ Notes
               controller: _assetValueController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: "à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸›à¸£à¸°à¸¡à¸²à¸“à¸à¸²à¸£ (THB)",
+                labelText: "??????????????? (THB)",
                 prefixText: "THB ",
                 filled: true,
-                fillColor:
-                    scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1167,14 +1166,10 @@ Notes
             if (_partnerCatalogLoading) ...[
               const LinearProgressIndicator(minHeight: 4),
               const SizedBox(height: 8),
-              const Text(
-                "à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹€à¸”à¸•à¸£à¸²à¸¢à¸Šà¸·à¹ˆà¸­à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š...",
-              ),
+              const Text("????????????????????????????????????????????..."),
               const SizedBox(height: 12),
             ],
-            const Text(
-              "à¹à¸ªà¸”à¸‡à¹€à¸‰à¸žà¸²à¸°à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£ verify à¹à¸¥à¹‰à¸§à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™",
-            ),
+            const Text("????????????????????????????? verify ????????????"),
             const SizedBox(height: 12),
             if (_verifiedLegalPartners.isEmpty)
               Container(
@@ -1188,7 +1183,7 @@ Notes
                   ),
                 ),
                 child: const Text(
-                  "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£ verify à¸ˆà¸²à¸à¸£à¸°à¸šà¸šà¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™ à¹€à¸¡à¸·à¹ˆà¸­ admin à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸¥à¹‰à¸§à¸ˆà¸°à¸‚à¸¶à¹‰à¸™à¸—à¸µà¹ˆà¸™à¸µà¹ˆà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´",
+                  "???????????????????????????????? verify ??????????????? ????? admin ????????????????????????????????",
                 ),
               ),
             ..._verifiedLegalPartners.map((partner) {
@@ -1204,8 +1199,7 @@ Notes
                         ? scheme.tertiaryContainer.withValues(alpha: 0.45)
                         : scheme.surfaceContainerLowest,
                     border: Border.all(
-                      color:
-                          isSelected ? scheme.tertiary : scheme.outlineVariant,
+                      color: isSelected ? scheme.tertiary : scheme.outlineVariant,
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -1217,22 +1211,19 @@ Notes
                           Expanded(
                             child: Text(
                               partner.officeName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: const TextStyle(fontWeight: FontWeight.w700),
                             ),
                           ),
-                          if (partner.isVerified)
-                            const _Pill(label: "Verified"),
+                          if (partner.isVerified) const _Pill(label: "??????????"),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "${partner.province} â€¢ SLA ${partner.slaHours} à¸Šà¸¡. â€¢ Rating ${partner.rating.toStringAsFixed(1)}",
+                        "${partner.province} ? SLA ${partner.slaHours} ??. ? ????? ${partner.rating.toStringAsFixed(1)}",
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "à¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸£à¸§à¸¡à¹‚à¸”à¸¢à¸›à¸£à¸°à¸¡à¸²à¸“: THB ${_money(fee.totalFee)} (à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™ ${fee.officePercent.toStringAsFixed(2)}% + à¸—à¸™à¸²à¸¢ ${fee.lawyerPercent.toStringAsFixed(2)}% + à¹à¸žà¸¥à¸•à¸Ÿà¸­à¸£à¹Œà¸¡ ${fee.platformPercent.toStringAsFixed(2)}%)",
+                        "?????????????????????: THB ${_money(fee.totalFee)} (???????? ${fee.officePercent.toStringAsFixed(2)}% + ???? ${fee.lawyerPercent.toStringAsFixed(2)}% + ????????? ${fee.platformPercent.toStringAsFixed(2)}%)",
                       ),
                       const SizedBox(height: 6),
                       Wrap(
@@ -1242,14 +1233,14 @@ Notes
                             .map(
                               (tier) => _Pill(
                                 label:
-                                    "à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™ ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
+                                    "???????? ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
                               ),
                             )
                             .toList(),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸: ${partner.otherFeeNote}",
+                        "????????: ${partner.otherFeeNote}",
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 8),
@@ -1260,9 +1251,7 @@ Notes
                             _partnerTermsAccepted = false;
                           });
                         },
-                        child: Text(
-                          isSelected ? "à¹€à¸¥à¸·à¸­à¸à¹à¸¥à¹‰à¸§" : "à¹€à¸¥à¸·à¸­à¸à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸™à¸µà¹‰",
-                        ),
+                        child: Text(isSelected ? "?????????" : "????????????????"),
                       ),
                     ],
                   ),
@@ -1278,7 +1267,7 @@ Notes
                   setState(() => _partnerTermsAccepted = value ?? false);
                 },
                 title: Text(
-                  "à¸¢à¸­à¸¡à¸£à¸±à¸šà¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸‚à¸­à¸‡ ${selected.officeName} (à¸›à¸£à¸°à¸¡à¸²à¸“ THB ${_money(estimate.totalFee)}) à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸‡à¸²à¸™",
+                  "????????????????????????????? ${selected.officeName} (?????? THB ${_money(estimate.totalFee)}) ?????????????",
                 ),
               ),
             ],
@@ -1301,12 +1290,12 @@ Notes
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Ecosystem destinations",
+              "??????? ecosystem",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             const Text(
-              "Choose institutions to receive policy packet + document request. No automatic transfer is executed by the app.",
+              "???????????????????????????????????????????????? ????????????????????????",
             ),
             const SizedBox(height: 4),
             Container(
@@ -1330,18 +1319,16 @@ Notes
             if (_ecosystemCatalogLoading) ...[
               const LinearProgressIndicator(minHeight: 4),
               const SizedBox(height: 8),
-              const Text(
-                "à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹€à¸”à¸•à¸£à¸²à¸¢à¸Šà¸·à¹ˆà¸­à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š...",
-              ),
+              const Text("?????????????????????????????????????????..."),
               const SizedBox(height: 12),
             ],
             Row(
               children: [
                 const Expanded(
-                  child: Text("à¹à¸ªà¸”à¸‡à¹€à¸‰à¸žà¸²à¸°à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£ verify à¹à¸¥à¹‰à¸§à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™"),
+                  child: Text("?????????????????????????? verify ????????????"),
                 ),
                 IconButton(
-                  tooltip: 'Refresh ecosystem list',
+                  tooltip: '????????????????????',
                   onPressed: _ecosystemCatalogLoading
                       ? null
                       : () {
@@ -1364,7 +1351,7 @@ Notes
                   ),
                 ),
                 child: const Text(
-                  "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡ ecosystem à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£ verify à¸ˆà¸²à¸à¸£à¸°à¸šà¸šà¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™ à¹€à¸¡à¸·à¹ˆà¸­ admin à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸¥à¹‰à¸§à¸ˆà¸°à¸‚à¸¶à¹‰à¸™à¸—à¸µà¹ˆà¸™à¸µà¹ˆà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´",
+                  "??????????????? ecosystem ?????????? verify ??????????????? ????? admin ????????????????????????????????",
                 ),
               ),
             ..._verifiedDestinations.map((destination) {
@@ -1383,17 +1370,10 @@ Notes
                 },
                 title: Text(destination.name),
                 subtitle: Text(
-                  "${destination.category} â€¢ ${destination.status} â€¢ ${destination.note}",
+                  "${destination.category} ? ${destination.status} ? ${destination.note}",
                 ),
               );
             }),
-            if (_selectedDestinationIds.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                "Selected destinations: ${_selectedDestinationIds.length}",
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ],
           ],
         ),
       ),
@@ -1440,7 +1420,7 @@ Notes
     final ptnPreview = buildDraftIntentPtnPreview(_document);
     final draftSignature = buildIntentDocumentSignature(_document);
     final screenSubtitle = widget.screenSubtitle ??
-        "Step 2 of 3: set up your plan in plain language, then confirm.";
+        "ขั้นที่ 2 จาก 3: ตั้งค่าแผนด้วยภาษาง่ายๆ แล้วกดยืนยัน";
     final demoScenarioTitle = _document.metadata["demo_title"] as String?;
     final demoScenarioSummary = _document.metadata["demo_summary"] as String?;
     final demoScenarioNextStep =
