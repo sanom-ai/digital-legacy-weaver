@@ -59,6 +59,38 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
     );
   }
 
+  bool _containsMoneyLikeText(String input) {
+    if (input.trim().isEmpty) return false;
+    final hasCurrency = RegExp(
+      r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+      caseSensitive: false,
+    ).hasMatch(input);
+    final hasLargeNumber = RegExp(
+      r'(?<!\w)([\d]{1,3}(?:,[\d]{3})+|[\d]{5,})(?:\.\d{1,2})?(?!\w)',
+    ).hasMatch(input);
+    return hasCurrency || hasLargeNumber;
+  }
+
+  String _redactMoneyLikeText(String input) {
+    var output = input;
+    output = output.replaceAllMapped(
+      RegExp(
+        r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+        caseSensitive: false,
+      ),
+      (_) => 'ตรวจที่ปลายทาง',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{1,3}(?:,[\d]{3})+(?:\.\d{1,2})?(?!\w)'),
+      (_) => 'ตรวจที่ปลายทาง',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?(?!\w)'),
+      (_) => 'ตรวจที่ปลายทาง',
+    );
+    return output;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -70,8 +102,11 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
             DropdownButtonFormField<RecoveryKind>(
               initialValue: _kind,
               items: const [
-                DropdownMenuItem(value: RecoveryKind.legacy, child: Text("Legacy")),
-                DropdownMenuItem(value: RecoveryKind.selfRecovery, child: Text("Self Recovery")),
+                DropdownMenuItem(
+                    value: RecoveryKind.legacy, child: Text("Legacy")),
+                DropdownMenuItem(
+                    value: RecoveryKind.selfRecovery,
+                    child: Text("Self Recovery")),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -88,6 +123,7 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
             const SizedBox(height: 10),
             TextField(
               controller: _payloadController,
+              onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
                 labelText: "Encrypted payload",
                 hintText: "Base64/Ciphertext",
@@ -95,17 +131,75 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
               minLines: 2,
               maxLines: 4,
             ),
+            if (_containsMoneyLikeText(_payloadController.text)) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: const Color(0xFFFFF4E8),
+                  border: Border.all(color: const Color(0xFFF0C48A)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "พบข้อมูลที่คล้ายยอดเงิน",
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'เพื่อความปลอดภัย ฟิลด์นี้ควรเก็บเป็นข้อมูลอ้างอิง ไม่ใช่ยอดเงินจริง',
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _payloadController.text =
+                              _redactMoneyLikeText(_payloadController.text);
+                        });
+                      },
+                      icon: const Icon(Icons.shield_outlined),
+                      label: const Text('แทนอัตโนมัติเป็น "ตรวจที่ปลายทาง"'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: "Release notes (optional)"),
+              onChanged: (_) => setState(() {}),
+              decoration:
+                  const InputDecoration(labelText: "Release notes (optional)"),
             ),
+            if (_containsMoneyLikeText(_notesController.text)) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _notesController.text =
+                          _redactMoneyLikeText(_notesController.text);
+                    });
+                  },
+                  icon: const Icon(Icons.auto_fix_high_rounded),
+                  label: const Text('แทนยอดในหมายเหตุเป็น "ตรวจที่ปลายทาง"'),
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: _postTriggerVisibility,
               items: const [
-                DropdownMenuItem(value: "existence_only", child: Text("Post-trigger: existence only")),
-                DropdownMenuItem(value: "route_only", child: Text("Post-trigger: route only")),
+                DropdownMenuItem(
+                    value: "existence_only",
+                    child: Text("Post-trigger: existence only")),
+                DropdownMenuItem(
+                    value: "route_only",
+                    child: Text("Post-trigger: route only")),
                 DropdownMenuItem(
                   value: "route_and_instructions",
                   child: Text("Post-trigger: route and instructions"),
@@ -116,13 +210,15 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
                   setState(() => _postTriggerVisibility = value);
                 }
               },
-              decoration: const InputDecoration(labelText: "Visibility after trigger"),
+              decoration:
+                  const InputDecoration(labelText: "Visibility after trigger"),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: _valueDisclosureMode,
               items: const [
-                DropdownMenuItem(value: "hidden", child: Text("Value disclosure: hidden")),
+                DropdownMenuItem(
+                    value: "hidden", child: Text("Value disclosure: hidden")),
                 DropdownMenuItem(
                   value: "institution_verified_only",
                   child: Text("Value disclosure: institution verified only"),
@@ -133,7 +229,8 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
                   setState(() => _valueDisclosureMode = value);
                 }
               },
-              decoration: const InputDecoration(labelText: "Value disclosure mode"),
+              decoration:
+                  const InputDecoration(labelText: "Value disclosure mode"),
             ),
           ],
         ),

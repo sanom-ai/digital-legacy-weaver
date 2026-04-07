@@ -541,6 +541,38 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
     );
   }
 
+  bool _containsMoneyLikeText(String input) {
+    if (input.trim().isEmpty) return false;
+    final hasCurrency = RegExp(
+      r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+      caseSensitive: false,
+    ).hasMatch(input);
+    final hasLargeNumber = RegExp(
+      r'(?<!\w)([\d]{1,3}(?:,[\d]{3})+|[\d]{5,})(?:\.\d{1,2})?(?!\w)',
+    ).hasMatch(input);
+    return hasCurrency || hasLargeNumber;
+  }
+
+  String _redactMoneyLikeText(String input) {
+    var output = input;
+    output = output.replaceAllMapped(
+      RegExp(
+        r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+        caseSensitive: false,
+      ),
+      (_) => 'ตรวจที่ปลายทาง',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{1,3}(?:,[\d]{3})+(?:\.\d{1,2})?(?!\w)'),
+      (_) => 'ตรวจที่ปลายทาง',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?(?!\w)'),
+      (_) => 'ตรวจที่ปลายทาง',
+    );
+    return output;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -582,8 +614,45 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _payloadRef,
+              onChanged: (_) => setState(() {}),
               decoration: _dialogInputDecoration("Encrypted Payload Ref"),
             ),
+            if (_containsMoneyLikeText(_payloadRef.text)) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: const Color(0xFFFFF4E8),
+                  border: Border.all(color: const Color(0xFFF0C48A)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "พบข้อมูลที่คล้ายยอดเงิน",
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'เพื่อความปลอดภัย อย่าเก็บยอดเงินจริงในฟิลด์นี้ แนะนำให้แทนเป็น "ตรวจที่ปลายทาง"',
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _payloadRef.text =
+                              _redactMoneyLikeText(_payloadRef.text);
+                        });
+                      },
+                      icon: const Icon(Icons.shield_outlined),
+                      label: const Text('แทนอัตโนมัติเป็น "ตรวจที่ปลายทาง"'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             TextField(
               controller: _integrityHash,
