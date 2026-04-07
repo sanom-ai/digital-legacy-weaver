@@ -480,15 +480,27 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 
-  Widget _buildAntiScamChecklistCard() {
+  Widget _buildPanel({
+    required Widget child,
+    required Color color,
+    required Color borderColor,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
+        color: color,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE8C89A)),
+        border: Border.all(color: borderColor),
       ),
+      child: child,
+    );
+  }
+
+  Widget _buildAntiScamChecklistCard() {
+    return _buildPanel(
+      color: const Color(0xFFFFF7ED),
+      borderColor: const Color(0xFFE8C89A),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -544,13 +556,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   Widget _buildHandoffPacketCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F7F7),
-        borderRadius: BorderRadius.circular(14),
-      ),
+    return _buildPanel(
+      color: const Color(0xFFF2F7F7),
+      borderColor: const Color(0xFFCCE5E5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -662,13 +670,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                 ? "ออฟไลน์หรือสัญญาณไม่เสถียร"
             : "กำลังเตรียมข้อมูล";
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFE4D6),
-        borderRadius: BorderRadius.circular(14),
-      ),
+    return _buildPanel(
+      color: const Color(0xFFEFE4D6),
+      borderColor: const Color(0xFFE2D3BF),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
