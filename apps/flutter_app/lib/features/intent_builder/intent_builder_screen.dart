@@ -11,6 +11,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_document_si
 import 'package:digital_legacy_weaver/features/intent_builder/intent_ptn_preview.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_trace_preview.dart';
+import 'package:digital_legacy_weaver/features/partner_network/partner_models.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:flutter/material.dart';
@@ -58,10 +59,97 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   bool _isExporting = false;
   String _historyFilter = 'all';
   String _historySort = 'newest';
+  String? _selectedPartnerId;
+  bool _partnerTermsAccepted = false;
+  final Set<String> _selectedDestinationIds = <String>{};
+  final TextEditingController _assetValueController =
+      TextEditingController(text: '1000000');
 
   String get _storageOwnerRef => widget.storageOwnerRef ?? widget.profile.id;
   DemoScenario? get _activeScenario =>
       demoScenarioById(_document.metadata["demo_scenario"] as String?);
+  LegalPartnerProfile? get _selectedPartner {
+    if (_selectedPartnerId == null) return null;
+    for (final partner in _legalPartners) {
+      if (partner.id == _selectedPartnerId) {
+        return partner;
+      }
+    }
+    return null;
+  }
+
+  static const List<LegalPartnerProfile> _legalPartners = [
+    LegalPartnerProfile(
+      id: 'law_sanom_bkk',
+      officeName: 'Sanom Legal Partners',
+      province: 'Bangkok',
+      specialties: ['Digital asset probate', 'Family estate'],
+      slaHours: 24,
+      rating: 4.8,
+      isVerified: true,
+      officeFeeTiers: [
+        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 2.00),
+        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 1.50),
+        FeeTier(minInclusive: 1000001, percent: 1.10),
+      ],
+      lawyerFeeTiers: [
+        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 1.20),
+        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 1.00),
+        FeeTier(minInclusive: 1000001, percent: 0.80),
+      ],
+      otherFeeNote: 'Court and government charges billed at actual cost.',
+      platformFeePercent: 0.40,
+      feeFloor: 1500,
+      feeCap: 300000,
+    ),
+    LegalPartnerProfile(
+      id: 'law_northern_trust',
+      officeName: 'Northern Trust Counsel',
+      province: 'Chiang Mai',
+      specialties: ['Cross-border inheritance', 'Crypto exchange liaison'],
+      slaHours: 36,
+      rating: 4.6,
+      isVerified: true,
+      officeFeeTiers: [
+        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 1.80),
+        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 1.40),
+        FeeTier(minInclusive: 1000001, percent: 1.00),
+      ],
+      lawyerFeeTiers: [
+        FeeTier(minInclusive: 0, maxInclusive: 100000, percent: 1.00),
+        FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: 0.90),
+        FeeTier(minInclusive: 1000001, percent: 0.70),
+      ],
+      otherFeeNote: 'Notary and translation services are separate.',
+      platformFeePercent: 0.40,
+      feeFloor: 1200,
+      feeCap: 260000,
+    ),
+  ];
+
+  static const List<EcosystemDestination> _destinations = [
+    EcosystemDestination(
+      id: 'eco_bank_01',
+      name: 'Siam Trust Bank',
+      category: 'Bank',
+      status: 'verified',
+      note: 'Supports document handoff packet and identity review ticket.',
+    ),
+    EcosystemDestination(
+      id: 'eco_exchange_01',
+      name: 'Thai Digital Exchange',
+      category: 'Exchange',
+      status: 'verified',
+      note: 'Receives policy packet and beneficiary verification request.',
+    ),
+    EcosystemDestination(
+      id: 'eco_gold_01',
+      name: 'Golden Reserve Broker',
+      category: 'Gold',
+      status: 'pilot',
+      note: 'Pilot integration for claim document routing.',
+    ),
+  ];
 
   @override
   void initState() {
@@ -69,6 +157,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     _document = widget.initialDocument ?? _seedDocument();
     _restoreDraft();
     _restoreArtifact();
+  }
+
+  @override
+  void dispose() {
+    _assetValueController.dispose();
+    super.dispose();
   }
 
   Future<void> _restoreArtifact() async {
@@ -690,6 +784,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final verifyLevel = primary?.partnerVerificationRequired == true
         ? "à¸ªà¸¹à¸‡"
         : "à¸¡à¸²à¸•à¸£à¸à¸²à¸™";
+    final partner = _selectedPartner;
+    final selectedDestinations = _destinations
+        .where((destination) => _selectedDestinationIds.contains(destination.id))
+        .map((destination) => destination.name)
+        .toList();
+    final partnerLine = partner == null
+        ? "None selected"
+        : "${partner.officeName} (${partner.province})";
+    final destinationLine = selectedDestinations.isEmpty
+        ? "None selected"
+        : selectedDestinations.join(", ");
 
     return '''
 à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸£à¸¸à¸›à¸™à¹‚à¸¢à¸šà¸²à¸¢à¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (Final Policy Paper)
@@ -712,6 +817,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 - à¸ªà¸´à¸—à¸˜à¸´à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸: à¸­à¹ˆà¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸•à¸²à¸¡à¹à¸œà¸™
 - à¸£à¸°à¸šà¸šà¹€à¸›à¹‡à¸™à¸œà¸¹à¹‰à¸„à¸¸à¸¡à¸à¸Ž: à¸•à¸£à¸§à¸ˆà¸ªà¸±à¸à¸à¸²à¸“à¸Šà¸µà¸žà¹à¸¥à¸°à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸œà¹ˆà¸²à¸™à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸à¸³à¸«à¸™à¸”
 - à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸«à¸¥à¸±à¸: ${primary?.releaseChannel ?? "secure_link"}
+
+Section 4: Partner delivery scope
+- Legal partner: $partnerLine
+- Ecosystem destinations: $destinationLine
+- Terms accepted before send: ${_partnerTermsAccepted ? "Yes" : "No"}
 
 à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸:
 à¹€à¸­à¸à¸ªà¸²à¸£à¸™à¸µà¹‰à¹€à¸›à¹‡à¸™à¸ªà¸£à¸¸à¸›à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¸‚à¸­à¸‡à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µà¹à¸¥à¸°à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸
@@ -863,6 +973,202 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
   }
 
+  double _assetValueOrFallback() {
+    final raw = _assetValueController.text.replaceAll(',', '').trim();
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed <= 0) {
+      return 1000000;
+    }
+    return parsed;
+  }
+
+  String _money(double amount) {
+    final rounded = amount.round();
+    final raw = rounded.toString();
+    final parts = <String>[];
+    for (var i = raw.length; i > 0; i -= 3) {
+      final start = i - 3 < 0 ? 0 : i - 3;
+      parts.insert(0, raw.substring(start, i));
+    }
+    return parts.join(',');
+  }
+
+  Widget _buildPartnerNetworkCard() {
+    final assetValue = _assetValueOrFallback();
+    final selected = _selectedPartner;
+    final estimate = selected?.estimate(assetValue);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Legal Partner Network",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Let beneficiaries choose a verified law partner with transparent fee tiers before case handoff.",
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _assetValueController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Estimated asset value (THB)",
+                prefixText: "THB ",
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+            ..._legalPartners.map((partner) {
+              final isSelected = _selectedPartnerId == partner.id;
+              final fee = partner.estimate(assetValue);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: isSelected
+                        ? const Color(0xFFEAF6F6)
+                        : const Color(0xFFFAF7F2),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF1E6C77)
+                          : const Color(0xFFE7D9C8),
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              partner.officeName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (partner.isVerified)
+                            const _Pill(label: "Verified"),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "${partner.province} • SLA ${partner.slaHours}h • Rating ${partner.rating.toStringAsFixed(1)}",
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "Total estimate: THB ${_money(fee.totalFee)} (office ${fee.officePercent.toStringAsFixed(2)}% + lawyer ${fee.lawyerPercent.toStringAsFixed(2)}% + platform ${fee.platformPercent.toStringAsFixed(2)}%)",
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: partner.officeFeeTiers
+                            .map(
+                              (tier) => _Pill(
+                                label:
+                                    "Office ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "Note: ${partner.otherFeeNote}",
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.tonal(
+                        onPressed: () {
+                          setState(() {
+                            _selectedPartnerId = partner.id;
+                            _partnerTermsAccepted = false;
+                          });
+                        },
+                        child: Text(
+                          isSelected ? "Selected partner" : "Select this partner",
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            if (selected != null && estimate != null) ...[
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                value: _partnerTermsAccepted,
+                contentPadding: EdgeInsets.zero,
+                onChanged: (value) {
+                  setState(() => _partnerTermsAccepted = value ?? false);
+                },
+                title: Text(
+                  "I accept fee terms for ${selected.officeName} (estimated THB ${_money(estimate.totalFee)}) before beneficiary handoff.",
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEcosystemCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Ecosystem destinations",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Choose institutions to receive policy packet + document request. No automatic transfer is executed by the app.",
+            ),
+            const SizedBox(height: 12),
+            ..._destinations.map((destination) {
+              final enabled = _selectedDestinationIds.contains(destination.id);
+              return SwitchListTile.adaptive(
+                value: enabled,
+                contentPadding: EdgeInsets.zero,
+                onChanged: (value) {
+                  setState(() {
+                    if (value) {
+                      _selectedDestinationIds.add(destination.id);
+                    } else {
+                      _selectedDestinationIds.remove(destination.id);
+                    }
+                  });
+                },
+                title: Text(destination.name),
+                subtitle: Text(
+                  "${destination.category} • ${destination.status} • ${destination.note}",
+                ),
+              );
+            }),
+            if (_selectedDestinationIds.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                "Selected destinations: ${_selectedDestinationIds.length}",
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenTitle = widget.screenTitle ?? "Legacy plan workspace";
@@ -925,6 +1231,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           )
         : false;
     final visibleArtifactHistory = _visibleArtifactHistory();
+    final partnerTermsGateSatisfied =
+        _selectedPartnerId == null || _partnerTermsAccepted;
+    final canCreateVersion = !_isExporting && partnerTermsGateSatisfied;
     final isCompact = MediaQuery.of(context).size.width < 760;
     final pagePadding = EdgeInsets.symmetric(
       horizontal: isCompact ? 14 : 20,
@@ -1106,6 +1415,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          _buildPartnerNetworkCard(),
+          const SizedBox(height: 12),
+          _buildEcosystemCard(),
           const SizedBox(height: 12),
           const Card(
             color: Color(0xFFFFF7ED),
@@ -1648,11 +1961,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     runSpacing: 8,
                     children: [
                       FilledButton.icon(
-                        onPressed: _isExporting
-                            ? null
-                            : () {
+                        onPressed: canCreateVersion
+                            ? () {
                                 _exportCanonicalArtifact(report, ptnPreview);
-                              },
+                              }
+                            : null
+                        ,
                         icon: const Icon(Icons.publish_rounded),
                         label: Text(
                           _isExporting
@@ -1660,6 +1974,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                               : "Create latest version",
                         ),
                       ),
+                      if (!partnerTermsGateSatisfied)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 6),
+                          child: Text(
+                            "Accept partner fee terms before creating release version.",
+                            style: TextStyle(
+                              color: Color(0xFF8A5A00),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       OutlinedButton(
                         onPressed:
                             _artifact == null ? null : _clearCanonicalArtifact,
