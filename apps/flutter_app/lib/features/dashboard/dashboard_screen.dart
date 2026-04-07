@@ -1259,12 +1259,20 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                       : (index == 0 ? fallbackName : "ผู้รับมรดก ${index + 1}");
                   final triggerLabel = triggerSummary(item);
                   final status = statusSummary(item);
+                  final timelineSteps = <String>[
+                    "1) $triggerLabel",
+                    "2) ยืนยันซ้ำ ${item.graceDays} วัน",
+                    item.kind == "self_recovery"
+                        ? "3) เปิดสิทธิ์กู้คืนให้เจ้าของบัญชี"
+                        : "3) ส่งต่อให้ผู้รับตามช่องทางที่กำหนด",
+                  ];
                   return Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: _LegacyRecipientCard(
                       displayName: displayName,
                       deliveryLabel: item.assetLabel,
                       triggerLabel: triggerLabel,
+                      timelineSteps: timelineSteps,
                       statusLabel: status,
                     ),
                   );
@@ -1282,12 +1290,14 @@ class _LegacyRecipientCard extends StatelessWidget {
     required this.displayName,
     required this.deliveryLabel,
     required this.triggerLabel,
+    required this.timelineSteps,
     required this.statusLabel,
   });
 
   final String displayName;
   final String deliveryLabel;
   final String triggerLabel;
+  final List<String> timelineSteps;
   final String statusLabel;
 
   @override
@@ -1320,6 +1330,29 @@ class _LegacyRecipientCard extends StatelessWidget {
                 Text("ข้อมูลที่ส่งมอบ: $deliveryLabel"),
                 const SizedBox(height: 4),
                 Text("Trigger: $triggerLabel"),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xFFF7F2EA),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: timelineSteps
+                        .map(
+                          (step) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              step,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
               ],
             ),
           ),
