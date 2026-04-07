@@ -30,14 +30,14 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "ยัง$actionไม่สำเร็จ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาลองใหม่อีกครั้ง";
+      return "$actionยังไม่สำเร็จ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาลองใหม่อีกครั้ง";
     }
     if (lower.contains("no authenticated user") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
       return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่ แล้วลอง$actionอีกครั้ง";
     }
-    return "ยัง$actionไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
+    return "$actionยังไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   String _friendlyLoadError(String scope, Object error) {
@@ -46,18 +46,19 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "ไม่สามารถโหลด$scopeได้ เพราะออฟไลน์อยู่ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่";
+      return "ยังโหลด$scopeไม่ได้ เพราะตอนนี้ออฟไลน์หรือสัญญาณไม่เสถียร";
     }
     if (lower.contains("no authenticated user") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
-      return "ไม่สามารถโหลด$scopeได้ เพราะเซสชันไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่";
+      return "ยังโหลด$scopeไม่ได้ เพราะเซสชันไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่";
     }
     return "ยังโหลด$scopeไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   Future<void> _handleAddPath(
-      AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
+    AsyncValue<List<PartnerConnectorModel>> connectorsAsync,
+  ) async {
     if (_addingPath) return;
     final draft = await showDialog<_ConnectorDraft>(
       context: context,
@@ -76,7 +77,10 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
           );
       _setMessage("บันทึกปลายทางสำเร็จ");
     } catch (error) {
-      _setMessage(_friendlyActionError("บันทึกปลายทาง", error), isError: true);
+      _setMessage(
+        _friendlyActionError("บันทึกปลายทาง", error),
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() => _addingPath = false);
@@ -85,7 +89,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
   }
 
   Future<void> _handleAddAssetRef(
-      AsyncValue<List<PartnerConnectorModel>> connectorsAsync) async {
+    AsyncValue<List<PartnerConnectorModel>> connectorsAsync,
+  ) async {
     if (_addingAssetRef) return;
     if (connectorsAsync.isLoading) {
       _setMessage(
@@ -103,8 +108,10 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     }
     final connectors = connectorsAsync.value ?? const <PartnerConnectorModel>[];
     if (connectors.isEmpty) {
-      _setMessage("กรุณาเพิ่มปลายทางอย่างน้อย 1 รายการก่อนเพิ่มสินทรัพย์",
-          isError: true);
+      _setMessage(
+        "กรุณาเพิ่มปลายทางอย่างน้อย 1 รายการก่อนเพิ่มสินทรัพย์",
+        isError: true,
+      );
       return;
     }
 
@@ -126,12 +133,63 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
           );
       _setMessage("บันทึกรายการสินทรัพย์สำเร็จ");
     } catch (error) {
-      _setMessage(_friendlyActionError("บันทึกรายการสินทรัพย์", error),
-          isError: true);
+      _setMessage(
+        _friendlyActionError("บันทึกรายการสินทรัพย์", error),
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() => _addingAssetRef = false);
       }
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status.trim().toLowerCase()) {
+      case "active":
+        return "พร้อมใช้งาน";
+      case "paused":
+        return "พักไว้";
+      case "draft":
+        return "ยังไม่เปิดใช้";
+      default:
+        return status;
+    }
+  }
+
+  String _assetTypeLabel(String type) {
+    switch (type.trim().toLowerCase()) {
+      case "wallet":
+        return "กระเป๋าเงินดิจิทัล";
+      case "cloud_storage":
+        return "พื้นที่เก็บไฟล์";
+      case "bank":
+        return "บัญชีธนาคาร";
+      case "exchange":
+        return "แพลตฟอร์มซื้อขาย";
+      case "email":
+        return "อีเมล";
+      case "social":
+        return "โซเชียล";
+      case "document":
+        return "เอกสารสำคัญ";
+      default:
+        return type;
+    }
+  }
+
+  String _secondFactorLabel(String factor) {
+    switch (factor.trim().toLowerCase()) {
+      case "verification_code":
+        return "รหัสยืนยัน";
+      case "totp":
+        return "แอปยืนยันตัวตน";
+      case "biometric":
+        return "ชีวมิติ";
+      case "guardian_approval":
+        return "พยานร่วมอนุมัติ";
+      default:
+        return factor;
     }
   }
 
@@ -142,15 +200,52 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     final assetsAsync = ref.watch(connectorAssetRefsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("ปลายทางที่เชื่อมต่อแล้ว")),
+      appBar: AppBar(title: const Text("ปลายทางและรายการอ้างอิง")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "เชื่อมไว้เฉพาะสิ่งที่จำเป็น",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "หน้าจอนี้เก็บเพียงปลายทางและข้อมูลอ้างอิงแบบเข้ารหัส เพื่อให้ระบบส่งเอกสารไปยังสถาบันหรือพาร์ทเนอร์ได้ตามแผน",
+                ),
+                SizedBox(height: 6),
+                Text(
+                  "แอปไม่เก็บยอดเงินจริง และไม่ใช้หน้านี้สำหรับสั่งโอนเงิน",
+                ),
+              ],
+            ),
+          ),
+          if (_message != null) ...[
+            const SizedBox(height: 12),
+            _StatePanel(
+              message: _message!,
+              isError: _isMessageError,
+            ),
+          ],
+          const SizedBox(height: 12),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                  color: scheme.outlineVariant.withValues(alpha: 0.45)),
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -158,20 +253,13 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "รายการปลายทาง",
+                    "ปลายทางที่เชื่อมไว้",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "จัดการปลายทางที่ใช้ส่งเจตจำนงและเอกสารเมื่อถึงเงื่อนไขที่กำหนด",
+                    "จัดการรายชื่อสถาบันหรือบริการที่คุณต้องการให้ระบบประสานงานเอกสารเมื่อถึงเงื่อนไขที่กำหนด",
                   ),
-                  if (_message != null) ...[
-                    const SizedBox(height: 10),
-                    _StatePanel(
-                      message: _message!,
-                      isError: _isMessageError,
-                    ),
-                  ],
                   const SizedBox(height: 10),
                   FilledButton.tonal(
                     onPressed:
@@ -184,19 +272,22 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       if (items.isEmpty) {
                         return const _StatePanel(
                           message:
-                              "ยังไม่มีปลายทาง กรุณาเพิ่มอย่างน้อย 1 รายการก่อนผูกข้อมูลสินทรัพย์",
+                              "ยังไม่มีปลายทาง กรุณาเพิ่มอย่างน้อย 1 รายการก่อนผูกรายการสินทรัพย์",
                           highlighted: true,
                         );
                       }
                       return Column(
                         children: items
                             .map(
-                              (c) => ListTile(
+                              (connector) => ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text(c.name),
+                                title: Text(connector.name),
                                 subtitle: Text(
-                                  "${c.connectorId} | ${c.status}\nประเภทสินทรัพย์: ${c.supportedAssetTypes.join(", ")}",
+                                  "สถานะ: ${_statusLabel(connector.status)}\n"
+                                  "รองรับ: ${connector.supportedAssetTypes.map(_assetTypeLabel).join(", ")}\n"
+                                  "ยืนยันตัวตน: ${connector.supportedSecondFactors.map(_secondFactorLabel).join(", ")}",
                                 ),
+                                isThreeLine: true,
                               ),
                             )
                             .toList(),
@@ -222,7 +313,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                  color: scheme.outlineVariant.withValues(alpha: 0.45)),
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -235,7 +327,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "ผูกรายการอ้างอิงสินทรัพย์กับปลายทาง โดยไม่เปิดเผยข้อมูลจริงที่อ่อนไหว",
+                    "ผูกสินทรัพย์เข้ากับปลายทางโดยเก็บแค่ข้อมูลอ้างอิงที่ปลอดภัย เพื่อให้ปลายทางตรวจสอบรายละเอียดจริงเอง",
                   ),
                   const SizedBox(height: 10),
                   FilledButton.tonal(
@@ -243,7 +335,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                         ? null
                         : () => _handleAddAssetRef(connectorsAsync),
                     child: Text(
-                      _addingAssetRef ? "กำลังบันทึกรายการ..." : "เพิ่มรายการสินทรัพย์",
+                      _addingAssetRef ? "กำลังบันทึก..." : "เพิ่มรายการสินทรัพย์",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -256,15 +348,22 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                           highlighted: true,
                         );
                       }
+                      final connectors = connectorsAsync.value ?? const <PartnerConnectorModel>[];
+                      final connectorNames = <String, String>{
+                        for (final item in connectors) item.id: item.name,
+                      };
                       return Column(
                         children: items
                             .map(
-                              (a) => ListTile(
+                              (asset) => ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text(a.displayName),
+                                title: Text(asset.displayName),
                                 subtitle: Text(
-                                  "${a.assetType} | asset_id=${a.assetId}\nref=${a.encryptedPayloadRef}",
+                                  "ปลายทาง: ${connectorNames[asset.connectorRefId] ?? "ปลายทางเดิม"}\n"
+                                  "ประเภท: ${_assetTypeLabel(asset.assetType)}\n"
+                                  "ข้อมูลอ้างอิง: ${asset.encryptedPayloadRef}",
                                 ),
+                                isThreeLine: true,
                               ),
                             )
                             .toList(),
@@ -278,8 +377,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       message: _friendlyLoadError("รายการสินทรัพย์", error),
                       isError: true,
                       actionLabel: "ลองใหม่",
-                      onAction: () =>
-                          ref.invalidate(connectorAssetRefsProvider),
+                      onAction: () => ref.invalidate(connectorAssetRefsProvider),
                     ),
                   ),
                 ],
@@ -424,17 +522,17 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _assetTypes,
-              decoration: _dialogInputDecoration("ประเภทสินทรัพย์ (csv)"),
+              decoration: _dialogInputDecoration("ประเภทสินทรัพย์ที่รองรับ (คั่นด้วย comma)"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _secondFactors,
-              decoration: _dialogInputDecoration("วิธียืนยันตัวตน (csv)"),
+              decoration: _dialogInputDecoration("วิธียืนยันตัวตน (คั่นด้วย comma)"),
             ),
             CheckboxListTile(
               value: _supportsWebhooks,
               onChanged: (v) => setState(() => _supportsWebhooks = v ?? false),
-              title: const Text("รองรับ webhook"),
+              title: const Text("รองรับการรับสัญญาณจากปลายทาง"),
               contentPadding: EdgeInsets.zero,
             ),
           ],
@@ -580,16 +678,16 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
               initialValue: _connectorRefId,
               items: widget.connectors
                   .map(
-                    (c) => DropdownMenuItem(
-                      value: c.id,
-                      child: Text("${c.name} (${c.connectorId})"),
+                    (connector) => DropdownMenuItem(
+                      value: connector.id,
+                      child: Text("${connector.name} (${connector.connectorId})"),
                     ),
                   )
                   .toList(),
-              onChanged: (v) {
-                if (v != null) setState(() => _connectorRefId = v);
+              onChanged: (value) {
+                if (value != null) setState(() => _connectorRefId = value);
               },
-              decoration: _dialogInputDecoration("ปลายทางที่เชื่อมต่อ"),
+              decoration: _dialogInputDecoration("ปลายทางที่เชื่อมไว้"),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -610,7 +708,7 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
             TextField(
               controller: _payloadRef,
               onChanged: (_) => setState(() {}),
-              decoration: _dialogInputDecoration("ข้อมูลเข้ารหัสอ้างอิง"),
+              decoration: _dialogInputDecoration("ข้อมูลอ้างอิงแบบเข้ารหัส"),
             ),
             if (_containsMoneyLikeText(_payloadRef.text)) ...[
               const SizedBox(height: 8),

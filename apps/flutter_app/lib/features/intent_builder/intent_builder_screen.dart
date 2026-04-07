@@ -2960,6 +2960,19 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     'Gold broker connector',
   ];
 
+  String _ecosystemTargetLabel(String target) {
+    switch (target) {
+      case 'Bank connector':
+        return 'ธนาคาร';
+      case 'Exchange connector':
+        return 'แพลตฟอร์มซื้อขาย';
+      case 'Gold broker connector':
+        return 'ผู้ให้บริการทองคำ';
+      default:
+        return target;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -3458,12 +3471,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'เชื่อมต่อปลายทาง (connect)',
+                      'ประสานปลายทางเพิ่มเติม',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'เลือกให้ระบบประสานงานเอกสารไปยัง ecosystem และสำนักงานกฎหมายได้',
+                      'เลือกให้ระบบส่งเอกสารไปยังสถาบันที่เกี่ยวข้องและสำนักงานกฎหมายได้เมื่อถึงเวลา',
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -3474,7 +3487,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                             (target) => FilterChip(
                               selected:
                                   _selectedEcosystemConnectors.contains(target),
-                              label: Text(target),
+                              label: Text(_ecosystemTargetLabel(target)),
                               onSelected: (value) {
                                 setState(() {
                                   if (value) {
@@ -3509,7 +3522,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       const Padding(
                         padding: EdgeInsets.only(bottom: 8),
                         child: Text(
-                          'ยังไม่มีพาร์ทเนอร์ที่พร้อมใช้งาน จึงยังเปิดการเชื่อมต่อสำนักงานกฎหมายไม่ได้',
+                          'ตอนนี้ยังไม่มีสำนักงานกฎหมายที่พร้อมใช้งาน จึงยังเปิดการประสานงานส่วนนี้ไม่ได้',
                           style: TextStyle(fontSize: 12),
                         ),
                       ),
@@ -3518,7 +3531,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         const Padding(
                           padding: EdgeInsets.only(bottom: 8),
                           child: Text(
-                            'ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบ Admin',
+                            'ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบกลาง',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         )
@@ -3550,7 +3563,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       ),
                       child: Text(
                         "สรุปที่จะส่ง: ผู้รับหลัก 1 คน"
-                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ecosystem ${_selectedEcosystemConnectors.length} ปลายทาง" : ""}"
+                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ปลายทางสถาบัน ${_selectedEcosystemConnectors.length} แห่ง" : ""}"
                         "${_connectLegalPartner && _selectedLegalPartner != null ? " + สำนักงานกฎหมาย 1 แห่ง" : ""}",
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
