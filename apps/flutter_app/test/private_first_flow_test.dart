@@ -192,28 +192,28 @@ void main() {
       );
 
       await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'Continue').first,
+        find.widgetWithText(FilledButton, 'ถัดไป').first,
       );
       await tester.tap(
-        find.widgetWithText(FilledButton, 'Continue').first,
+        find.widgetWithText(FilledButton, 'ถัดไป').first,
         warnIfMissed: false,
       );
       await tester.pumpAndSettle();
       await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'Continue').first,
+        find.widgetWithText(FilledButton, 'ถัดไป').first,
       );
       await tester.tap(
-        find.widgetWithText(FilledButton, 'Continue').first,
+        find.widgetWithText(FilledButton, 'ถัดไป').first,
         warnIfMissed: false,
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('I understand legal companion mode'), findsOneWidget);
-      expect(find.textContaining('technical companion'), findsOneWidget);
-      expect(find.text('Keep private-first mode enabled'), findsOneWidget);
-      expect(find.text('Privacy preset'), findsOneWidget);
+      expect(find.text('ฉันเข้าใจขอบเขตทางกฎหมายของแอป'), findsOneWidget);
+      expect(find.textContaining('เครื่องมือช่วยจัดการดิจิทัล'), findsOneWidget);
+      expect(find.text('เปิดโหมดความเป็นส่วนตัวสูงสุดไว้'), findsOneWidget);
+      expect(find.text('ระดับความเป็นส่วนตัว'), findsOneWidget);
       expect(
-        find.textContaining('does not replace a legal will'),
+        find.textContaining('ไม่ได้แทนที่พินัยกรรม'),
         findsOneWidget,
       );
       expect(find.text('Highest privacy'), findsOneWidget);

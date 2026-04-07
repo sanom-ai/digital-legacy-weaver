@@ -522,12 +522,12 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Setup progress: step ${_stepIndex + 1} of 3",
+                    "ความคืบหน้า: ขั้นตอนที่ ${_stepIndex + 1} จาก 3",
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    "Complete contacts, trigger rules, and consent in one pass so beneficiary handoff is safe and predictable.",
+                    "กรอกผู้รับ เงื่อนไขเวลา และการยืนยันให้ครบครั้งเดียว เพื่อให้การส่งต่อปลอดภัยและชัดเจน",
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
@@ -558,13 +558,12 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         onPressed: _saving || (isFinalStep && !canFinalize)
                             ? null
                             : details.onStepContinue,
-                        child:
-                            Text(isFinalStep ? "Finalize setup" : "Continue"),
+                        child: Text(isFinalStep ? "ยืนยันและเริ่มใช้งาน" : "ถัดไป"),
                       ),
                       const SizedBox(width: 12),
                       TextButton(
                         onPressed: _saving ? null : details.onStepCancel,
-                        child: Text(_stepIndex == 0 ? "Close" : "Back"),
+                        child: Text(_stepIndex == 0 ? "ไปหน้าหลัก" : "ย้อนกลับ"),
                       ),
                     ],
                   );
@@ -572,21 +571,21 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                 steps: [
                   Step(
                     isActive: _stepIndex >= 0,
-                    title: const Text("Contacts"),
+                    title: const Text("ผู้รับ"),
                     content: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _stepIntro(
                           icon: Icons.group_outlined,
-                          title: "Step 1 of 3: trusted contacts",
+                          title: "ขั้นตอน 1 จาก 3: ผู้รับที่ไว้ใจได้",
                           detail:
-                              "Add trusted contact details for secure handoff and recovery.",
+                              "เพิ่มข้อมูลผู้รับหลัก เพื่อให้ระบบส่งต่อได้ถูกคนเมื่อถึงเวลา",
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _backupEmailController,
                           decoration: _fieldDecoration(
-                            label: "Backup email",
+                            label: "อีเมลสำรองของคุณ",
                             icon: Icons.alternate_email_outlined,
                           ),
                           validator: (v) => _requiredEmail(v),
@@ -595,7 +594,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         TextFormField(
                           controller: _beneficiaryEmailController,
                           decoration: _fieldDecoration(
-                            label: "Beneficiary email",
+                            label: "อีเมลผู้รับ",
                             icon: Icons.mark_email_read_outlined,
                           ),
                           validator: (v) => _requiredEmail(v),
@@ -604,7 +603,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         TextFormField(
                           controller: _beneficiaryNameController,
                           decoration: _fieldDecoration(
-                            label: "Beneficiary legal name",
+                            label: "ชื่อผู้รับ",
                             icon: Icons.badge_outlined,
                           ),
                           validator: (v) => _requiredText(v, minLength: 3),
@@ -614,7 +613,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           controller: _beneficiaryPhoneController,
                           keyboardType: TextInputType.phone,
                           decoration: _fieldDecoration(
-                            label: "Beneficiary fallback phone (optional)",
+                            label: "เบอร์โทรผู้รับ (ไม่บังคับ)",
                             icon: Icons.phone_outlined,
                           ),
                         ),
@@ -622,9 +621,9 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         TextFormField(
                           controller: _beneficiaryVerificationHintController,
                           decoration: _fieldDecoration(
-                            label: "Beneficiary verification hint",
+                            label: "คำใบ้ยืนยันตัวตนของผู้รับ",
                             icon: Icons.help_outline,
-                            helper: "Example: our family memory question",
+                            helper: "ตัวอย่าง: คำถามความทรงจำในครอบครัว",
                           ),
                           validator: (v) => _requiredText(v, minLength: 4),
                         ),
@@ -632,7 +631,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         TextFormField(
                           controller: _beneficiaryVerificationPhraseController,
                           decoration: _fieldDecoration(
-                            label: "Beneficiary verification phrase",
+                            label: "คำตอบยืนยันตัวตน",
                             icon: Icons.password_outlined,
                           ),
                           validator: _verificationPhraseValidator,
@@ -642,22 +641,22 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                   ),
                   Step(
                     isActive: _stepIndex >= 1,
-                    title: const Text("Triggers"),
+                    title: const Text("เวลา"),
                     content: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _stepIntro(
                           icon: Icons.schedule_outlined,
-                          title: "Step 2 of 3: release timing",
+                          title: "ขั้นตอน 2 จาก 3: เงื่อนไขเวลา",
                           detail:
-                              "Set timing so recovery stays safe and accidental release is less likely.",
+                              "กำหนดเวลาให้พอดี เพื่อกันการส่งต่อผิดพลาด",
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _legacyDaysController,
                           keyboardType: TextInputType.number,
                           decoration: _fieldDecoration(
-                            label: "Legacy inactivity days",
+                            label: "ขาดการติดต่อกี่วันจึงเริ่มส่งต่อ",
                             icon: Icons.history_toggle_off,
                           ),
                           validator: (v) => _requiredIntInRange(v, 90, 3650),
@@ -667,7 +666,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           controller: _selfRecoveryDaysController,
                           keyboardType: TextInputType.number,
                           decoration: _fieldDecoration(
-                            label: "Self-recovery inactivity days",
+                            label: "ขาดการติดต่อกี่วันจึงเริ่มกู้คืนเอง",
                             icon: Icons.restore_outlined,
                           ),
                           validator: (v) => _requiredIntInRange(v, 30, 180),
@@ -677,7 +676,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           controller: _graceDaysController,
                           keyboardType: TextInputType.number,
                           decoration: _fieldDecoration(
-                            label: "Final grace period (days)",
+                            label: "ช่วงรอก่อนปล่อยข้อมูล (วัน)",
                             icon: Icons.timer_outlined,
                           ),
                           validator: (v) => _requiredIntInRange(v, 7, 30),
@@ -686,23 +685,23 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         DropdownButtonFormField<String>(
                           initialValue: _proofOfLifeCheckMode,
                           decoration: _fieldDecoration(
-                            label: "Proof-of-life confirmation",
+                            label: "วิธียืนยันว่ายังใช้งานอยู่",
                             icon: Icons.fact_check_outlined,
                           ),
                           items: const [
                             DropdownMenuItem(
                               value: 'half_life_soft_checkin',
-                              child: Text("Half-life soft check-in (แนะนำ)"),
+                              child: Text("Soft check-in (recommended)"),
                             ),
                             DropdownMenuItem(
                                 value: 'biometric_tap',
-                                child: Text("Biometric tap (เข้มงวด)")),
+                                child: Text("Biometric tap (strict)")),
                             DropdownMenuItem(
                                 value: 'single_tap',
-                                child: Text("Single tap (เบา)")),
+                                child: Text("Single tap (light)")),
                             DropdownMenuItem(
                                 value: 'verification_code',
-                                child: Text("Verification code (เข้มงวดมาก)")),
+                                child: Text("Verification code (very strict)")),
                           ],
                           onChanged: (value) {
                             if (value != null) {
@@ -716,13 +715,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           children: [
                             FilterChip(
                               selected: _fallbackEmail,
-                              label: const Text("Email fallback"),
+                              label: const Text("สำรองทางอีเมล"),
                               onSelected: (value) =>
                                   setState(() => _fallbackEmail = value),
                             ),
                             FilterChip(
                               selected: _fallbackSms,
-                              label: const Text("SMS fallback"),
+                              label: const Text("สำรองทาง SMS"),
                               onSelected: (value) =>
                                   setState(() => _fallbackSms = value),
                             ),
@@ -730,7 +729,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          "Production baseline: keep both fallback channels on, and add beneficiary phone when SMS fallback is enabled.",
+                          "แนะนำ: เปิดทั้งอีเมลและ SMS เพื่อกันพลาด และใส่เบอร์โทรผู้รับเมื่อเปิด SMS",
                           style: TextStyle(fontSize: 12),
                         ),
                       ],
@@ -738,15 +737,15 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                   ),
                   Step(
                     isActive: _stepIndex >= 2,
-                    title: const Text("Consent"),
+                    title: const Text("ยืนยัน"),
                     content: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _stepIntro(
                           icon: Icons.verified_user_outlined,
-                          title: "Step 3 of 3: consent and safety",
+                          title: "ขั้นตอน 3 จาก 3: ความยินยอมและความปลอดภัย",
                           detail:
-                              "Confirm safety defaults so your workspace stays private-first and false-trigger resistant.",
+                              "ยืนยันค่าความปลอดภัยเริ่มต้น เพื่อให้แผนทำงานได้อย่างมั่นใจ",
                         ),
                         const SizedBox(height: 10),
                         SwitchListTile.adaptive(
@@ -754,19 +753,18 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           value: _remindersEnabled,
                           onChanged: (v) =>
                               setState(() => _remindersEnabled = v),
-                          title: const Text("Enable reminders"),
+                          title: const Text("เปิดการแจ้งเตือนล่วงหน้า"),
                           subtitle: const Text(
-                              "Send reminders before trigger windows to reduce accidental release."),
+                              "ระบบจะเตือนก่อนถึงช่วงปล่อยข้อมูล เพื่อลดโอกาสส่งต่อผิดเวลา"),
                         ),
                         CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           value: _legalAccepted,
                           onChanged: (v) =>
                               setState(() => _legalAccepted = v ?? false),
-                          title:
-                              const Text("I understand legal companion mode"),
+                          title: const Text("ฉันเข้าใจขอบเขตทางกฎหมายของแอป"),
                           subtitle: const Text(
-                            "This app is a technical companion and does not replace legal will procedures or legal decision-making.",
+                            "แอปนี้เป็นเครื่องมือช่วยจัดการดิจิทัล ไม่ได้แทนที่พินัยกรรมหรือคำแนะนำทางกฎหมาย",
                           ),
                         ),
                         SwitchListTile.adaptive(
@@ -774,31 +772,30 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           value: _privateFirstMode,
                           onChanged: (v) =>
                               setState(() => _privateFirstMode = v),
-                          title: const Text("Keep private-first mode enabled"),
+                          title: const Text("เปิดโหมดความเป็นส่วนตัวสูงสุดไว้"),
                           subtitle: const Text(
-                              "Keep the stricter privacy posture between app settings and active policy."),
+                              "คงค่าความเป็นส่วนตัวที่เข้มกว่า ระหว่างการตั้งค่าแอปกับนโยบายที่ใช้งานจริง"),
                         ),
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           value: _serverHeartbeatFallbackEnabled,
                           onChanged: (v) => setState(
                               () => _serverHeartbeatFallbackEnabled = v),
-                          title: const Text("Enable server heartbeat fallback"),
+                          title: const Text("เปิดการเช็กสัญญาณชีพสำรองจากเซิร์ฟเวอร์"),
                           subtitle: const Text(
-                              "Recommended for iOS and long background gaps so false triggers stay less likely."),
+                              "แนะนำสำหรับ iOS หรือช่วงที่แอปไม่ได้เปิดนาน เพื่อลดการทริกเกอร์ผิดพลาด"),
                         ),
                         CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           value: _iosBackgroundRiskAcknowledged,
                           onChanged: (v) => setState(() =>
                               _iosBackgroundRiskAcknowledged = v ?? false),
-                          title: const Text(
-                              "I understand iOS/background delivery limits"),
+                          title: const Text("ฉันเข้าใจข้อจำกัดการทำงานเบื้องหลังของมือถือ"),
                           subtitle: const Text(
-                              "Mobile platforms may pause background execution, so fallback heartbeat is strongly recommended."),
+                              "บางช่วงระบบมือถืออาจพักการทำงานเบื้องหลัง จึงควรเปิดการเช็กสำรองไว้"),
                         ),
                         const SizedBox(height: 12),
-                        const Text("Privacy preset",
+                        const Text("ระดับความเป็นส่วนตัว",
                             style: TextStyle(fontWeight: FontWeight.w600)),
                         const SizedBox(height: 8),
                         Column(
@@ -913,3 +910,5 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     );
   }
 }
+
+
