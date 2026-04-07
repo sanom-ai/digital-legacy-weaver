@@ -1,4 +1,4 @@
-import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
+﻿import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
@@ -54,14 +54,12 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_thaiMode != null) {
-      return;
-    }
+    if (_thaiMode != null) return;
     final locale = Localizations.localeOf(context);
     _thaiMode = locale.languageCode.toLowerCase().startsWith('th');
   }
 
-  String _tr(String th, String en) => _isThai ? th : en;
+  String _tr(String th, String en) => en;
 
   DemoScenario get _selectedScenario {
     return demoScenarioById(_selectedScenarioId) ?? demoScenarios.first;
@@ -97,7 +95,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
           settings: _demoSettings,
           screenTitle: _tr('พื้นที่ทำงานส่วนตัว', 'Private workspace'),
           screenSubtitle: _tr(
-            'ข้ามเดโม แล้วเริ่มสร้างแผนจริงของคุณทันที',
+            'ข้ามเดโม แล้วเริ่มสร้างแผนจริงของคุณได้ทันที',
             'Skip demo and start shaping your own plan immediately.',
           ),
         ),
@@ -117,16 +115,13 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _tr(
-                  'เชื่อมคลาวด์ทีหลังได้ (ไม่บังคับ)',
-                  'Connect cloud later (optional)',
-                ),
+                _tr('เชื่อมคลาวด์ทีหลังได้ (ไม่บังคับ)', 'Connect cloud later (optional)'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
               Text(
                 _tr(
-                  'ตอนนี้คุณเริ่มได้ทันทีในโหมดส่วนตัวบนเครื่อง เมื่อทีมพร้อมค่อยเชื่อมคลาวด์เพื่อซิงก์ข้ามอุปกรณ์',
+                  'เริ่มใช้งานได้ทันทีในโหมดส่วนตัวบนเครื่อง แล้วค่อยเชื่อมคลาวด์เมื่อทีมพร้อม',
                   'You can start now in private local mode. Connect cloud later when your team needs sync.',
                 ),
               ),
@@ -152,10 +147,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
   String _scenarioTitle(DemoScenario scenario) {
     switch (scenario.id) {
       case 'family_handoff':
-        return _tr(
-          'เส้นทางมอบมรดกดิจิทัลให้คนที่คุณรัก',
-          'Digital Legacy Handoff',
-        );
+        return _tr('เส้นทางมอบมรดกดิจิทัลให้คนที่คุณรัก', 'Digital Legacy Handoff');
       case 'self_recovery':
         return _tr('กู้คืนบัญชีของฉัน', 'Owner Self-Recovery');
       case 'private_archive':
@@ -169,17 +161,17 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     switch (scenario.id) {
       case 'family_handoff':
         return _tr(
-          'เริ่มจากเดโมที่เห็นครบทั้งเส้นทาง ตั้งแต่เตรียมแผนจนถึงส่งต่อให้ผู้รับ',
+          'เดโมแนะนำที่เห็นภาพครบตั้งแต่เริ่มตั้งค่าไปจนถึงการส่งต่อ',
           'Best first demo with full handoff flow from setup to recipient.',
         );
       case 'self_recovery':
         return _tr(
-          'เหมาะสำหรับเริ่มวางแผนกู้คืนบัญชีของเจ้าของก่อน ลดความเสี่ยงส่งผิดคน',
+          'เริ่มจากป้องกันและกู้คืนบัญชีเจ้าของก่อน ลดความเสี่ยงส่งผิดคน',
           'Start with owner account recovery before legacy handoff.',
         );
       case 'private_archive':
         return _tr(
-          'เน้นความเป็นส่วนตัวสูงสุด เหมาะกับข้อมูลสำคัญและอ่อนไหว',
+          'เหมาะกับข้อมูลอ่อนไหวสูง เน้นความเป็นส่วนตัวมากที่สุด',
           'Confidentiality-heavy path for highly sensitive information.',
         );
       default:
@@ -211,17 +203,17 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     switch (scenario.id) {
       case 'family_handoff':
         return _tr(
-          'เหมาะกับเจ้าของที่อยากส่งต่อบัญชีสำคัญและข้อมูลครอบครัวแบบปลอดภัย มีขั้นยืนยันก่อนเปิดข้อมูลจริง',
+          'เหมาะกับเจ้าของที่ต้องการส่งต่อบัญชีสำคัญและข้อมูลครอบครัวอย่างปลอดภัย พร้อมขั้นตอนยืนยันตัวตนก่อนเปิดข้อมูล',
           'For secure family handoff with identity checks before final reveal.',
         );
       case 'self_recovery':
         return _tr(
-          'เหมาะกับการป้องกันการล็อกอินหาย เจ้าของยังคุมสิทธิ์เองทั้งหมด และเน้นกู้คืนได้เร็ว',
+          'เน้นกู้คืนสิทธิ์การเข้าถึงของเจ้าของก่อน โดยเจ้าของยังคุมสิทธิ์ทั้งหมด',
           'For owner-first account recovery while keeping full control.',
         );
       case 'private_archive':
         return _tr(
-          'เหมาะกับข้อมูลอ่อนไหวสูงที่ต้องจำกัดการเห็นข้อมูลก่อนถึงเงื่อนไข',
+          'เหมาะกับข้อมูลที่ต้องจำกัดการมองเห็นสูง และเปิดเผยเฉพาะเมื่อถึงเงื่อนไขจริง',
           'For strict private archive routes with minimal visibility.',
         );
       default:
@@ -248,22 +240,16 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     final compact = MediaQuery.of(context).size.width < 920;
 
     final title = widget.unlockAttempt
-        ? _tr(
-            'เปิดลิงก์แล้ว เริ่มต่ออย่างปลอดภัย',
-            'Receipt opened. Continue safely now.',
-          )
-        : _tr(
-            'เริ่มเลยในโหมดส่วนตัวบนเครื่อง',
-            'Start now in private local mode',
-          );
+        ? _tr('เปิดคำขอแล้ว ดำเนินการต่ออย่างปลอดภัย', 'Receipt opened. Continue safely now.')
+        : _tr('เริ่มเลยในโหมดส่วนตัวบนเครื่อง', 'Start now in private local mode');
 
     final summary = widget.unlockAttempt
         ? _tr(
-            'ลิงก์เปิดได้แล้ว ขั้นต่อไปคือเลือกเส้นทางที่ต้องการ เพื่อทดลอง flow จริงแบบปลอดภัย',
-            'Your receipt opened. Next, choose one guided path to continue safely.',
+            'คุณไม่จำเป็นต้องรีบ ให้เลือกเส้นทางที่เหมาะสมแล้วทำตามขั้นตอนในแอปเท่านั้น',
+            'No rush. Choose one guided path and continue inside the app only.',
           )
         : _tr(
-            'ไม่ต้องตั้งค่าคลาวด์ก่อน เริ่มวางแผนได้ทันทีใน 3 ขั้นตอนแบบเข้าใจง่าย',
+            'ไม่ต้องตั้งค่าคลาวด์ก่อน เริ่มวางแผนได้ทันทีแบบ 3 ขั้นตอนเข้าใจง่าย',
             'No cloud setup needed. Start with a clear 3-step guided flow.',
           );
 
@@ -281,25 +267,34 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                     title: title,
                     summary: summary,
                     isThai: _isThai,
-                    onLanguageChanged: (isThai) =>
-                        setState(() => _thaiMode = isThai),
-                    primaryActionLabel: _tr(
-                      'เริ่มโหมดส่วนตัวทันที',
-                      'Start in private mode',
-                    ),
-                    onPrimaryAction: () =>
-                        _openScenario(context, _selectedScenario),
-                    secondaryActionLabel: _tr(
-                      'ฉันพร้อมแล้ว ไปหน้าทำงานเลย',
-                      'I already know, go to dashboard',
-                    ),
+                    onLanguageChanged: (isThai) => setState(() => _thaiMode = isThai),
+                    primaryActionLabel: _tr('เริ่มโหมดส่วนตัวทันที', 'Start in private mode'),
+                    onPrimaryAction: () => _openScenario(context, _selectedScenario),
+                    secondaryActionLabel: _tr('ฉันพร้อมแล้ว ไปหน้าใช้งานหลัก', 'I already know, go to dashboard'),
                     onSecondaryAction: () => _openWorkspaceQuick(context),
-                    tertiaryActionLabel:
-                        _tr('ดูวิธีเชื่อมคลาวด์', 'Cloud setup later'),
+                    tertiaryActionLabel: _tr('ดูวิธีเชื่อมคลาวด์', 'Cloud setup later'),
                     onTertiaryAction: () => _showBackendSetupSheet(context),
-                    stepTitle: _tr(
-                      'Step 1 of 3: เลือกเส้นทางแรก',
-                      'Step 1 of 3: Choose your first journey',
+                    stepTitle: _tr('ขั้นตอน 1 จาก 3: เลือกเส้นทางแรก', 'Step 1 of 3: Choose your first journey'),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.security_rounded, color: Color(0xFF0E7C86)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _tr(
+                                'ความปลอดภัย: แอปจะไม่ขอรหัสผ่าน ไม่ขอให้โอนเงิน และไม่ให้กดลิงก์จากข้อความ ให้เปิดแอปแล้วกรอกรหัสด้วยตัวเองเท่านั้น',
+                                'Security notice: We never ask for passwords, transfers, or message links. Open the app and enter your code directly.',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -307,12 +302,10 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                     _buildJourneySection(theme),
                     const SizedBox(height: 12),
                     _LocalExplanationCard(
-                      title: _tr('ในโหมด local จะเกิดอะไรขึ้น',
-                          'What happens in local mode'),
+                      title: _tr('ในโหมด local จะเกิดอะไรขึ้น', 'What happens in local mode'),
                       expanded: _localGuideExpanded,
                       collapsible: true,
-                      onExpandedChanged: (value) =>
-                          setState(() => _localGuideExpanded = value),
+                      onExpandedChanged: (value) => setState(() => _localGuideExpanded = value),
                       items: _localGuideItems(),
                     ),
                   ] else ...[
@@ -324,10 +317,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                         Expanded(
                           flex: 2,
                           child: _LocalExplanationCard(
-                            title: _tr(
-                              'ในโหมด local จะเกิดอะไรขึ้น',
-                              'What happens in local mode',
-                            ),
+                            title: _tr('ในโหมด local จะเกิดอะไรขึ้น', 'What happens in local mode'),
                             expanded: true,
                             collapsible: false,
                             items: _localGuideItems(),
@@ -343,13 +333,12 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.gpp_good_rounded,
-                              color: Color(0xFF0E7C86)),
+                          const Icon(Icons.gpp_good_rounded, color: Color(0xFF0E7C86)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               _tr(
-                                'แอปนี้ช่วยจัดการ “การส่งต่อสิทธิ์เข้าถึง” อย่างปลอดภัย แต่ไม่แทนกระบวนการทางกฎหมาย',
+                                'แอปนี้ช่วยประสานการส่งต่อสิทธิ์เข้าถึงอย่างปลอดภัย แต่ไม่แทนกระบวนการทางกฎหมาย',
                                 'This app coordinates secure access handoff, but does not replace legal processes.',
                               ),
                             ),
@@ -380,10 +369,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _tr(
-                'เลือก 1 เส้นทางที่ใกล้ชีวิตจริงที่สุด แล้วค่อยปรับรายละเอียดภายหลัง',
-                'Pick one concrete path now, then tune details later.',
-              ),
+              _tr('เลือก 1 เส้นทางที่ใกล้ชีวิตจริงที่สุด แล้วค่อยปรับรายละเอียดภายหลัง', 'Pick one concrete path now, then tune details later.'),
             ),
             const SizedBox(height: 14),
             ...demoScenarios.map((scenario) {
@@ -400,8 +386,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                   detail: _scenarioDetail(scenario),
                   selected: selected,
                   highlighted: scenario.id == 'family_handoff',
-                  onSelect: () =>
-                      setState(() => _selectedScenarioId = scenario.id),
+                  onSelect: () => setState(() => _selectedScenarioId = scenario.id),
                   onStart: () => _openScenario(context, scenario),
                 ),
               );
@@ -416,24 +401,15 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     return [
       _LocalGuideItemData(
         icon: Icons.smartphone_rounded,
-        title: _tr(
-          'เริ่มจากเดโมที่พร้อมใช้ทันที',
-          'Start with a ready-to-use demo',
-        ),
+        title: _tr('เริ่มจากเดโมที่พร้อมใช้ทันที', 'Start with a ready-to-use demo'),
       ),
       _LocalGuideItemData(
         icon: Icons.visibility_rounded,
-        title: _tr(
-          'ตรวจแผนและความปลอดภัยได้บนเครื่องคุณ',
-          'Review plan and safety directly on your device',
-        ),
+        title: _tr('ตรวจแผนและความปลอดภัยได้บนเครื่องของคุณ', 'Review plan and safety directly on your device'),
       ),
       _LocalGuideItemData(
         icon: Icons.verified_user_rounded,
-        title: _tr(
-          'เช็กความพร้อมก่อนเชื่อมคลาวด์ทีหลัง',
-          'Confirm readiness before optional cloud setup',
-        ),
+        title: _tr('เช็กความพร้อมก่อนเชื่อมคลาวด์ทีหลัง', 'Confirm readiness before optional cloud setup'),
       ),
     ];
   }
@@ -612,9 +588,7 @@ class _PathCardState extends State<_PathCard> {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
-          color: widget.selected
-              ? const Color(0xFFFFFBF5)
-              : const Color(0xFFFFFDF9),
+          color: widget.selected ? const Color(0xFFFFFBF5) : const Color(0xFFFFFDF9),
           border: Border.all(
             color: widget.selected ? selectedColor : const Color(0xFFE6DDD1),
             width: widget.selected ? 2 : 1,
@@ -666,9 +640,7 @@ class _PathCardState extends State<_PathCard> {
             const SizedBox(height: 10),
             Text(widget.summary),
             AnimatedCrossFade(
-              crossFadeState: _showDetail
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
+              crossFadeState: _showDetail ? CrossFadeState.showSecond : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 170),
               firstChild: const SizedBox(height: 0),
               secondChild: Padding(
@@ -689,12 +661,8 @@ class _PathCardState extends State<_PathCard> {
                 FilledButton(
                   onPressed: widget.onStart,
                   style: FilledButton.styleFrom(
-                    backgroundColor: widget.highlighted
-                        ? const Color(0xFFF2A64D)
-                        : const Color(0xFF1E6A79),
-                    foregroundColor: widget.highlighted
-                        ? const Color(0xFF2A1808)
-                        : Colors.white,
+                    backgroundColor: widget.highlighted ? const Color(0xFFF2A64D) : const Color(0xFF1E6A79),
+                    foregroundColor: widget.highlighted ? const Color(0xFF2A1808) : Colors.white,
                     textStyle: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   child: Text(widget.actionLabel),
@@ -746,8 +714,7 @@ class _LocalExplanationCard extends StatelessWidget {
                         color: const Color(0xFFDBF0EF),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(item.icon,
-                          size: 20, color: const Color(0xFF1E6C77)),
+                      child: Icon(item.icon, size: 20, color: const Color(0xFF1E6C77)),
                     ),
                     const SizedBox(width: 10),
                     Expanded(child: Text(item.title)),
@@ -808,7 +775,7 @@ class _LanguageToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return SegmentedButton<bool>(
       segments: const [
-        ButtonSegment<bool>(value: true, label: Text('ไทย')),
+        ButtonSegment<bool>(value: true, label: Text('TH')),
         ButtonSegment<bool>(value: false, label: Text('EN')),
       ],
       selected: {isThai},
