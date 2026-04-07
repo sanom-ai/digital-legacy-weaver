@@ -1082,7 +1082,7 @@ Section 4: Partner delivery scope
             ),
             const SizedBox(height: 8),
             const Text(
-              "Let beneficiaries choose a verified law partner with transparent fee tiers before case handoff.",
+              "เลือกสำนักงานกฎหมายที่ผ่านการตรวจสอบแล้ว พร้อมตารางค่าธรรมเนียมที่โปร่งใสก่อนส่งมอบงานจริง",
             ),
             const SizedBox(height: 4),
             Container(
@@ -1105,7 +1105,7 @@ Section 4: Partner delivery scope
               controller: _assetValueController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: "Estimated asset value (THB)",
+                labelText: "มูลค่าประมาณการ (THB)",
                 prefixText: "THB ",
               ),
               onChanged: (_) => setState(() {}),
@@ -1115,12 +1115,12 @@ Section 4: Partner delivery scope
               const LinearProgressIndicator(minHeight: 4),
               const SizedBox(height: 8),
               const Text(
-                "Refreshing verified partner catalog...",
+                "กำลังอัปเดตรายชื่อพาร์ทเนอร์ที่ผ่านการตรวจสอบ...",
               ),
               const SizedBox(height: 12),
             ],
             const Text(
-              "Showing verified legal partners only. Partner registration is handled directly by admin onboarding.",
+              "แสดงเฉพาะพาร์ทเนอร์ที่ผ่านการ verify แล้วเท่านั้น",
             ),
             const SizedBox(height: 12),
             if (_verifiedLegalPartners.isEmpty)
@@ -1133,7 +1133,7 @@ Section 4: Partner delivery scope
                   border: Border.all(color: const Color(0xFFE8DDCF)),
                 ),
                 child: const Text(
-                  "No verified legal partners yet. Admin onboarding can add partner records, then they will appear here automatically.",
+                  "ยังไม่มีสำนักงานกฎหมายที่ผ่านการ verify จากระบบหลังบ้าน เมื่อ admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
                 ),
               ),
             ..._verifiedLegalPartners.map((partner) {
@@ -1174,11 +1174,11 @@ Section 4: Partner delivery scope
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "${partner.province} • SLA ${partner.slaHours}h • Rating ${partner.rating.toStringAsFixed(1)}",
+                        "${partner.province} • SLA ${partner.slaHours} ชม. • Rating ${partner.rating.toStringAsFixed(1)}",
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "Total estimate: THB ${_money(fee.totalFee)} (office ${fee.officePercent.toStringAsFixed(2)}% + lawyer ${fee.lawyerPercent.toStringAsFixed(2)}% + platform ${fee.platformPercent.toStringAsFixed(2)}%)",
+                        "ค่าธรรมเนียมรวมโดยประมาณ: THB ${_money(fee.totalFee)} (สำนักงาน ${fee.officePercent.toStringAsFixed(2)}% + ทนาย ${fee.lawyerPercent.toStringAsFixed(2)}% + แพลตฟอร์ม ${fee.platformPercent.toStringAsFixed(2)}%)",
                       ),
                       const SizedBox(height: 6),
                       Wrap(
@@ -1188,14 +1188,14 @@ Section 4: Partner delivery scope
                             .map(
                               (tier) => _Pill(
                                 label:
-                                    "Office ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
+                                    "สำนักงาน ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
                               ),
                             )
                             .toList(),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "Note: ${partner.otherFeeNote}",
+                        "หมายเหตุ: ${partner.otherFeeNote}",
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 8),
@@ -1207,7 +1207,7 @@ Section 4: Partner delivery scope
                           });
                         },
                         child: Text(
-                          isSelected ? "Selected partner" : "Select this partner",
+                          isSelected ? "เลือกแล้ว" : "เลือกสำนักงานนี้",
                         ),
                       ),
                     ],
@@ -1224,7 +1224,7 @@ Section 4: Partner delivery scope
                   setState(() => _partnerTermsAccepted = value ?? false);
                 },
                 title: Text(
-                  "I accept fee terms for ${selected.officeName} (estimated THB ${_money(estimate.totalFee)}) before beneficiary handoff.",
+                  "ยอมรับเงื่อนไขค่าธรรมเนียมของ ${selected.officeName} (ประมาณ THB ${_money(estimate.totalFee)}) ก่อนส่งมอบงาน",
                 ),
               ),
             ],
@@ -3125,16 +3125,26 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
                       value: _connectLegalPartner,
-                      onChanged: (value) {
-                        setState(() {
-                          _connectLegalPartner = value;
-                          if (!value) {
-                            _selectedLegalPartner = null;
-                          }
-                        });
-                      },
+                      onChanged: widget.verifiedLegalPartners.isEmpty
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _connectLegalPartner = value;
+                                if (!value) {
+                                  _selectedLegalPartner = null;
+                                }
+                              });
+                            },
                       title: const Text('เชื่อมต่อสำนักงานกฎหมายให้ช่วยประสานงาน'),
                     ),
+                    if (widget.verifiedLegalPartners.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'ยังไม่มีพาร์ทเนอร์ที่พร้อมใช้งาน จึงยังเปิดการเชื่อมต่อสำนักงานกฎหมายไม่ได้',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
                     if (_connectLegalPartner)
                       if (widget.verifiedLegalPartners.isEmpty)
                         const Padding(
