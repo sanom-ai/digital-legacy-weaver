@@ -32,14 +32,14 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "Could not finish $action because the connection looks unstable. Please retry when your internet is stable.";
+      return "ยัง$actionไม่สำเร็จ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาลองใหม่อีกครั้ง";
     }
     if (lower.contains("no authenticated user") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
-      return "Your session may have expired. Please sign in again, then retry $action.";
+      return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่แล้วลอง$actionอีกครั้ง";
     }
-    return "We could not finish $action right now. Please retry in a moment.";
+    return "ยัง$actionไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   String _friendlyLoadError(Object error) {
@@ -48,14 +48,14 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "We cannot load vault items while offline. Please reconnect and retry.";
+      return "ไม่สามารถโหลดรายการคลังได้ เพราะออฟไลน์อยู่ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่";
     }
     if (lower.contains("no authenticated user") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
-      return "We cannot load vault items because your sign-in session is not valid. Please sign in again.";
+      return "ไม่สามารถโหลดรายการคลังได้ เพราะเซสชันไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่";
     }
-    return "We could not open your vault items right now. Please retry.";
+    return "ยังเปิดรายการคลังไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   Future<void> _handleAdd() async {
@@ -76,9 +76,9 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
             postTriggerVisibility: draft.postTriggerVisibility,
             valueDisclosureMode: draft.valueDisclosureMode,
           );
-      _setMessage("Recovery item saved.");
+      _setMessage("บันทึกรายการกู้คืนสำเร็จ");
     } catch (error) {
-      _setMessage(_friendlyActionError("saving this recovery item", error), isError: true);
+      _setMessage(_friendlyActionError("บันทึกรายการกู้คืน", error), isError: true);
     } finally {
       if (mounted) {
         setState(() => _adding = false);
@@ -91,9 +91,9 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
     setState(() => _deletingId = id);
     try {
       await ref.read(vaultItemsProvider.notifier).deleteItem(id);
-      _setMessage("Recovery item removed.");
+      _setMessage("ลบรายการกู้คืนสำเร็จ");
     } catch (error) {
-      _setMessage(_friendlyActionError("removing this recovery item", error), isError: true);
+      _setMessage(_friendlyActionError("ลบรายการกู้คืน", error), isError: true);
     } finally {
       if (mounted) {
         setState(() => _deletingId = null);
@@ -114,13 +114,13 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
             Row(
               children: [
                 const Text(
-                  'Recovery Vault',
+                  'คลังกู้คืน',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 FilledButton.tonal(
                   onPressed: _adding ? null : _handleAdd,
-                  child: Text(_adding ? "Saving..." : "Add"),
+                  child: Text(_adding ? "กำลังบันทึก..." : "เพิ่มรายการ"),
                 ),
               ],
             ),
@@ -137,7 +137,7 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
                 if (items.isEmpty) {
                   return const _VaultStatePanel(
                     message:
-                        "No recovery items yet. Add at least one encrypted recovery item so this workspace can support real self-recovery or beneficiary handoff.",
+                        "ยังไม่มีรายการกู้คืน กรุณาเพิ่มอย่างน้อย 1 รายการ เพื่อให้พร้อมใช้งานจริง",
                     highlighted: true,
                   );
                 }
@@ -148,7 +148,7 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
                       contentPadding: EdgeInsets.zero,
                       title: Text(item.title),
                       subtitle: Text(
-                        "${item.releaseNotes ?? "Encrypted vault item"}\nVisibility: ${item.postTriggerVisibility} | Value: ${item.valueDisclosureMode}",
+                          "${item.releaseNotes ?? "รายการเข้ารหัส"}\nการมองเห็น: ${item.postTriggerVisibility} | การเปิดเผยมูลค่า: ${item.valueDisclosureMode}",
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -178,13 +178,13 @@ class _RecoveryVaultSectionState extends ConsumerState<RecoveryVaultSection> {
                 );
               },
               loading: () => const _VaultStatePanel(
-                message: "Loading recovery vault items...",
+                message: "กำลังโหลดรายการคลังกู้คืน...",
                 showSpinner: true,
               ),
               error: (error, __) => _VaultStatePanel(
                 message: _friendlyLoadError(error),
                 isError: true,
-                actionLabel: "Retry",
+                actionLabel: "ลองใหม่",
                 onAction: () => ref.invalidate(vaultItemsProvider),
               ),
             ),

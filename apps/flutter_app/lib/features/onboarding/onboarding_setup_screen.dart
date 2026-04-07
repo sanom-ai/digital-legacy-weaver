@@ -103,17 +103,17 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   String? _requiredEmail(String? value, {bool required = true}) {
     final text = (value ?? "").trim();
     if (!required && text.isEmpty) return null;
-    if (text.isEmpty) return "Required";
-    if (!text.contains("@") || !text.contains(".")) return "Invalid email";
+    if (text.isEmpty) return "กรุณากรอกข้อมูล";
+    if (!text.contains("@") || !text.contains(".")) return "รูปแบบอีเมลไม่ถูกต้อง";
     return null;
   }
 
   String? _requiredIntInRange(String? value, int min, int max) {
     final text = (value ?? "").trim();
-    if (text.isEmpty) return "Required";
+    if (text.isEmpty) return "กรุณากรอกข้อมูล";
     final parsed = int.tryParse(text);
-    if (parsed == null) return "Must be a number";
-    if (parsed < min || parsed > max) return "Must be between $min and $max";
+    if (parsed == null) return "ต้องเป็นตัวเลข";
+    if (parsed < min || parsed > max) return "ต้องอยู่ระหว่าง $min ถึง $max";
     return null;
   }
 
@@ -121,8 +121,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     final text = (value ?? "").trim();
     if (text.length < minLength) {
       return minLength <= 1
-          ? "Required"
-          : "Must be at least $minLength characters";
+          ? "กรุณากรอกข้อมูล"
+          : "ต้องมีอย่างน้อย $minLength ตัวอักษร";
     }
     return null;
   }
@@ -138,7 +138,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       }
     }
     if (text.length < 8) {
-      return "Must be at least 8 characters";
+      return "ต้องมีอย่างน้อย 8 ตัวอักษร";
     }
     return null;
   }
@@ -173,12 +173,12 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "We could not finish setup because your connection looks unstable. Please check internet and try again.";
+      return "ยังตั้งค่าไม่สำเร็จ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่";
     }
     if (lower.contains("unauthorized") || lower.contains("forbidden")) {
-      return "Your session may have expired. Please sign in again, then retry setup.";
+      return "เซสชันอาจหมดอายุ กรุณาเข้าสู่ระบบใหม่แล้วลองตั้งค่าอีกครั้ง";
     }
-    return "We could not finish setup right now. Your inputs are still here, so please try again in a moment.";
+    return "ยังตั้งค่าไม่สำเร็จในขณะนี้ ข้อมูลที่กรอกยังอยู่ครบ กรุณาลองใหม่อีกครั้ง";
   }
 
   String? _productionGuardrailMessage() {
@@ -191,19 +191,19 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     ].length;
 
     if (selfRecoveryDays >= legacyDays) {
-      return "Self-recovery timing should be earlier than legacy release timing to avoid accidental handoff.";
+      return "ระยะเวลากู้คืนตัวเองควรสั้นกว่าระยะเวลาส่งต่อ เพื่อป้องกันการส่งต่อผิดพลาด";
     }
     if (fallbackCount < 2) {
-      return "Enable both email and SMS fallback channels before final setup so proof-of-life remains resilient.";
+      return "ก่อนยืนยันขั้นสุดท้าย กรุณาเปิดช่องทางสำรองทั้งอีเมลและ SMS";
     }
     if (_fallbackSms && _beneficiaryPhoneController.text.trim().isEmpty) {
-      return "Add beneficiary fallback phone before enabling SMS fallback.";
+      return "กรุณาเพิ่มเบอร์โทรผู้รับก่อนเปิดช่องทางสำรองแบบ SMS";
     }
     if (!_serverHeartbeatFallbackEnabled) {
-      return "Enable server heartbeat fallback before final setup to reduce mobile background false triggers.";
+      return "กรุณาเปิดการเช็กสัญญาณชีพสำรองจากเซิร์ฟเวอร์ เพื่อลดการทริกเกอร์ผิดพลาด";
     }
     if (!_iosBackgroundRiskAcknowledged) {
-      return "Acknowledge iOS/background execution limits before final setup.";
+      return "กรุณายืนยันว่ารับทราบข้อจำกัดการทำงานเบื้องหลังของมือถือก่อนยืนยันขั้นสุดท้าย";
     }
     return null;
   }
@@ -361,23 +361,21 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     if (draftReport.errorCount > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text("Resolve blocking intent review items before saving.")),
+            content: Text("กรุณาแก้รายการที่ติดบล็อกก่อนบันทึก")),
       );
       return;
     }
     if (draftReport.warningCount > 0 && !_warningAcknowledged) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Acknowledge intent review warnings before saving.")),
+            content: Text("กรุณายืนยันว่าได้ตรวจคำเตือนแล้วก่อนบันทึก")),
       );
       return;
     }
     if (!_legalAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text("Please accept legal companion consent to continue.")),
+            content: Text("กรุณายอมรับข้อตกลงก่อนดำเนินการต่อ")),
       );
       return;
     }
@@ -448,7 +446,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text(
-                "Setup complete. Your private-first defaults are now active.")),
+                "ตั้งค่าเสร็จแล้ว ระบบพร้อมใช้งานในโหมดความเป็นส่วนตัวสูงสุด")),
       );
       Navigator.of(context).pop(true);
     } catch (error) {
@@ -511,11 +509,11 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     final setupProgress = ((_stepIndex + 1) / 3).clamp(0.0, 1.0);
     void onStepContinue() {
       if (_stepIndex == 0 && !_stepOneReady()) {
-        _showStepError("Please complete contact details before continuing.");
+        _showStepError("กรุณากรอกข้อมูลผู้รับให้ครบก่อนกดถัดไป");
         return;
       }
       if (_stepIndex == 1 && !_stepTwoReady()) {
-        _showStepError("Please complete trigger settings before continuing.");
+        _showStepError("กรุณาตั้งค่าเงื่อนไขเวลาให้ครบก่อนกดถัดไป");
         return;
       }
       if (_stepIndex < 2) {
@@ -928,7 +926,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                             onChanged: (v) => setState(
                                 () => _warningAcknowledged = v ?? false),
                             title: const Text(
-                                "I reviewed these warnings and want to continue"),
+                                "ฉันตรวจคำเตือนแล้ว และต้องการดำเนินการต่อ"),
                             subtitle: const Text(
                               "Warnings are allowed, but they must be acknowledged before activation.",
                             ),

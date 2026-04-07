@@ -31,8 +31,8 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
 
   String? _required(String? value) {
     final text = (value ?? "").trim();
-    if (text.isEmpty) return "Required";
-    if (text.length < 8) return "Please add more detail";
+    if (text.isEmpty) return "กรุณากรอกข้อมูล";
+    if (text.length < 8) return "กรุณาเพิ่มรายละเอียดอีกเล็กน้อย";
     return null;
   }
 
@@ -56,7 +56,7 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
       if (!mounted) return;
       setState(() {
         _message =
-            "Feedback submitted. Thank you. Your note helps improve the product.";
+            "ส่งความคิดเห็นเรียบร้อยแล้ว ขอบคุณมาก ข้อมูลนี้ช่วยให้เราปรับปรุงแอปได้ดีขึ้น";
         _messageIsError = false;
       });
       _summaryController.clear();
@@ -78,53 +78,53 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "Could not submit feedback right now because your connection looks unstable. Please retry.";
+      return "ยังส่งความคิดเห็นไม่ได้ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาลองใหม่อีกครั้ง";
     }
     if (lower.contains("authenticated user") ||
         lower.contains("unauthorized")) {
-      return "Your session may have expired. Sign in again, then submit feedback.";
+      return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่แล้วส่งอีกครั้ง";
     }
-    return "Could not submit feedback right now. Please retry.";
+    return "ยังส่งความคิดเห็นไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Beta Feedback")),
+      appBar: AppBar(title: const Text("ความคิดเห็นช่วงทดลองใช้")),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              "Help us improve reliability and usability during beta.",
+              "ช่วยเราปรับปรุงแอปให้ใช้งานง่ายและเสถียรมากขึ้น",
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: _category,
-              decoration: const InputDecoration(labelText: "Category"),
+              decoration: const InputDecoration(labelText: "หมวดหมู่"),
               items: const [
-                DropdownMenuItem(value: "ux", child: Text("User experience")),
-                DropdownMenuItem(value: "bug", child: Text("Bug")),
-                DropdownMenuItem(value: "security", child: Text("Security")),
+                DropdownMenuItem(value: "ux", child: Text("ประสบการณ์ใช้งาน")),
+                DropdownMenuItem(value: "bug", child: Text("บั๊ก")),
+                DropdownMenuItem(value: "security", child: Text("ความปลอดภัย")),
                 DropdownMenuItem(
                   value: "reliability",
-                  child: Text("Reliability"),
+                  child: Text("ความเสถียร"),
                 ),
-                DropdownMenuItem(value: "other", child: Text("Other")),
+                DropdownMenuItem(value: "other", child: Text("อื่น ๆ")),
               ],
               onChanged: (v) => setState(() => _category = v ?? "ux"),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _severity,
-              decoration: const InputDecoration(labelText: "Severity"),
+              decoration: const InputDecoration(labelText: "ระดับความสำคัญ"),
               items: const [
-                DropdownMenuItem(value: "low", child: Text("Low")),
-                DropdownMenuItem(value: "medium", child: Text("Medium")),
-                DropdownMenuItem(value: "high", child: Text("High")),
-                DropdownMenuItem(value: "critical", child: Text("Critical")),
+                DropdownMenuItem(value: "low", child: Text("ต่ำ")),
+                DropdownMenuItem(value: "medium", child: Text("กลาง")),
+                DropdownMenuItem(value: "high", child: Text("สูง")),
+                DropdownMenuItem(value: "critical", child: Text("เร่งด่วนมาก")),
               ],
               onChanged: (v) => setState(() => _severity = v ?? "medium"),
             ),
@@ -132,8 +132,8 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
             TextFormField(
               controller: _summaryController,
               decoration: const InputDecoration(
-                labelText: "Summary",
-                hintText: "Short summary of the issue or suggestion",
+                labelText: "สรุปสั้น ๆ",
+                hintText: "สรุปปัญหาหรือข้อเสนอแนะ",
               ),
               validator: _required,
             ),
@@ -143,14 +143,14 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
               minLines: 4,
               maxLines: 8,
               decoration: const InputDecoration(
-                labelText: "Details (optional)",
-                hintText: "Steps, expected behavior, and what happened instead",
+                labelText: "รายละเอียดเพิ่มเติม (ไม่บังคับ)",
+                hintText: "ขั้นตอนที่ทำ ผลที่คาดหวัง และสิ่งที่เกิดขึ้นจริง",
               ),
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _appVersionController,
-              decoration: const InputDecoration(labelText: "App version"),
+              decoration: const InputDecoration(labelText: "เวอร์ชันแอป"),
             ),
             const SizedBox(height: 20),
             if (_message != null) ...[
@@ -169,7 +169,7 @@ class _BetaFeedbackScreenState extends ConsumerState<BetaFeedbackScreen> {
             ],
             FilledButton(
               onPressed: _submitting ? null : _submit,
-              child: Text(_submitting ? "Submitting..." : "Submit feedback"),
+              child: Text(_submitting ? "กำลังส่ง..." : "ส่งความคิดเห็น"),
             ),
           ],
         ),

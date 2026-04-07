@@ -30,14 +30,14 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "Could not finish $action because the connection looks unstable. Please try again once you are back online.";
+      return "ยัง$actionไม่สำเร็จ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาลองใหม่อีกครั้ง";
     }
     if (lower.contains("no authenticated user") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
-      return "Your session may have expired. Please sign in again, then retry $action.";
+      return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่แล้วลอง$actionอีกครั้ง";
     }
-    return "We could not finish $action right now. Please retry in a moment.";
+    return "ยัง$actionไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   String _friendlyLoadError(String scope, Object error) {
@@ -46,14 +46,14 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "Cannot load $scope while you are offline. Please reconnect and retry.";
+      return "ไม่สามารถโหลด$scopeได้ เพราะออฟไลน์อยู่ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่";
     }
     if (lower.contains("no authenticated user") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
-      return "Cannot load $scope because your sign-in session is not valid. Please sign in again.";
+      return "ไม่สามารถโหลด$scopeได้ เพราะเซสชันไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่";
     }
-    return "We could not load $scope right now. Please retry.";
+    return "ยังโหลด$scopeไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   Future<void> _handleAddPath(
@@ -74,9 +74,9 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
             supportsWebhooks: draft.supportsWebhooks,
             supportedSecondFactors: draft.secondFactors,
           );
-      _setMessage("Destination path saved.");
+      _setMessage("บันทึกปลายทางสำเร็จ");
     } catch (error) {
-      _setMessage(_friendlyActionError("saving this path", error),
+      _setMessage(_friendlyActionError("บันทึกปลายทาง", error),
           isError: true);
     } finally {
       if (mounted) {
@@ -90,22 +90,21 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     if (_addingAssetRef) return;
     if (connectorsAsync.isLoading) {
       _setMessage(
-        "Please wait for destination paths to finish loading before adding an asset reference.",
+        "กรุณารอให้ระบบโหลดปลายทางเสร็จก่อน แล้วค่อยเพิ่มรายการสินทรัพย์",
         isError: true,
       );
       return;
     }
     if (connectorsAsync.hasError) {
       _setMessage(
-        "Please fix destination path loading first, then add asset references.",
+        "กรุณาแก้ปัญหาการโหลดปลายทางก่อน แล้วค่อยเพิ่มรายการสินทรัพย์",
         isError: true,
       );
       return;
     }
     final connectors = connectorsAsync.value ?? const <PartnerConnectorModel>[];
     if (connectors.isEmpty) {
-      _setMessage(
-          "Add at least one destination path before adding asset references.",
+      _setMessage("กรุณาเพิ่มปลายทางอย่างน้อย 1 รายการก่อนเพิ่มสินทรัพย์",
           isError: true);
       return;
     }
@@ -126,10 +125,10 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
             encryptedPayloadRef: draft.encryptedPayloadRef,
             integrityHash: draft.integrityHash,
           );
-      _setMessage("Asset reference saved.");
+      _setMessage("บันทึกรายการสินทรัพย์สำเร็จ");
     } catch (error) {
       _setMessage(
-        _friendlyActionError("saving this asset reference", error),
+        _friendlyActionError("บันทึกรายการสินทรัพย์", error),
         isError: true,
       );
     } finally {
@@ -146,7 +145,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     final assetsAsync = ref.watch(connectorAssetRefsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Partner-ready Paths")),
+      appBar: AppBar(title: const Text("ปลายทางที่เชื่อมต่อแล้ว")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -162,12 +161,12 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Destination Paths",
+                    "รายการปลายทาง",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Track the services, routes, and handoff references that may be used when a protected workflow is activated.",
+                    "จัดการปลายทางที่ใช้ส่งเจตจำนงและเอกสารเมื่อถึงเงื่อนไขที่กำหนด",
                   ),
                   if (_message != null) ...[
                     const SizedBox(height: 10),
@@ -181,7 +180,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                     onPressed: _addingPath
                         ? null
                         : () => _handleAddPath(connectorsAsync),
-                    child: Text(_addingPath ? "Saving path..." : "Add Path"),
+                    child: Text(_addingPath ? "กำลังบันทึก..." : "เพิ่มปลายทาง"),
                   ),
                   const SizedBox(height: 10),
                   connectorsAsync.when(
@@ -189,7 +188,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       if (items.isEmpty) {
                         return const _StatePanel(
                           message:
-                              "No destination paths yet. Add at least one path before mapping legacy asset references.",
+                              "ยังไม่มีปลายทาง กรุณาเพิ่มอย่างน้อย 1 รายการก่อนผูกข้อมูลสินทรัพย์",
                           highlighted: true,
                         );
                       }
@@ -208,13 +207,13 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       );
                     },
                     loading: () => const _StatePanel(
-                      message: "Loading destination paths...",
+                      message: "กำลังโหลดรายการปลายทาง...",
                       showSpinner: true,
                     ),
                     error: (error, __) => _StatePanel(
                       message: _friendlyLoadError("destination paths", error),
                       isError: true,
-                      actionLabel: "Retry",
+                      actionLabel: "ลองใหม่",
                       onAction: () => ref.invalidate(connectorsProvider),
                     ),
                   ),
@@ -235,12 +234,12 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Legacy Asset References",
+                    "รายการอ้างอิงสินทรัพย์",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Map private asset references to a destination path without exposing the underlying payload.",
+                    "ผูกรายการอ้างอิงสินทรัพย์กับปลายทาง โดยไม่เปิดเผยข้อมูลจริงที่อ่อนไหว",
                   ),
                   const SizedBox(height: 10),
                   FilledButton.tonal(
@@ -248,8 +247,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                         ? null
                         : () => _handleAddAssetRef(connectorsAsync),
                     child: Text(_addingAssetRef
-                        ? "Saving asset ref..."
-                        : "Add Asset Ref"),
+                        ? "กำลังบันทึกรายการ..."
+                        : "เพิ่มรายการสินทรัพย์"),
                   ),
                   const SizedBox(height: 10),
                   assetsAsync.when(
@@ -257,7 +256,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       if (items.isEmpty) {
                         return const _StatePanel(
                           message:
-                              "No asset references yet. Add references so each destination path has a concrete, encrypted handoff target.",
+                              "ยังไม่มีรายการสินทรัพย์ กรุณาเพิ่มอย่างน้อย 1 รายการเพื่อเตรียมการส่งต่อแบบเข้ารหัส",
                           highlighted: true,
                         );
                       }
@@ -276,13 +275,13 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       );
                     },
                     loading: () => const _StatePanel(
-                      message: "Loading asset references...",
+                      message: "กำลังโหลดรายการสินทรัพย์...",
                       showSpinner: true,
                     ),
                     error: (error, __) => _StatePanel(
                       message: _friendlyLoadError("asset references", error),
                       isError: true,
-                      actionLabel: "Retry",
+                      actionLabel: "ลองใหม่",
                       onAction: () =>
                           ref.invalidate(connectorAssetRefsProvider),
                     ),

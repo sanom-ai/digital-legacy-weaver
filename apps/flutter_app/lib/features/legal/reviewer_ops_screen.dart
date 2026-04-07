@@ -66,7 +66,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
     final reviewerRef = _reviewerRefController.text.trim();
     if (reviewerRef.isEmpty) {
       setState(() {
-        _message = "Reviewer reference is required.";
+        _message = "กรุณากรอกรหัสผู้ตรวจ";
         _messageIsError = true;
       });
       return;
@@ -89,7 +89,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       if (!mounted) return;
       setState(() {
         _message =
-            "Updated ${result["evidence_id"]}: status=${result["review_status"]}, approvals=${result["approvals"]}.";
+            "อัปเดตแล้ว ${result["evidence_id"]}: สถานะ=${result["review_status"]}, อนุมัติ=${result["approvals"]}";
         _messageIsError = false;
       });
       await _reload();
@@ -173,21 +173,21 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
         lower.contains("failed host lookup") ||
         lower.contains("network") ||
         lower.contains("timed out")) {
-      return "We could not $action because the network looks unstable. Please retry.";
+      return "ยังไม่สามารถ$actionได้ เพราะอินเทอร์เน็ตไม่เสถียร กรุณาลองใหม่อีกครั้ง";
     }
     if (lower.contains("x-reviewer-key") ||
         lower.contains("forbidden") ||
         lower.contains("unauthorized")) {
-      return "Reviewer key is missing or invalid. Check REVIEWER_API_KEY setup, then retry.";
+      return "รีวิวคีย์ไม่ถูกต้องหรือยังไม่ได้ตั้งค่า กรุณาตรวจสอบ REVIEWER_API_KEY แล้วลองใหม่";
     }
-    return "We could not $action right now. Please retry.";
+    return "ยังไม่สามารถ$actionได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   @override
   Widget build(BuildContext context) {
     if (!AppConfig.reviewerOpsEnabled) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Review Operations")),
+        appBar: AppBar(title: const Text("งานตรวจสอบคำขอ")),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: const [
@@ -199,12 +199,12 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Reviewer setup needed",
+                      "ต้องตั้งค่าระบบผู้ตรวจสอบก่อน",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                     SizedBox(height: 8),
                     Text(
-                      "This screen needs a reviewer key before queue operations can run.",
+                      "หน้านี้ต้องใช้รีวิวคีย์ก่อนจึงจะใช้งานคิวตรวจสอบได้",
                     ),
                     SizedBox(height: 8),
                     SelectableText("flutter run --dart-define=REVIEWER_API_KEY=<reviewer_key>"),
@@ -218,7 +218,7 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Review Operations")),
+      appBar: AppBar(title: const Text("งานตรวจสอบคำขอ")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -229,19 +229,19 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Queue Controls",
+                    "ตัวควบคุมคิว",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _reviewerRefController,
-                    decoration: const InputDecoration(labelText: "Reviewer ID"),
+                    decoration: const InputDecoration(labelText: "รหัสผู้ตรวจ"),
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: _status,
                     decoration: const InputDecoration(
-                      labelText: "Queue status",
+                      labelText: "สถานะคิว",
                     ),
                     items: const [
                       DropdownMenuItem(
