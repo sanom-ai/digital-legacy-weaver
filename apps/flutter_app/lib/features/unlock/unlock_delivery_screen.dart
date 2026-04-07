@@ -130,7 +130,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (initAccessKey.isNotEmpty) {
       _accessKeyController.text = initAccessKey;
-      _message = "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
+      _message =
+          "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
     }
 
     final params = Uri.base.queryParameters;
@@ -141,7 +142,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (accessKey.isNotEmpty && _accessKeyController.text.isEmpty) {
       _accessKeyController.text = accessKey;
-      _message = "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
+      _message =
+          "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
     }
   }
 
@@ -165,7 +167,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   String? _extractLineValue(String text, String key) {
-    final pattern = RegExp('$key\\s*[:=]\\s*([^\\n\\r]+)', caseSensitive: false);
+    final pattern =
+        RegExp('$key\\s*[:=]\\s*([^\\n\\r]+)', caseSensitive: false);
     final match = pattern.firstMatch(text);
     return match?.group(1)?.trim();
   }
@@ -180,8 +183,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       return;
     }
 
-    final accessId =
-        _extractQueryValue(raw, "access_id") ?? _extractLineValue(raw, "access_id");
+    final accessId = _extractQueryValue(raw, "access_id") ??
+        _extractLineValue(raw, "access_id");
     final accessKey = _extractQueryValue(raw, "access_key") ??
         _extractLineValue(raw, "access_key");
 
@@ -424,15 +427,20 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     required bool complete,
     String? cue,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: complete ? const Color(0xFFE9F6EF) : const Color(0xFFF7F1E8),
+        color: complete
+            ? scheme.tertiaryContainer.withValues(alpha: 0.45)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: complete ? const Color(0xFF8BB89A) : const Color(0xFFE5D7C5),
+          color: complete
+              ? scheme.tertiary.withValues(alpha: 0.8)
+              : scheme.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Column(
@@ -470,11 +478,13 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   Widget _buildPill(String label) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFE4D6),
+        color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Text(label),
     );
@@ -482,18 +492,37 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   Widget _buildPanel({
     required Widget child,
-    required Color color,
-    required Color borderColor,
+    Color? color,
+    Color? borderColor,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color,
+        color: color ?? scheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: borderColor),
+        border: Border.all(
+          color: borderColor ?? scheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: child,
+    );
+  }
+
+  InputDecoration _unlockInputDecoration({
+    required String label,
+    String? helper,
+    Widget? suffixIcon,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      helperText: helper,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
     );
   }
 
@@ -616,7 +645,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           SizedBox(height: 4),
           Text("• อย่ากดลิงก์จากข้อความที่ไม่แน่ใจ แม้ชื่อจะคล้ายกัน"),
           SizedBox(height: 4),
-          Text("• วิธีที่ถูกต้อง: เปิดแอป Digital Legacy Weaver เอง แล้วกรอกรหัสที่ได้รับ"),
+          Text(
+              "• วิธีที่ถูกต้อง: เปิดแอป Digital Legacy Weaver เอง แล้วกรอกรหัสที่ได้รับ"),
           SizedBox(height: 4),
           Text("• หากยังไม่แน่ใจ ให้โทรยืนยันกับญาติ/พยานก่อนทุกครั้ง"),
         ],
@@ -665,14 +695,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         : _isTemporarilyLocked
             ? "ล็อกชั่วคราวเพื่อความปลอดภัย"
             : _items.isNotEmpty
-            ? "เปิดชุดรับมอบแล้ว"
-            : _networkIssue
-                ? "ออฟไลน์หรือสัญญาณไม่เสถียร"
-            : "กำลังเตรียมข้อมูล";
+                ? "เปิดชุดรับมอบแล้ว"
+                : _networkIssue
+                    ? "ออฟไลน์หรือสัญญาณไม่เสถียร"
+                    : "กำลังเตรียมข้อมูล";
 
     return _buildPanel(
-      color: const Color(0xFFEFE4D6),
-      borderColor: const Color(0xFFE2D3BF),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -699,7 +727,10 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             value: completedSteps / 3,
             minHeight: 8,
             borderRadius: BorderRadius.circular(999),
-            backgroundColor: const Color(0xFFF7F1E8),
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.65),
           ),
         ],
       ),
@@ -710,14 +741,17 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     if (_message == null) {
       return const SizedBox.shrink();
     }
-    final color =
-        _messageIsError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
+    final scheme = Theme.of(context).colorScheme;
+    final color = _messageIsError
+        ? scheme.errorContainer.withValues(alpha: 0.35)
+        : scheme.tertiaryContainer.withValues(alpha: 0.38);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -905,14 +939,22 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text("หน้ารับมอบผู้รับผลประโยชน์ | Beneficiary Receipt")),
+      appBar: AppBar(
+          title:
+              const Text("หน้ารับมอบผู้รับผลประโยชน์ | Beneficiary Receipt")),
       body: ListView(
         physics: const BouncingScrollPhysics(),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
         children: [
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.45)),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(18),
               child: Column(
@@ -946,8 +988,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7F1E8),
+                      color:
+                          scheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.45),
+                      ),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -963,8 +1009,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         Text(
                             "2. รหัสยืนยันครั้งเดียวจากช่องทางที่ลงทะเบียนไว้"),
                         SizedBox(height: 4),
-                        Text(
-                            "3. ชื่อผู้รับที่ลงทะเบียนไว้ และวลียืนยันตัวตน"),
+                        Text("3. ชื่อผู้รับที่ลงทะเบียนไว้ และวลียืนยันตัวตน"),
                       ],
                     ),
                   ),
@@ -975,8 +1020,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF7ED),
+                      color: scheme.primaryContainer.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.45),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -992,7 +1040,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         const SizedBox(height: 10),
                         OutlinedButton(
                           onPressed: _showWrongRecipientDialog,
-                          child: const Text("ไม่ใช่ของฉัน | This receipt is not mine"),
+                          child: const Text(
+                              "ไม่ใช่ของฉัน | This receipt is not mine"),
                         ),
                       ],
                     ),
@@ -1042,10 +1091,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   TextField(
                     controller: _accessIdController,
                     onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
-                      labelText: "Access ID (รหัสอ้างอิง)",
-                      helperText:
-                          "รหัสอ้างอิงจากข้อมูลรับมอบของเจ้าของ",
+                    decoration: _unlockInputDecoration(
+                      label: "Access ID (รหัสอ้างอิง)",
+                      helper: "รหัสอ้างอิงจากข้อมูลรับมอบของเจ้าของ",
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1053,10 +1101,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     controller: _accessKeyController,
                     onChanged: (_) => setState(() {}),
                     obscureText: _obscureAccessKey,
-                    decoration: InputDecoration(
-                      labelText: "Access Key (กุญแจรับมอบ)",
-                      helperText:
-                          "เก็บเป็นความลับ ห้ามส่งต่อเหมือนโทเค็นปลอดภัย",
+                    decoration: _unlockInputDecoration(
+                      label: "Access Key (กุญแจรับมอบ)",
+                      helper: "เก็บเป็นความลับ ห้ามส่งต่อเหมือนโทเค็นปลอดภัย",
                       suffixIcon: IconButton(
                         onPressed: () => setState(
                             () => _obscureAccessKey = !_obscureAccessKey),
@@ -1090,8 +1137,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE9F6EF),
+                        color: scheme.tertiaryContainer.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: scheme.outlineVariant.withValues(alpha: 0.45),
+                        ),
                       ),
                       child: const Text(
                         "ส่งรหัสแล้ว ตรวจช่องทางที่ลงทะเบียนไว้ แล้วกลับมาปลดล็อกต่อได้เลย",
@@ -1102,10 +1152,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   TextField(
                     controller: _codeController,
                     onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
-                      labelText: "รหัสยืนยัน | Verification code",
-                      helperText:
-                          "รหัสครั้งเดียวจากช่องทางสำรองที่เปิดใช้งาน",
+                    decoration: _unlockInputDecoration(
+                      label: "รหัสยืนยัน | Verification code",
+                      helper: "รหัสครั้งเดียวจากช่องทางสำรองที่เปิดใช้งาน",
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -1114,19 +1163,18 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     controller: _beneficiaryNameController,
                     onChanged: (_) => setState(() {}),
                     autofillHints: const [AutofillHints.name],
-                    decoration: const InputDecoration(
-                      labelText: "ชื่อผู้รับที่ลงทะเบียนไว้",
-                      helperText:
-                          "ต้องตรงกับข้อมูลที่เจ้าของตั้งไว้",
+                    decoration: _unlockInputDecoration(
+                      label: "ชื่อผู้รับที่ลงทะเบียนไว้",
+                      helper: "ต้องตรงกับข้อมูลที่เจ้าของตั้งไว้",
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _verificationPhraseController,
                     onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
-                      labelText: "วลียืนยันตัวตน",
-                      helperText:
+                    decoration: _unlockInputDecoration(
+                      label: "วลียืนยันตัวตน",
+                      helper:
                           "วลีที่แชร์กันไว้ตอนตั้งค่า ใช้ตรวจสอบก่อนเปิดข้อมูล",
                     ),
                   ),
@@ -1134,10 +1182,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   TextField(
                     controller: _totpController,
                     onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
-                      labelText: "รหัส TOTP (ถ้าระบบร้องขอ)",
-                      helperText:
-                          "กรอกเฉพาะเมื่อระบบแจ้งว่าต้องมีขั้นยืนยันเพิ่ม",
+                    decoration: _unlockInputDecoration(
+                      label: "รหัส TOTP (ถ้าระบบร้องขอ)",
+                      helper: "กรอกเฉพาะเมื่อระบบแจ้งว่าต้องมีขั้นยืนยันเพิ่ม",
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -1146,8 +1193,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: _canUnlock ? _unlock : null,
-                      child:
-                          Text(_busy ? "กำลังดำเนินการ..." : "เปิดชุดรับมอบ | Open bundle"),
+                      child: Text(_busy
+                          ? "กำลังดำเนินการ..."
+                          : "เปิดชุดรับมอบ | Open bundle"),
                     ),
                   ),
                   if (_message != null) ...[
@@ -1159,8 +1207,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFE4D6),
+                      color: scheme.surfaceContainerHighest
+                          .withValues(alpha: 0.55),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.45),
+                      ),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
