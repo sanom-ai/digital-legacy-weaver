@@ -3244,8 +3244,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ??
         widget.entry.trigger.inactivityDays;
     final emergencyEnabled = _triggerMode == 'manual_release';
+
     return AlertDialog(
-      title: const Text('à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹à¸œà¸™à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­'),
+      title: const Text('????????????????'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -3259,38 +3260,36 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Step ${_editorStep + 1} of 3',
+                '??????? ${_editorStep + 1} ??? 3',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             const SizedBox(height: 8),
             if (_editorStep == 0) ...[
               const Text(
-                'Step 1: à¹ƒà¸„à¸£à¸„à¸·à¸­à¸œà¸¹à¹‰à¸£à¸±à¸š?',
+                '??????? 1: ??????????????????????????????',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _recipientNameController,
-                decoration: const InputDecoration(
-                  labelText: 'à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¸£à¸±à¸š',
-                ),
+                decoration: const InputDecoration(labelText: '??????????'),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _recipientController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸­à¸µà¹€à¸¡à¸¥à¸«à¸£à¸·à¸­à¹€à¸šà¸­à¸£à¹Œà¹‚à¸—à¸£à¸œà¸¹à¹‰à¸£à¸±à¸š',
+                  labelText: '???????????????????????',
                 ),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: _recipientChannel,
-                decoration: const InputDecoration(labelText: 'à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸«à¸¥à¸±à¸'),
+                decoration: const InputDecoration(labelText: '???????????'),
                 items: const [
-                  DropdownMenuItem(value: 'email', child: Text('à¸­à¸µà¹€à¸¡à¸¥')),
+                  DropdownMenuItem(value: 'email', child: Text('?????')),
                   DropdownMenuItem(value: 'sms', child: Text('SMS')),
-                  DropdownMenuItem(value: 'in_app', child: Text('à¹ƒà¸™à¹à¸­à¸›')),
+                  DropdownMenuItem(value: 'in_app', child: Text('?????')),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -3304,13 +3303,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 children: [
                   FilterChip(
                     selected: _fallbackEmail,
-                    label: const Text('à¸ªà¸³à¸£à¸­à¸‡à¸—à¸²à¸‡à¸­à¸µà¹€à¸¡à¸¥'),
-                    onSelected: (value) =>
-                        setState(() => _fallbackEmail = value),
+                    label: const Text('?????????????'),
+                    onSelected: (value) => setState(() => _fallbackEmail = value),
                   ),
                   FilterChip(
                     selected: _fallbackSms,
-                    label: const Text('à¸ªà¸³à¸£à¸­à¸‡à¸—à¸²à¸‡ SMS'),
+                    label: const Text('???????? SMS'),
                     onSelected: (value) => setState(() => _fallbackSms = value),
                   ),
                 ],
@@ -3327,79 +3325,76 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸—à¸£à¸±à¸žà¸¢à¹Œà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (à¸à¸£à¸­à¸à¹à¸šà¸šà¸•à¸£à¸‡à¹†)',
+                      '?????????????????????? (???????????)',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸šà¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸‡à¹ˆà¸²à¸¢à¸§à¹ˆà¸²à¹à¸œà¸™à¸™à¸µà¹‰à¸„à¸£à¸­à¸šà¸„à¸¥à¸¸à¸¡à¸­à¸°à¹„à¸£à¸šà¹‰à¸²à¸‡',
+                      '?????????????????????????????????????????????????',
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
               _buildChecklistSection(
-                title: 'à¸„à¸§à¸²à¸¡à¸¥à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§',
+                title: '??????????????',
                 expanded: _expandPersonalSecrets,
-                onExpanded: (value) =>
-                    setState(() => _expandPersonalSecrets = value),
+                onExpanded: (value) => setState(() => _expandPersonalSecrets = value),
                 items: _personalSecretItems,
                 selected: _selectedPersonalSecrets,
                 noteController: _personalSecretsNoteController,
-                noteLabel: 'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸„à¸§à¸²à¸¡à¸¥à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§ (à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡)',
+                noteLabel: '?????????????????????? (?????????)',
               ),
               const SizedBox(height: 10),
               _buildChecklistSection(
-                title: 'à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸³à¸„à¸±à¸',
+                title: '???????????',
                 expanded: _expandImportantDocs,
-                onExpanded: (value) =>
-                    setState(() => _expandImportantDocs = value),
+                onExpanded: (value) => setState(() => _expandImportantDocs = value),
                 items: _importantDocumentItems,
                 selected: _selectedImportantDocs,
                 noteController: _importantDocsNoteController,
-                noteLabel: 'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸³à¸„à¸±à¸ (à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡)',
+                noteLabel: '??????????????????? (?????????)',
               ),
               const SizedBox(height: 10),
               _buildChecklistSection(
-                title: 'à¸šà¸±à¸à¸Šà¸µà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥',
+                title: '????????????',
                 expanded: _expandDigitalAccounts,
-                onExpanded: (value) =>
-                    setState(() => _expandDigitalAccounts = value),
+                onExpanded: (value) => setState(() => _expandDigitalAccounts = value),
                 items: _digitalAccountItems,
                 selected: _selectedDigitalAccounts,
                 noteController: _digitalAccountsNoteController,
-                noteLabel: 'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸šà¸±à¸à¸Šà¸µà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡)',
+                noteLabel: '???????????????????? (?????????)',
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _bankAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸šà¸±à¸à¸Šà¸µà¸à¸²à¸£à¹€à¸‡à¸´à¸™ (Bank/Exchange/Gold)',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ KBank, Bitkub, à¸£à¹‰à¸²à¸™à¸—à¸­à¸‡ A',
+                  labelText: '???????????? (Bank/Exchange/Gold)',
+                  hintText: '???? KBank, Bitkub, ??????? A',
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _emailAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸šà¸±à¸à¸Šà¸µà¸­à¸µà¹€à¸¡à¸¥',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ Gmail, Outlook',
+                  labelText: '??????????',
+                  hintText: '???? Gmail, Outlook',
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _socialAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸šà¸±à¸à¸Šà¸µà¹‚à¸‹à¹€à¸Šà¸µà¸¢à¸¥',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ LINE, Facebook, X',
+                  labelText: '????????????',
+                  hintText: '???? LINE, Facebook, X',
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _fileAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¹„à¸Ÿà¸¥à¹Œà¸ªà¸³à¸„à¸±à¸',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ à¸£à¸¹à¸›à¸„à¸£à¸­à¸šà¸„à¸£à¸±à¸§, à¹€à¸­à¸à¸ªà¸²à¸£à¸›à¸£à¸°à¸à¸±à¸™',
+                  labelText: '?????????',
+                  hintText: '???? ???????????, ????????????',
                 ),
               ),
               const SizedBox(height: 8),
@@ -3414,12 +3409,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡ (connect)',
+                      '???????????????? (Connect)',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'à¹€à¸¥à¸·à¸­à¸à¹ƒà¸«à¹‰à¸£à¸°à¸šà¸šà¸›à¸£à¸°à¸ªà¸²à¸™à¸‡à¸²à¸™à¹€à¸­à¸à¸ªà¸²à¸£à¹„à¸›à¸¢à¸±à¸‡ ecosystem à¹à¸¥à¸°à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¹„à¸”à¹‰',
+                      '????????????????????????????? ecosystem ??????????????????????',
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -3428,8 +3423,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       children: _ecosystemTargets
                           .map(
                             (target) => FilterChip(
-                              selected:
-                                  _selectedEcosystemConnectors.contains(target),
+                              selected: _selectedEcosystemConnectors.contains(target),
                               label: Text(target),
                               onSelected: (value) {
                                 setState(() {
@@ -3458,14 +3452,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                                 }
                               });
                             },
-                      title:
-                          const Text('à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¹ƒà¸«à¹‰à¸Šà¹ˆà¸§à¸¢à¸›à¸£à¸°à¸ªà¸²à¸™à¸‡à¸²à¸™'),
+                      title: const Text('???????????????????????????????????????'),
                     ),
                     if (widget.verifiedLegalPartners.isEmpty)
                       const Padding(
                         padding: EdgeInsets.only(bottom: 8),
                         child: Text(
-                          'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸—à¸µà¹ˆà¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ à¸ˆà¸¶à¸‡à¸¢à¸±à¸‡à¹€à¸›à¸´à¸”à¸à¸²à¸£à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¹„à¸¡à¹ˆà¹„à¸”à¹‰',
+                          '???????????????????????????????? ??????????????????????????????????????????',
                           style: TextStyle(fontSize: 12),
                         ),
                       ),
@@ -3474,7 +3467,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         const Padding(
                           padding: EdgeInsets.only(bottom: 8),
                           child: Text(
-                            'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£ verify à¸ˆà¸²à¸à¸£à¸°à¸šà¸š admin',
+                            '????????????????????????????????????????????? admin',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         )
@@ -3482,7 +3475,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         DropdownButtonFormField<String>(
                           initialValue: _selectedLegalPartner,
                           decoration: const InputDecoration(
-                            labelText: 'à¹€à¸¥à¸·à¸­à¸à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œ',
+                            labelText: '?????????????????????????????',
                           ),
                           items: widget.verifiedLegalPartners
                               .map(
@@ -3505,107 +3498,97 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         color: const Color(0xFFF7F1E8),
                       ),
                       child: Text(
-                        "à¸ªà¸£à¸¸à¸›à¸—à¸µà¹ˆà¸ˆà¸°à¸ªà¹ˆà¸‡: à¸œà¸¹à¹‰à¸£à¸±à¸šà¸«à¸¥à¸±à¸ 1 à¸„à¸™"
-                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ecosystem ${_selectedEcosystemConnectors.length} à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡" : ""}"
-                        "${_connectLegalPartner && _selectedLegalPartner != null ? " + à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢ 1 à¹à¸«à¹ˆà¸‡" : ""}",
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        "????????????: ?????????? 1 ??"
+                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ecosystem ${_selectedEcosystemConnectors.length} ???????" : ""}"
+                        "${_connectLegalPartner && _selectedLegalPartner != null ? " + ?????????????? 1 ????" : ""}",
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _applyStructuredAssetsTemplate();
-                    });
-                  },
-                  icon: const Icon(Icons.auto_fix_high_rounded),
-                  label: const Text('à¹€à¸•à¸´à¸¡à¸Šà¸·à¹ˆà¸­à¹à¸œà¸™/à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´'),
-                ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _applyStructuredAssetsTemplate,
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: const Text('???????????/??????????????????????'),
               ),
             ] else if (_editorStep == 1) ...[
               const Text(
-                'Step 2: à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¹€à¸¡à¸·à¹ˆà¸­à¹„à¸«à¸£à¹ˆ?',
+                '??????? 2: ????????????????',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
-              CheckboxListTile(
+              SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 value: _triggerMode == 'inactivity',
                 onChanged: (value) {
-                  if (value == true) {
+                  if (value) {
                     setState(() => _triggerMode = 'inactivity');
                   }
                 },
-                title: const Text('à¹€à¸¡à¸·à¹ˆà¸­à¸‰à¸±à¸™à¹„à¸¡à¹ˆà¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹€à¸à¸´à¸™à¸Šà¹ˆà¸§à¸‡à¹€à¸§à¸¥à¸²à¸—à¸µà¹ˆà¸à¸³à¸«à¸™à¸”'),
+                title: const Text('?????????????????????????????????????'),
               ),
               if (_triggerMode == 'inactivity')
                 Slider(
                   value: inactivityDays.clamp(30, 365).toDouble(),
                   min: 30,
                   max: 365,
-                  divisions: 11,
-                  label: '$inactivityDays à¸§à¸±à¸™',
+                  divisions: 67,
+                  label: '$inactivityDays ???',
                   onChanged: (value) {
                     setState(() {
                       _triggerDaysController.text = value.round().toString();
                     });
                   },
                 ),
-              CheckboxListTile(
+              SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 value: _triggerMode == 'exact_date',
                 onChanged: (value) {
-                  if (value == true) {
+                  if (value) {
                     setState(() => _triggerMode = 'exact_date');
                   }
                 },
-                title: const Text('à¸à¸³à¸«à¸™à¸”à¸§à¸±à¸™à¹à¸¥à¸°à¹€à¸§à¸¥à¸²à¹à¸šà¸šà¸•à¸²à¸¢à¸•à¸±à¸§ (Exact date)'),
+                title: const Text('???????????????????????? (Exact date)'),
               ),
               if (_triggerMode == 'exact_date') ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: Text(
-                        'à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰: ${_exactDateLabel()}',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        '?????????????: ${_exactDateLabel()}',
                       ),
                     ),
-                    OutlinedButton.icon(
+                    TextButton.icon(
                       onPressed: _pickExactDateTime,
-                      icon: const Icon(Icons.calendar_month_outlined),
-                      label: const Text('à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¹€à¸§à¸¥à¸²'),
+                      icon: const Icon(Icons.event_outlined),
+                      label: const Text('????????????'),
                     ),
                   ],
                 ),
               ],
-              CheckboxListTile(
+              SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 value: emergencyEnabled,
                 onChanged: (value) {
                   setState(() {
-                    _triggerMode =
-                        value == true ? 'manual_release' : 'inactivity';
+                    _triggerMode = value == true ? 'manual_release' : 'inactivity';
                   });
                 },
-                title: const Text('à¹ƒà¸Šà¹‰à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™ (Emergency Access)'),
+                title: const Text('?????????????? (Emergency Access)'),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _graceDaysController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'à¸§à¸±à¸™à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸š',
+                  labelText: '??????????????????????',
                 ),
               ),
             ] else ...[
               const Text(
-                'Step 3: à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢',
+                '??????? 3: ????????????????',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -3629,8 +3612,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     Expanded(
                       child: Text(
                         _safetyLevel == 'high'
-                            ? 'High: à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸žà¸¢à¸²à¸™à¸£à¹ˆà¸§à¸¡à¸¢à¸·à¸™à¸¢à¸±à¸™'
-                            : 'Standard: à¸¢à¸·à¸™à¸¢à¸±à¸™à¸œà¹ˆà¸²à¸™ Email + SMS',
+                            ? 'High: ????????????????????'
+                            : 'Standard: ?????????? Email + SMS',
                       ),
                     ),
                   ],
@@ -3671,27 +3654,27 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               const SizedBox(height: 8),
               Text(
                 _safetyLevel == 'high'
-                    ? 'à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸žà¸¢à¸²à¸™ (Guardian) à¸£à¹ˆà¸§à¸¡à¸¢à¸·à¸™à¸¢à¸±à¸™'
-                    : 'à¸¢à¸·à¸™à¸¢à¸±à¸™à¸œà¹ˆà¸²à¸™ Email + SMS',
+                    ? '?????????? (Guardian) ??????????'
+                    : '?????????? Email + SMS',
               ),
             ],
             const SizedBox(height: 10),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              title: const Text('à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡ (à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¹€à¸Šà¸µà¹ˆà¸¢à¸§à¸Šà¸²à¸)'),
+              title: const Text('???????????????? (??????????????????)'),
               children: [
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: _kind,
-                  decoration: const InputDecoration(labelText: 'à¸›à¸£à¸°à¹€à¸ à¸—à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡'),
+                  decoration: const InputDecoration(labelText: '?????????????'),
                   items: const [
                     DropdownMenuItem(
                       value: 'legacy_delivery',
-                      child: Text('à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥'),
+                      child: Text('?????????????????'),
                     ),
                     DropdownMenuItem(
                       value: 'self_recovery',
-                      child: Text('à¸à¸¹à¹‰à¸„à¸·à¸™à¸”à¹‰à¸§à¸¢à¸•à¸±à¸§à¹€à¸­à¸‡'),
+                      child: Text('????????????????'),
                     ),
                   ],
                   onChanged: (value) {
@@ -3703,16 +3686,16 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _displayNameController,
-                  decoration: const InputDecoration(labelText: 'à¸Šà¸·à¹ˆà¸­à¹à¸œà¸™'),
+                  decoration: const InputDecoration(labelText: '???????'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _payloadRefController,
                   onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
-                    labelText: 'à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸¡à¸­à¸š (à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡)',
+                    labelText: '??????????????? (???????)',
                     helperText:
-                        'à¹„à¸¡à¹ˆà¸•à¹‰à¸­à¸‡à¹ƒà¸ªà¹ˆà¸¢à¸­à¸”à¹€à¸‡à¸´à¸™à¸ˆà¸£à¸´à¸‡ à¸£à¸°à¸šà¸šà¸¢à¸·à¸™à¸¢à¸±à¸™à¸¢à¸­à¸”à¸à¸±à¸šà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™',
+                        '????????????????????? ???????????????????????????????',
                   ),
                 ),
                 if (_containsMoneyLikeText(_payloadRefController.text)) ...[
@@ -3729,28 +3712,28 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'à¸žà¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸„à¸¥à¹‰à¸²à¸¢à¸¢à¸­à¸”à¹€à¸‡à¸´à¸™',
+                          '???????????????????????',
                           style: TextStyle(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢ à¸£à¸°à¸šà¸šà¸™à¸µà¹‰à¹„à¸¡à¹ˆà¹€à¸à¹‡à¸šà¸¢à¸­à¸”à¸ˆà¸£à¸´à¸‡ à¹à¸™à¸°à¸™à¸³à¹ƒà¸«à¹‰à¹à¸—à¸™à¸„à¸³à¹€à¸›à¹‡à¸™ "à¸•à¸£à¸§à¸ˆà¸—à¸µà¹ˆà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡"',
+                          '???????????????? ????????????????????? ????????????????? "??????????????"',
                         ),
                         const SizedBox(height: 8),
                         OutlinedButton.icon(
                           onPressed: () {
                             setState(() {
-                              _payloadRefController.text = _redactMoneyLikeText(
-                                      _payloadRefController.text)
-                                  .replaceAll(
+                              _payloadRefController.text =
+                                  _redactMoneyLikeText(_payloadRefController.text)
+                                      .replaceAll(
                                 '[institution-verified amount]',
-                                'à¸•à¸£à¸§à¸ˆà¸—à¸µà¹ˆà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡',
+                                '??????????????',
                               );
                             });
                           },
                           icon: const Icon(Icons.shield_outlined),
                           label: const Text(
-                            'à¹à¸—à¸™à¸„à¸³à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¹€à¸›à¹‡à¸™ "à¸•à¸£à¸§à¸ˆà¸—à¸µà¹ˆà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡"',
+                            '?????????????????? "??????????????"',
                           ),
                         ),
                       ],
@@ -3761,12 +3744,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 TextField(
                   controller: _verificationHintController,
                   decoration:
-                      const InputDecoration(labelText: 'à¸„à¸³à¹ƒà¸šà¹‰à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™'),
+                      const InputDecoration(labelText: '????????????????'),
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('à¹€à¸›à¸´à¸”à¸ªà¸´à¸—à¸˜à¸´à¹Œà¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸„à¸£à¸±à¹‰à¸‡à¹€à¸”à¸µà¸¢à¸§'),
+                  title: const Text('??????????????????????????'),
                   value: _oneTimeAccess,
                   onChanged: (value) {
                     setState(() => _oneTimeAccess = value);
@@ -3774,7 +3757,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸ªà¸±à¸à¸à¸²à¸“à¸¢à¸·à¸™à¸¢à¸±à¸™à¸§à¹ˆà¸²à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸•à¸­à¸š'),
+                  title: const Text('?????????????????????????????????????'),
                   value: _requireAliveConfirmation,
                   onChanged: (value) {
                     setState(() => _requireAliveConfirmation = value);
@@ -3788,12 +3771,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('à¸¢à¸à¹€à¸¥à¸´à¸'),
+          child: const Text('??????'),
         ),
         if (_editorStep > 0)
           TextButton(
             onPressed: () => setState(() => _editorStep -= 1),
-            child: const Text('à¸¢à¹‰à¸­à¸™à¸à¸¥à¸±à¸š'),
+            child: const Text('????????'),
           ),
         FilledButton(
           onPressed: () {
@@ -3887,11 +3870,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               ),
             );
           },
-          child: Text(_editorStep < 2 ? 'à¸–à¸±à¸”à¹„à¸›' : 'à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸œà¸™à¸™à¸µà¹‰'),
+          child: Text(_editorStep < 2 ? '?????' : '????????????'),
         ),
       ],
     );
   }
+
 }
 
 class _Pill extends StatelessWidget {
