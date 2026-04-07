@@ -64,20 +64,23 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   final Set<String> _selectedDestinationIds = <String>{};
   final TextEditingController _assetValueController =
       TextEditingController(text: '1000000');
-  final List<LegalPartnerProfile> _legalPartners = [];
+  final List<LegalPartnerProfile> _partnerCatalog = [];
 
   String get _storageOwnerRef => widget.storageOwnerRef ?? widget.profile.id;
   DemoScenario? get _activeScenario =>
       demoScenarioById(_document.metadata["demo_scenario"] as String?);
   LegalPartnerProfile? get _selectedPartner {
     if (_selectedPartnerId == null) return null;
-    for (final partner in _legalPartners) {
+    for (final partner in _partnerCatalog) {
       if (partner.id == _selectedPartnerId) {
         return partner;
       }
     }
     return null;
   }
+
+  List<LegalPartnerProfile> get _verifiedLegalPartners =>
+      _partnerCatalog.where((partner) => partner.isVerified).toList();
 
   static const List<LegalPartnerProfile> _seedLegalPartners = [
     LegalPartnerProfile(
@@ -155,7 +158,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   @override
   void initState() {
     super.initState();
-    _legalPartners.addAll(_seedLegalPartners);
+    _partnerCatalog.addAll(_loadPartnerCatalogSnapshot());
     _document = widget.initialDocument ?? _seedDocument();
     _restoreDraft();
     _restoreArtifact();
@@ -995,39 +998,10 @@ Section 4: Partner delivery scope
     return parts.join(',');
   }
 
-  Future<void> _openPartnerSignupDialog() async {
-    final draft = await showDialog<_PartnerSignupDraft>(
-      context: context,
-      builder: (_) => const _PartnerSignupDialog(),
-    );
-    if (draft == null) {
-      return;
-    }
-    final idBase = draft.officeName
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'^_+|_+$'), '');
-    final partner = LegalPartnerProfile(
-      id: 'law_$idBase',
-      officeName: draft.officeName,
-      province: draft.province,
-      specialties: draft.specialties,
-      slaHours: draft.slaHours,
-      rating: 0,
-      isVerified: false,
-      officeFeeTiers: draft.officeFeeTiers,
-      lawyerFeeTiers: draft.lawyerFeeTiers,
-      otherFeeNote: draft.otherFeeNote,
-      platformFeePercent: 0.40,
-      feeFloor: draft.feeFloor,
-      feeCap: draft.feeCap,
-    );
-    if (!mounted) return;
-    setState(() {
-      _legalPartners.insert(0, partner);
-      _selectedPartnerId = partner.id;
-      _partnerTermsAccepted = false;
-    });
+  List<LegalPartnerProfile> _loadPartnerCatalogSnapshot() {
+    // Placeholder intake point for backend/admin sync in next phase.
+    // Replace this with repository/API data once partner admin portal is ready.
+    return _seedLegalPartners.where((partner) => partner.isVerified).toList();
   }
 
   Widget _buildPartnerNetworkCard() {
@@ -1059,22 +1033,24 @@ Section 4: Partner delivery scope
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: _openPartnerSignupDialog,
-                  icon: const Icon(Icons.approval_rounded),
-                  label: const Text("Apply as partner"),
-                ),
-                const Text(
-                  "Partners must declare fee tiers before appearing in selection.",
-                ),
-              ],
+            const Text(
+              "Showing verified legal partners only. Partner registration is handled directly by admin onboarding.",
             ),
             const SizedBox(height: 12),
-            ..._legalPartners.map((partner) {
+            if (_verifiedLegalPartners.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFF8F4ED),
+                  border: Border.all(color: const Color(0xFFE8DDCF)),
+                ),
+                child: const Text(
+                  "No verified legal partners yet. Admin onboarding can add partner records, then they will appear here automatically.",
+                ),
+              ),
+            ..._verifiedLegalPartners.map((partner) {
               final isSelected = _selectedPartnerId == partner.id;
               final fee = partner.estimate(assetValue);
               return Padding(
@@ -1108,8 +1084,6 @@ Section 4: Partner delivery scope
                           ),
                           if (partner.isVerified)
                             const _Pill(label: "Verified"),
-                          if (!partner.isVerified)
-                            const _Pill(label: "Pending verification"),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -2619,7 +2593,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     'Exchange connector',
     'Gold broker connector',
   ];
-  static const List<String> _legalPartners = [
+  // Placeholder verified list for route editor; replace with backend/admin data.
+  static const List<String> _verifiedLegalPartners = [
     'Sanom Legal Partners',
     'Northern Trust Counsel',
   ];
@@ -3041,7 +3016,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         decoration: const InputDecoration(
                           labelText: 'เลือกสำนักงานกฎหมายพาร์ทเนอร์',
                         ),
-                        items: _legalPartners
+                        items: _verifiedLegalPartners
                             .map(
                               (partner) => DropdownMenuItem(
                                 value: partner,
@@ -3381,316 +3356,6 @@ class _Pill extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-}
-
-class _PartnerSignupDraft {
-  const _PartnerSignupDraft({
-    required this.officeName,
-    required this.province,
-    required this.specialties,
-    required this.slaHours,
-    required this.officeFeeTiers,
-    required this.lawyerFeeTiers,
-    required this.otherFeeNote,
-    this.feeFloor,
-    this.feeCap,
-  });
-
-  final String officeName;
-  final String province;
-  final List<String> specialties;
-  final int slaHours;
-  final List<FeeTier> officeFeeTiers;
-  final List<FeeTier> lawyerFeeTiers;
-  final String otherFeeNote;
-  final double? feeFloor;
-  final double? feeCap;
-}
-
-class _PartnerSignupDialog extends StatefulWidget {
-  const _PartnerSignupDialog();
-
-  @override
-  State<_PartnerSignupDialog> createState() => _PartnerSignupDialogState();
-}
-
-class _PartnerSignupDialogState extends State<_PartnerSignupDialog> {
-  late final TextEditingController _officeNameController;
-  late final TextEditingController _provinceController;
-  late final TextEditingController _specialtiesController;
-  late final TextEditingController _slaHoursController;
-  late final TextEditingController _officeSmallTierController;
-  late final TextEditingController _officeMediumTierController;
-  late final TextEditingController _officeLargeTierController;
-  late final TextEditingController _lawyerSmallTierController;
-  late final TextEditingController _lawyerMediumTierController;
-  late final TextEditingController _lawyerLargeTierController;
-  late final TextEditingController _floorController;
-  late final TextEditingController _capController;
-  late final TextEditingController _otherFeeNoteController;
-
-  @override
-  void initState() {
-    super.initState();
-    _officeNameController = TextEditingController();
-    _provinceController = TextEditingController();
-    _specialtiesController = TextEditingController(
-      text: 'Inheritance, digital asset handoff',
-    );
-    _slaHoursController = TextEditingController(text: '48');
-    _officeSmallTierController = TextEditingController(text: '2.00');
-    _officeMediumTierController = TextEditingController(text: '1.50');
-    _officeLargeTierController = TextEditingController(text: '1.10');
-    _lawyerSmallTierController = TextEditingController(text: '1.20');
-    _lawyerMediumTierController = TextEditingController(text: '1.00');
-    _lawyerLargeTierController = TextEditingController(text: '0.80');
-    _floorController = TextEditingController(text: '1500');
-    _capController = TextEditingController(text: '300000');
-    _otherFeeNoteController = TextEditingController(
-      text: 'Government and court charges billed at actual cost.',
-    );
-  }
-
-  @override
-  void dispose() {
-    _officeNameController.dispose();
-    _provinceController.dispose();
-    _specialtiesController.dispose();
-    _slaHoursController.dispose();
-    _officeSmallTierController.dispose();
-    _officeMediumTierController.dispose();
-    _officeLargeTierController.dispose();
-    _lawyerSmallTierController.dispose();
-    _lawyerMediumTierController.dispose();
-    _lawyerLargeTierController.dispose();
-    _floorController.dispose();
-    _capController.dispose();
-    _otherFeeNoteController.dispose();
-    super.dispose();
-  }
-
-  List<FeeTier> _buildTiers({
-    required TextEditingController smallController,
-    required TextEditingController mediumController,
-    required TextEditingController largeController,
-  }) {
-    final small = _parseDouble(smallController.text, fallback: 0);
-    final medium = _parseDouble(mediumController.text, fallback: 0);
-    final large = _parseDouble(largeController.text, fallback: 0);
-    return <FeeTier>[
-      FeeTier(minInclusive: 0, maxInclusive: 100000, percent: small),
-      FeeTier(minInclusive: 100001, maxInclusive: 1000000, percent: medium),
-      FeeTier(minInclusive: 1000001, percent: large),
-    ];
-  }
-
-  double _parseDouble(String raw, {required double fallback}) {
-    final normalized = raw.trim().replaceAll(',', '');
-    final parsed = double.tryParse(normalized);
-    return parsed ?? fallback;
-  }
-
-  void _submit() {
-    final officeName = _officeNameController.text.trim();
-    final province = _provinceController.text.trim();
-    if (officeName.isEmpty || province.isEmpty) {
-      return;
-    }
-    final specialties = _specialtiesController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    final draft = _PartnerSignupDraft(
-      officeName: officeName,
-      province: province,
-      specialties: specialties.isEmpty ? <String>['General counsel'] : specialties,
-      slaHours: _parseDouble(_slaHoursController.text, fallback: 48).round(),
-      officeFeeTiers: _buildTiers(
-        smallController: _officeSmallTierController,
-        mediumController: _officeMediumTierController,
-        largeController: _officeLargeTierController,
-      ),
-      lawyerFeeTiers: _buildTiers(
-        smallController: _lawyerSmallTierController,
-        mediumController: _lawyerMediumTierController,
-        largeController: _lawyerLargeTierController,
-      ),
-      otherFeeNote: _otherFeeNoteController.text.trim(),
-      feeFloor: _parseDouble(_floorController.text, fallback: 0),
-      feeCap: _parseDouble(_capController.text, fallback: 0),
-    );
-    Navigator.of(context).pop(
-      _PartnerSignupDraft(
-        officeName: draft.officeName,
-        province: draft.province,
-        specialties: draft.specialties,
-        slaHours: draft.slaHours,
-        officeFeeTiers: draft.officeFeeTiers,
-        lawyerFeeTiers: draft.lawyerFeeTiers,
-        otherFeeNote: draft.otherFeeNote,
-        feeFloor: draft.feeFloor == 0 ? null : draft.feeFloor,
-        feeCap: draft.feeCap == 0 ? null : draft.feeCap,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('สมัครเป็นพาร์ทเนอร์สำนักงานกฎหมาย'),
-      content: SingleChildScrollView(
-        child: SizedBox(
-          width: 520,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'ระบุอัตราค่าธรรมเนียมให้ครบทุกช่วงยอด เพื่อให้ผู้ใช้เทียบราคาได้โปร่งใส',
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _officeNameController,
-                decoration: const InputDecoration(
-                  labelText: 'ชื่อสำนักงาน',
-                  hintText: 'เช่น Sanom Legal Partners',
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _provinceController,
-                decoration: const InputDecoration(
-                  labelText: 'จังหวัด',
-                  hintText: 'เช่น Bangkok',
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _specialtiesController,
-                decoration: const InputDecoration(
-                  labelText: 'ความเชี่ยวชาญ (คั่นด้วย ,)',
-                  hintText: 'Probate, Digital asset, Family estate',
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _slaHoursController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'SLA ตอบรับครั้งแรก (ชั่วโมง)',
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Office fee tiers (%)',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              _tierRow(
-                label: '0 - 100,000 THB',
-                controller: _officeSmallTierController,
-              ),
-              const SizedBox(height: 6),
-              _tierRow(
-                label: '100,001 - 1,000,000 THB',
-                controller: _officeMediumTierController,
-              ),
-              const SizedBox(height: 6),
-              _tierRow(
-                label: '1,000,001+ THB',
-                controller: _officeLargeTierController,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Lawyer fee tiers (%)',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              _tierRow(
-                label: '0 - 100,000 THB',
-                controller: _lawyerSmallTierController,
-              ),
-              const SizedBox(height: 6),
-              _tierRow(
-                label: '100,001 - 1,000,000 THB',
-                controller: _lawyerMediumTierController,
-              ),
-              const SizedBox(height: 6),
-              _tierRow(
-                label: '1,000,001+ THB',
-                controller: _lawyerLargeTierController,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _floorController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'ค่าขั้นต่ำ (THB)',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _capController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'เพดานสูงสุด (THB)',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _otherFeeNoteController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'เงื่อนไขค่าใช้จ่ายเพิ่มเติม',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('ยกเลิก'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('ส่งใบสมัคร'),
-        ),
-      ],
-    );
-  }
-
-  Widget _tierRow({
-    required String label,
-    required TextEditingController controller,
-  }) {
-    return Row(
-      children: [
-        Expanded(child: Text(label)),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 120,
-          child: TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              suffixText: '%',
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
