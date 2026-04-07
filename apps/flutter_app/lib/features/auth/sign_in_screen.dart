@@ -24,14 +24,14 @@ class _SignInScreenState extends State<SignInScreen> {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       setState(() {
-        _message = "Please enter your email.";
+        _message = "กรุณากรอกอีเมล";
         _messageIsError = true;
       });
       return;
     }
     if (!email.contains("@") || !email.contains(".")) {
       setState(() {
-        _message = "Please enter a valid email.";
+        _message = "กรุณากรอกอีเมลให้ถูกต้อง";
         _messageIsError = true;
       });
       return;
@@ -48,7 +48,7 @@ class _SignInScreenState extends State<SignInScreen> {
       );
       setState(() {
         _message =
-            "Secure sign-in link sent. Check your inbox (and spam) then return to continue.";
+            "ส่งลิงก์เข้าสู่ระบบแบบปลอดภัยแล้ว กรุณาตรวจกล่องจดหมาย (รวมถึงสแปม) แล้วกลับมาทำต่อ";
         _messageIsError = false;
       });
     } on AuthException catch (e) {
@@ -68,7 +68,7 @@ class _SignInScreenState extends State<SignInScreen> {
     if (lower.contains("network") ||
         lower.contains("timed out") ||
         lower.contains("failed host lookup")) {
-      return "Network looks unstable. Please check your connection and try again.";
+      return "เครือข่ายไม่เสถียร กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่";
     }
     return raw;
   }
@@ -88,24 +88,24 @@ class _SignInScreenState extends State<SignInScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Welcome to Digital Legacy Weaver",
+                      "ยินดีต้อนรับสู่ Digital Legacy Weaver",
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Sign in to manage self-recovery and beneficiary handoff in one place.",
+                      "เข้าสู่ระบบเพื่อจัดการการกู้คืนตัวเองและการส่งต่อให้ผู้รับในที่เดียว",
                     ),
                     const SizedBox(height: 10),
-                    const Text("What this app helps you do right now"),
+                    const Text("สิ่งที่แอปช่วยคุณได้ทันที"),
                     const SizedBox(height: 6),
-                    const Text("1. Keep critical access information private-first"),
-                    const Text("2. Prevent accidental loss of access while alive"),
-                    const Text("3. Prepare secure delivery for the right beneficiary"),
+                    const Text("1. เก็บข้อมูลการเข้าถึงสำคัญแบบ private-first"),
+                    const Text("2. ลดความเสี่ยงสูญเสียการเข้าถึงขณะยังใช้งานอยู่"),
+                    const Text("3. เตรียมการส่งต่ออย่างปลอดภัยให้ผู้รับที่ถูกต้อง"),
                     const SizedBox(height: 18),
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        labelText: "Email address",
+                        labelText: "อีเมล",
                         hintText: "you@example.com",
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -115,7 +115,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: _sending ? null : _sendMagicLink,
-                        child: Text(_sending ? "Sending..." : "Send secure sign-in link"),
+                        child: Text(_sending ? "กำลังส่ง..." : "ส่งลิงก์เข้าสู่ระบบแบบปลอดภัย"),
                       ),
                     ),
                     if (_message != null) ...[

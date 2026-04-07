@@ -133,15 +133,15 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'Save Safety Settings'),
+        find.widgetWithText(FilledButton, 'บันทึกการตั้งค่าความปลอดภัย'),
       );
       await tester.tap(
-        find.widgetWithText(FilledButton, 'Save Safety Settings'),
+        find.widgetWithText(FilledButton, 'บันทึกการตั้งค่าความปลอดภัย'),
       );
       await tester.pumpAndSettle();
 
       expect(
-          find.text('Safety settings updated successfully.'), findsOneWidget);
+          find.text('บันทึกการตั้งค่าความปลอดภัยเรียบร้อยแล้ว'), findsOneWidget);
       expect(find.text('Best for audits'), findsOneWidget);
       expect(
         find.textContaining('sanitized evidence and owner references'),
