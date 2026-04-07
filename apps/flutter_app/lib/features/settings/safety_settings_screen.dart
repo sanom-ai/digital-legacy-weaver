@@ -162,6 +162,7 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
 
           return ListView(
             physics: const BouncingScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
             children: [
               Card(

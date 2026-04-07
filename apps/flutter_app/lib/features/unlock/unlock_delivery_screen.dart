@@ -876,6 +876,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       appBar: AppBar(title: const Text("หน้ารับมอบผู้รับผลประโยชน์ | Beneficiary Receipt")),
       body: ListView(
         physics: const BouncingScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
         children: [
           Card(
