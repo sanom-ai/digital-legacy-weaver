@@ -1479,7 +1479,7 @@ Notes
         actions: [
           Row(
             children: [
-              const Text("Advanced view"),
+              const Text("โหมดขั้นสูง"),
               Switch.adaptive(
                 value: _showAdvanced,
                 onChanged: (value) {
@@ -1492,7 +1492,7 @@ Notes
           ),
           TextButton(
             onPressed: _hasLocalDraft ? _resetDraft : null,
-            child: const Text("Reset"),
+            child: const Text("เริ่มใหม่"),
           ),
         ],
       ),
@@ -1514,7 +1514,7 @@ Notes
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Step 2 of 3: Shape your plan",
+                    "ขั้นที่ 2 จาก 3: จัดแผนให้พร้อม",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -1534,15 +1534,15 @@ Notes
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "What to do now",
+                          "ทำตามนี้ได้เลย",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
-                        Text("1. Keep at least one active route."),
+                        Text("1. มีรายการส่งต่อที่เปิดใช้งานอย่างน้อย 1 รายการ"),
                         SizedBox(height: 4),
-                        Text("2. Export and review warnings."),
+                        Text("2. สร้างสแนปช็อตแผน แล้วดูคำเตือน"),
                         SizedBox(height: 4),
-                        Text("3. Mark ready only when draft and export match."),
+                        Text("3. กดพร้อมใช้งาน เมื่อร่างล่าสุดตรงกับสแนปช็อต"),
                       ],
                     ),
                   ),
@@ -1563,7 +1563,7 @@ Notes
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "From onboarding: $demoScenarioTitle",
+                            "จากหน้าเริ่มต้น: $demoScenarioTitle",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           if (demoScenarioSummary != null) ...[
@@ -1578,12 +1578,12 @@ Notes
                   FilledButton.icon(
                     onPressed: canMarkReady ? _completeSetupFlow : null,
                     icon: const Icon(Icons.check_circle_outline),
-                    label: const Text("Complete setup"),
+                    label: const Text("เสร็จสิ้นการตั้งค่า"),
                   ),
                   if (!canMarkReady) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "To complete setup: keep 1 active route, create a version, and review it.",
+                      "ต้องมีรายการที่เปิดใช้งานอย่างน้อย 1 รายการ สร้างสแนปช็อต และตรวจทานก่อน",
                       style: TextStyle(
                         color: scheme.onSurfaceVariant,
                         fontSize: 12,
@@ -1597,16 +1597,16 @@ Notes
                     children: [
                       _Pill(
                         label: _hasLocalDraft
-                            ? "Local encrypted draft: on"
-                            : "Using seeded setup",
+                            ? "บันทึกร่างในเครื่อง: เปิดอยู่"
+                            : "ใช้ค่าตั้งต้นเริ่มต้น",
                       ),
                       _Pill(
-                        label: "Privacy: ${_document.defaultPrivacyProfile}",
+                        label: "ระดับความเป็นส่วนตัว: ${_document.defaultPrivacyProfile}",
                       ),
-                      _Pill(label: "Routes: ${_document.entries.length}"),
-                      _Pill(label: "Active: $activeEntryCount"),
+                      _Pill(label: "รายการทั้งหมด: ${_document.entries.length}"),
+                      _Pill(label: "เปิดใช้งาน: $activeEntryCount"),
                       _Pill(
-                        label: "Versions: ${_artifactHistory.length}",
+                        label: "สแนปช็อต: ${_artifactHistory.length}",
                       ),
                     ],
                   ),
@@ -1640,12 +1640,12 @@ Notes
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Quick starter preset",
+                    "เริ่มเร็วด้วยตัวอย่าง",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Pick one preset to fill routes and safeguards automatically, then edit details to match your real case.",
+                    "เลือกตัวอย่าง 1 แบบเพื่อเติมข้อมูลอัตโนมัติ แล้วค่อยแก้ให้ตรงกับเคสจริงของคุณ",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -1680,7 +1680,7 @@ Notes
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Active preset: ${_activeScenario!.title}",
+                            "ตัวอย่างที่เลือก: ${_activeScenario!.title}",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 6),
@@ -1688,7 +1688,7 @@ Notes
                           if (demoScenarioNextStep != null) ...[
                             const SizedBox(height: 8),
                             Text(
-                              "Next step: $demoScenarioNextStep",
+                              "ขั้นถัดไป: $demoScenarioNextStep",
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -2160,7 +2160,7 @@ Notes
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Routes you will manage",
+                  "รายการส่งต่อที่คุณดูแล",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
@@ -2168,7 +2168,7 @@ Notes
                   onPressed: () {
                     _addDraftEntry();
                   },
-                  child: const Text("Add route"),
+                  child: const Text("เพิ่มรายการส่งต่อ"),
                 ),
               ],
             )
@@ -2177,7 +2177,7 @@ Notes
               children: [
                 const Expanded(
                   child: Text(
-                    "Routes you will manage",
+                    "รายการส่งต่อที่คุณดูแล",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -2185,7 +2185,7 @@ Notes
                   onPressed: () {
                     _addDraftEntry();
                   },
-                  child: const Text("Add route"),
+                  child: const Text("เพิ่มรายการส่งต่อ"),
                 ),
               ],
             ),
@@ -2204,17 +2204,17 @@ Notes
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "No route yet",
+                      "ยังไม่มีรายการส่งต่อ",
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Start with at least 1 route, for example family handoff or owner self-recovery.",
+                      "เริ่มด้วยอย่างน้อย 1 รายการ เช่น ส่งต่อให้ครอบครัว หรือกู้คืนด้วยตัวเอง",
                     ),
                     const SizedBox(height: 10),
                     FilledButton.tonal(
                       onPressed: _addDraftEntry,
-                      child: const Text("Add first route"),
+                      child: const Text("เพิ่มรายการแรก"),
                     ),
                   ],
                 ),
@@ -2249,12 +2249,12 @@ Notes
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Create a release version",
+                    "ยืนยันแผนฉบับพร้อมใช้งาน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Create a clean snapshot of this plan, then review and mark it ready.",
+                    "สร้างสแนปช็อตของแผน ตรวจทาน แล้วตั้งเป็นพร้อมใช้งาน",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -2270,15 +2270,15 @@ Notes
                         icon: const Icon(Icons.publish_rounded),
                         label: Text(
                           _isExporting
-                              ? "Exporting..."
-                              : "Create setup snapshot",
+                              ? "กำลังสร้าง..."
+                              : "สร้างสแนปช็อตแผน",
                         ),
                       ),
                       if (!partnerTermsGateSatisfied)
                         const Padding(
                           padding: EdgeInsets.only(top: 6),
                           child: Text(
-                            "Accept partner fee terms before creating release version.",
+                            "โปรดยอมรับเงื่อนไขค่าธรรมเนียมพาร์ทเนอร์ก่อนสร้างสแนปช็อต",
                             style: TextStyle(
                               color: Color(0xFF8A5A00),
                               fontWeight: FontWeight.w600,
@@ -2288,7 +2288,7 @@ Notes
                       OutlinedButton(
                         onPressed:
                             _artifact == null ? null : _clearCanonicalArtifact,
-                        child: const Text("Clear created version"),
+                        child: const Text("ล้างสแนปช็อตนี้"),
                       ),
                       OutlinedButton(
                         onPressed: _artifact == null
@@ -2302,7 +2302,7 @@ Notes
                                   ),
                                 );
                               },
-                        child: const Text("Review snapshot"),
+                        child: const Text("ตรวจทานสแนปช็อต"),
                       ),
                     ],
                   ),
@@ -2310,7 +2310,7 @@ Notes
                     const SizedBox(height: 12),
                     _Pill(
                       label:
-                          "Last export: ${_artifact!.generatedAt.toLocal().toString()}",
+                          "สร้างล่าสุด: ${_artifact!.generatedAt.toLocal().toString()}",
                     ),
                     if (_showAdvanced) ...[
                       const SizedBox(height: 8),
@@ -2332,14 +2332,14 @@ Notes
                     ] else ...[
                       const SizedBox(height: 8),
                       Text(
-                        "Issues: ${_artifact!.report.errorCount} blocking, ${_artifact!.report.warningCount} cautions",
+                        "ปัญหา: บล็อก ${_artifact!.report.errorCount} / คำเตือน ${_artifact!.report.warningCount}",
                       ),
                     ],
                     const SizedBox(height: 8),
                     Text(
                       artifactInSync
-                          ? "Release status: draft and exported version are in sync."
-                          : "Release status: draft changed since the last export.",
+                          ? "สถานะ: ร่างล่าสุดตรงกับสแนปช็อต"
+                          : "สถานะ: มีการแก้ร่างหลังสร้างสแนปช็อตล่าสุด",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: artifactInSync
@@ -2369,7 +2369,7 @@ Notes
                           onPressed: () {
                             _openPolicyPaper(_artifact!);
                           },
-                          child: const Text("Open policy paper"),
+                          child: const Text("ดู Policy Paper"),
                         ),
                         OutlinedButton(
                           onPressed: canMarkReviewed
@@ -2379,7 +2379,7 @@ Notes
                                   );
                                 }
                               : null,
-                          child: const Text("Mark reviewed"),
+                          child: const Text("ทำเครื่องหมายว่าตรวจแล้ว"),
                         ),
                         OutlinedButton(
                           onPressed: canMarkReady
@@ -2389,7 +2389,7 @@ Notes
                                   );
                                 }
                               : null,
-                          child: const Text("Activate route"),
+                          child: const Text("ตั้งเป็นพร้อมใช้งาน"),
                         ),
                       ],
                     ),
@@ -2397,8 +2397,8 @@ Notes
                     const SizedBox(height: 12),
                     Text(
                       activeEntryCount > 0
-                          ? "No exported version yet for the current active draft."
-                          : "Activate at least one route to make export meaningful.",
+                          ? "ยังไม่มีสแนปช็อตสำหรับร่างที่กำลังใช้งาน"
+                          : "โปรดเปิดใช้งานอย่างน้อย 1 รายการก่อนสร้างสแนปช็อต",
                     ),
                   ],
                   if (_artifactHistory.isNotEmpty) ...[
@@ -2437,7 +2437,7 @@ Notes
                       const SizedBox(height: 12),
                     ] else ...[
                       Text(
-                        "Saved snapshots: ${_artifactHistory.length} (open Advanced view to manage full history).",
+                        "สแนปช็อตที่บันทึกไว้: ${_artifactHistory.length} (เปิดโหมดขั้นสูงเพื่อจัดการประวัติทั้งหมด)",
                       ),
                       const SizedBox(height: 12),
                     ],
