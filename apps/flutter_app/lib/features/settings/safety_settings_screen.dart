@@ -74,13 +74,14 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
   }
 
   InputDecoration _settingsFieldDecoration(String label) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
-      filled: true,
-      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    );
+    ).applyDefaults(theme.inputDecorationTheme).copyWith(
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          ),
+        );
   }
 
   String? _productionGuardrailMessage() {
@@ -832,7 +833,8 @@ class _SafetySettingsScreenState extends ConsumerState<SafetySettingsScreen> {
                           }
                         }
                       },
-                child: Text(_saving ? "กำลังบันทึก..." : "บันทึกการตั้งค่าความปลอดภัย"),
+                child: Text(
+                    _saving ? "กำลังบันทึก..." : "บันทึกการตั้งค่าความปลอดภัย"),
               ),
             ],
           );

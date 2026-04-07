@@ -102,9 +102,15 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
 
   String? _requiredEmail(String? value, {bool required = true}) {
     final text = (value ?? "").trim();
-    if (!required && text.isEmpty) return null;
-    if (text.isEmpty) return "กรุณากรอกข้อมูล";
-    if (!text.contains("@") || !text.contains(".")) return "รูปแบบอีเมลไม่ถูกต้อง";
+    if (!required && text.isEmpty) {
+      return null;
+    }
+    if (text.isEmpty) {
+      return "กรุณากรอกข้อมูล";
+    }
+    if (!text.contains("@") || !text.contains(".")) {
+      return "รูปแบบอีเมลไม่ถูกต้อง";
+    }
     return null;
   }
 
@@ -259,17 +265,16 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     IconData? icon,
     String? helper,
   }) {
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       helperText: helper,
       prefixIcon: icon == null ? null : Icon(icon),
-      filled: true,
-      fillColor:
-          Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.24,
-              ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-    );
+    ).applyDefaults(theme.inputDecorationTheme).copyWith(
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.24,
+          ),
+        );
   }
 
   IntentDocumentModel _buildDraftIntentDocument(PrivacyProfilePreset preset) {
@@ -360,8 +365,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     );
     if (draftReport.errorCount > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("กรุณาแก้รายการที่ติดบล็อกก่อนบันทึก")),
+        const SnackBar(content: Text("กรุณาแก้รายการที่ติดบล็อกก่อนบันทึก")),
       );
       return;
     }
@@ -374,8 +378,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     }
     if (!_legalAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("กรุณายอมรับข้อตกลงก่อนดำเนินการต่อ")),
+        const SnackBar(content: Text("กรุณายอมรับข้อตกลงก่อนดำเนินการต่อ")),
       );
       return;
     }
@@ -596,12 +599,14 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         onPressed: _saving || (isFinalStep && !canFinalize)
                             ? null
                             : details.onStepContinue,
-                        child: Text(isFinalStep ? "ยืนยันและเริ่มใช้งาน" : "ถัดไป"),
+                        child: Text(
+                            isFinalStep ? "ยืนยันและเริ่มใช้งาน" : "ถัดไป"),
                       ),
                       const SizedBox(width: 12),
                       TextButton(
                         onPressed: _saving ? null : details.onStepCancel,
-                        child: Text(_stepIndex == 0 ? "ไปหน้าหลัก" : "ย้อนกลับ"),
+                        child:
+                            Text(_stepIndex == 0 ? "ไปหน้าหลัก" : "ย้อนกลับ"),
                       ),
                     ],
                   );
@@ -686,8 +691,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         _stepIntro(
                           icon: Icons.schedule_outlined,
                           title: "ขั้นตอน 2 จาก 3: เงื่อนไขเวลา",
-                          detail:
-                              "กำหนดเวลาให้พอดี เพื่อกันการส่งต่อผิดพลาด",
+                          detail: "กำหนดเวลาให้พอดี เพื่อกันการส่งต่อผิดพลาด",
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
@@ -819,7 +823,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           value: _serverHeartbeatFallbackEnabled,
                           onChanged: (v) => setState(
                               () => _serverHeartbeatFallbackEnabled = v),
-                          title: const Text("เปิดการเช็กสัญญาณชีพสำรองจากเซิร์ฟเวอร์"),
+                          title: const Text(
+                              "เปิดการเช็กสัญญาณชีพสำรองจากเซิร์ฟเวอร์"),
                           subtitle: const Text(
                               "แนะนำสำหรับ iOS หรือช่วงที่แอปไม่ได้เปิดนาน เพื่อลดการทริกเกอร์ผิดพลาด"),
                         ),
@@ -828,7 +833,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           value: _iosBackgroundRiskAcknowledged,
                           onChanged: (v) => setState(() =>
                               _iosBackgroundRiskAcknowledged = v ?? false),
-                          title: const Text("ฉันเข้าใจข้อจำกัดการทำงานเบื้องหลังของมือถือ"),
+                          title: const Text(
+                              "ฉันเข้าใจข้อจำกัดการทำงานเบื้องหลังของมือถือ"),
                           subtitle: const Text(
                               "บางช่วงระบบมือถืออาจพักการทำงานเบื้องหลัง จึงควรเปิดการเช็กสำรองไว้"),
                         ),
@@ -948,5 +954,3 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     );
   }
 }
-
-

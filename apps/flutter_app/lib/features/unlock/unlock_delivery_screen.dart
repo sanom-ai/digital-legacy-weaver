@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UnlockDeliveryScreen extends StatefulWidget {
@@ -355,8 +355,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             Text(
                 "3. ติดต่อเจ้าของบัญชี พยาน ผู้ดูแลระบบ หรือพาร์ทเนอร์ที่กำหนดไว้ เพื่อยืนยันเส้นทางใหม่"),
             SizedBox(height: 4),
-            Text(
-                "4. เก็บข้อมูลนี้เป็นความลับจนกว่าจะยืนยันผู้รับตัวจริงได้"),
+            Text("4. เก็บข้อมูลนี้เป็นความลับจนกว่าจะยืนยันผู้รับตัวจริงได้"),
           ],
         ),
         actions: [
@@ -513,15 +512,16 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     String? helper,
     Widget? suffixIcon,
   }) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       helperText: helper,
       suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-    );
+    ).applyDefaults(theme.inputDecorationTheme).copyWith(
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          ),
+        );
   }
 
   Widget _buildAntiScamChecklistCard() {
@@ -987,8 +987,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-          title: const Text("หน้ารับมอบของผู้รับผลประโยชน์")),
+      appBar: AppBar(title: const Text("หน้ารับมอบของผู้รับผลประโยชน์")),
       body: ListView(
         physics: const BouncingScrollPhysics(),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -1087,8 +1086,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         const SizedBox(height: 10),
                         OutlinedButton(
                           onPressed: _showWrongRecipientDialog,
-                          child: const Text(
-                              "ไม่ใช่ของฉัน"),
+                          child: const Text("ไม่ใช่ของฉัน"),
                         ),
                       ],
                     ),
@@ -1402,5 +1400,3 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 }
-
-

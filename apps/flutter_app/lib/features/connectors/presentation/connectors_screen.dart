@@ -611,15 +611,16 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
     String? helperText,
     String? hintText,
   }) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       helperText: helperText,
       hintText: hintText,
-      filled: true,
-      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    );
+    ).applyDefaults(theme.inputDecorationTheme).copyWith(
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          ),
+        );
   }
 
   Widget _buildChoiceSection({
@@ -860,15 +861,16 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
     String? helperText,
     String? hintText,
   }) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       helperText: helperText,
       hintText: hintText,
-      filled: true,
-      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    );
+    ).applyDefaults(theme.inputDecorationTheme).copyWith(
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          ),
+        );
   }
 
   List<_ChoiceOption> _assetTypeOptionsForConnector(String connectorRefId) {
