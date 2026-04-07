@@ -1,5 +1,7 @@
 import 'package:digital_legacy_weaver/core/config/app_config.dart';
 import 'package:digital_legacy_weaver/core/providers/supabase_provider.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/legal/reviewer_ops_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +45,6 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
     if (!AppConfig.reviewerOpsEnabled) return;
     setState(() {
       _busy = true;
-      _message = null;
     });
     try {
       final queue = await ref
@@ -53,10 +54,8 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       setState(() => _queue = queue);
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _message = _friendlyError("load the review queue", e);
-        _messageIsError = true;
-      });
+      AppFeedback.showError(
+          context, _friendlyError("load the review queue", e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -71,21 +70,22 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
       });
       return;
     }
+    final confirmed = await _confirmReviewDecision(decision);
+    if (!confirmed) return;
     setState(() {
       _busy = true;
       _message = null;
     });
     try {
-      final result = await ref
-          .read(reviewerOpsRepositoryProvider)
-          .applyDecision(
-            evidenceId: evidenceId,
-            reviewerRef: reviewerRef,
-            decision: decision,
-            notes: _notesController.text.trim().isEmpty
-                ? null
-                : _notesController.text.trim(),
-          );
+      final result =
+          await ref.read(reviewerOpsRepositoryProvider).applyDecision(
+                evidenceId: evidenceId,
+                reviewerRef: reviewerRef,
+                decision: decision,
+                notes: _notesController.text.trim().isEmpty
+                    ? null
+                    : _notesController.text.trim(),
+              );
       if (!mounted) return;
       setState(() {
         _message =
@@ -104,15 +104,43 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
     }
   }
 
+  Future<bool> _confirmReviewDecision(String decision) async {
+    final normalized = decision.trim().toLowerCase();
+    final isReject = normalized == "rejected";
+    final isNeedsInfo = normalized == "needs_info";
+    final title = isReject
+        ? "ยืนยันการปฏิเสธคำขอ"
+        : isNeedsInfo
+            ? "ยืนยันว่าต้องขอข้อมูลเพิ่ม"
+            : "ยืนยันการอนุมัติคำขอ";
+    final message = isReject
+        ? "ระบบจะอัปเดตสถานะเป็น Rejected ทันที ต้องการดำเนินการต่อใช่ไหม"
+        : isNeedsInfo
+            ? "ระบบจะอัปเดตสถานะเป็น Needs info เพื่อรอข้อมูลเพิ่ม ต้องการดำเนินการต่อใช่ไหม"
+            : "ระบบจะอัปเดตสถานะเป็น Approved ต้องการดำเนินการต่อใช่ไหม";
+    final confirmLabel = isReject
+        ? "ยืนยันปฏิเสธ"
+        : isNeedsInfo
+            ? "ยืนยันขอข้อมูลเพิ่ม"
+            : "ยืนยันอนุมัติ";
+    return AppFeedback.confirmAction(
+      context: context,
+      title: title,
+      message: message,
+      confirmLabel: confirmLabel,
+      destructive: isReject,
+      icon: isReject ? Icons.block_rounded : Icons.verified_user_rounded,
+    );
+  }
+
   Future<void> _openTimeline(String evidenceId) async {
     setState(() {
       _busy = true;
       _message = null;
     });
     try {
-      final summary = await ref
-          .read(reviewerOpsRepositoryProvider)
-          .loadSummary(evidenceId);
+      final summary =
+          await ref.read(reviewerOpsRepositoryProvider).loadSummary(evidenceId);
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -200,14 +228,16 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                   children: [
                     Text(
                       "ต้องตั้งค่าระบบผู้ตรวจสอบก่อน",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                     SizedBox(height: 8),
                     Text(
                       "หน้านี้ต้องใช้รีวิวคีย์ก่อนจึงจะใช้งานคิวตรวจสอบได้",
                     ),
                     SizedBox(height: 8),
-                    SelectableText("flutter run --dart-define=REVIEWER_API_KEY=<reviewer_key>"),
+                    SelectableText(
+                        "flutter run --dart-define=REVIEWER_API_KEY=<reviewer_key>"),
                   ],
                 ),
               ),
@@ -285,16 +315,13 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
           ),
           if (_message != null) ...[
             const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: _messageIsError
-                    ? const Color(0xFFFFF1F1)
-                    : const Color(0xFFE9F6EF),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(_message!),
+            AppStatePanel(
+              message: _message!,
+              tone: _messageIsError
+                  ? (appStateLooksOfflineMessage(_message!)
+                      ? AppStateTone.offline
+                      : AppStateTone.error)
+                  : AppStateTone.success,
             ),
           ],
           const SizedBox(height: 12),
@@ -338,9 +365,8 @@ class _ReviewerOpsScreenState extends ConsumerState<ReviewerOpsScreen> {
                         spacing: 6,
                         children: [
                           TextButton(
-                            onPressed: _busy
-                                ? null
-                                : () => _openTimeline(item.id),
+                            onPressed:
+                                _busy ? null : () => _openTimeline(item.id),
                             child: const Text("Timeline"),
                           ),
                           TextButton(

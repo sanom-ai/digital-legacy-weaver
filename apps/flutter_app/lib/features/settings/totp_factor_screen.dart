@@ -1,4 +1,6 @@
 import 'package:digital_legacy_weaver/core/providers/supabase_provider.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/settings/totp_factor_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,8 +48,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message =
-            "We could not load authenticator status right now. Please retry.";
+        _message = "ยังโหลดสถานะการยืนยันตัวตนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
         _messageIsError = true;
       });
     } finally {
@@ -67,14 +68,13 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       setState(() {
         _setupBundle = bundle;
         _message =
-            "Scan this setup code in your authenticator app, then confirm with the 6-digit code.";
+            "สแกนรหัสนี้ในแอปยืนยันตัวตนของคุณ แล้วกรอกรหัส 6 หลักเพื่อยืนยัน";
         _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message =
-            "We could not start authenticator setup right now. Please retry.";
+        _message = "เริ่มตั้งค่าการยืนยันตัวตนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
         _messageIsError = true;
       });
     } finally {
@@ -86,7 +86,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
     final code = _codeController.text.trim();
     if (code.length < 6) {
       setState(() {
-        _message = "Enter a valid 6-digit code.";
+        _message = "กรุณากรอกรหัส 6 หลักให้ถูกต้อง";
         _messageIsError = true;
       });
       return;
@@ -104,14 +104,13 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
         _status = status;
         _setupBundle = null;
         _codeController.clear();
-        _message = "Authenticator code enabled successfully.";
+        _message = "เปิดใช้งานการยืนยันตัวตนด้วยรหัสสำเร็จ";
         _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message =
-            "We could not confirm setup. Verify your 6-digit code and try again.";
+        _message = "ยืนยันไม่สำเร็จ กรุณาตรวจสอบรหัส 6 หลักแล้วลองใหม่";
         _messageIsError = true;
       });
     } finally {
@@ -120,6 +119,17 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
   }
 
   Future<void> _disable() async {
+    final confirmed = await AppFeedback.confirmAction(
+      context: context,
+      title: "ยืนยันการปิดการยืนยันตัวตน",
+      message:
+          "เมื่อปิดแล้ว การปลดล็อกจะไม่บังคับใช้รหัส TOTP ต้องการปิดใช่ไหม",
+      confirmLabel: "ปิดการยืนยันตัวตน",
+      destructive: true,
+      icon: Icons.lock_open_rounded,
+    );
+    if (!confirmed) return;
+
     setState(() {
       _busy = true;
       _message = null;
@@ -130,14 +140,13 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
       if (!mounted) return;
       setState(() {
         _status = status;
-        _message = "Authenticator code disabled.";
+        _message = "ปิดการยืนยันตัวตนด้วยรหัสแล้ว";
         _messageIsError = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _message =
-            "We could not disable authenticator code right now. Please retry.";
+        _message = "ปิดการยืนยันตัวตนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
         _messageIsError = true;
       });
     } finally {
@@ -149,16 +158,13 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
     if (_message == null) {
       return const SizedBox.shrink();
     }
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _messageIsError
-            ? const Color(0xFFFFF1F1)
-            : const Color(0xFFE9F6EF),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(_message!),
+    return AppStatePanel(
+      message: _message!,
+      tone: _messageIsError
+          ? (appStateLooksOfflineMessage(_message!)
+              ? AppStateTone.offline
+              : AppStateTone.error)
+          : AppStateTone.success,
     );
   }
 
@@ -168,7 +174,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
     final enabled = status?.enabled ?? false;
     final configured = status?.configured ?? false;
     return Scaffold(
-      appBar: AppBar(title: const Text("Authenticator Code")),
+      appBar: AppBar(title: const Text("รหัสยืนยันตัวตน")),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -179,14 +185,14 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Second-factor Protection",
+                    "การยืนยันตัวตนชั้นที่สอง",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Text("Configured: ${configured ? "yes" : "no"}"),
-                  Text("Enabled: ${enabled ? "yes" : "no"}"),
+                  Text("ตั้งค่าแล้ว: ${configured ? "ใช่" : "ยังไม่ตั้งค่า"}"),
+                  Text("สถานะ: ${enabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}"),
                   Text(
-                    "Required before unlock: ${(status?.requireTotpUnlock ?? false) ? "yes" : "no"}",
+                    "ต้องยืนยันก่อนปลดล็อก: ${(status?.requireTotpUnlock ?? false) ? "ใช่" : "ไม่บังคับ"}",
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -194,14 +200,14 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _busy ? null : _reload,
-                          child: const Text("Refresh"),
+                          child: const Text("รีเฟรช"),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: FilledButton(
                           onPressed: _busy ? null : _beginSetup,
-                          child: const Text("Start Setup"),
+                          child: const Text("เริ่มตั้งค่า"),
                         ),
                       ),
                     ],
@@ -211,7 +217,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                     width: double.infinity,
                     child: TextButton(
                       onPressed: (_busy || !enabled) ? null : _disable,
-                      child: const Text("Disable"),
+                      child: const Text("ปิดใช้งาน"),
                     ),
                   ),
                 ],
@@ -227,24 +233,24 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Setup Details",
+                      "ข้อมูลสำหรับตั้งค่า",
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text("Secret key (Base32)"),
+                    const Text("คีย์ลับ (Base32)"),
                     SelectableText(_setupBundle!.secretBase32),
                     const SizedBox(height: 8),
-                    const Text("Setup URI"),
+                    const Text("ลิงก์ตั้งค่า"),
                     SelectableText(_setupBundle!.otpauthUri),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _codeController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: "6-digit code",
+                        labelText: "รหัส 6 หลัก",
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -252,7 +258,7 @@ class _TotpFactorScreenState extends ConsumerState<TotpFactorScreen> {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: _busy ? null : _confirmSetup,
-                        child: const Text("Confirm"),
+                        child: const Text("ยืนยัน"),
                       ),
                     ),
                   ],

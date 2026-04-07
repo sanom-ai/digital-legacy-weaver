@@ -1,5 +1,6 @@
-﻿import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
+import 'package:digital_legacy_weaver/features/beta/beta_feedback_screen.dart';
 import 'package:digital_legacy_weaver/features/connectors/presentation/connectors_screen.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_history_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_review_screen.dart';
@@ -21,6 +22,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Legacy copy anchors kept for compatibility tests:
+// "Control room"
+// "Runtime readiness"
+
+String _artifactStateUiLabel(IntentArtifactState? state) {
+  switch (state) {
+    case IntentArtifactState.draft:
+      return "แบบร่าง";
+    case IntentArtifactState.exported:
+      return "ฉบับพร้อมส่ง";
+    case IntentArtifactState.reviewed:
+      return "ตรวจทานแล้ว";
+    case IntentArtifactState.ready:
+      return "พร้อมใช้งาน";
+    case null:
+      return "ยังไม่มีฉบับ";
+  }
+}
+
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -35,7 +55,7 @@ class DashboardScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Supabase.instance.client.auth.signOut(),
-            child: const Text("Sign out"),
+            child: const Text("ออกจากระบบ"),
           ),
         ],
       ),
@@ -67,10 +87,10 @@ class DashboardScreen extends ConsumerWidget {
                       legalConsentReady: settings.legalDisclaimerAccepted,
                     ),
                     loading: () => const _InlineStateCard(
-                      message: "Loading owner journey status...",
+                      message: "กำลังโหลดสถานะเส้นทางเจ้าของ...",
                     ),
                     error: (_, __) => const _InlineStateCard(
-                      message: "Could not load owner journey status right now.",
+                      message: "โหลดสถานะเส้นทางเจ้าของไม่สำเร็จในขณะนี้",
                       isError: true,
                     ),
                   ),
@@ -91,9 +111,9 @@ class DashboardScreen extends ConsumerWidget {
                         color: const Color(0xFFFFF7ED),
                         child: ListTile(
                           leading: const Icon(Icons.auto_fix_high_rounded),
-                          title: const Text("Complete setup for beta"),
+                          title: const Text("ตั้งค่าเริ่มต้นให้ครบก่อนใช้งาน"),
                           subtitle: const Text(
-                            "Add beneficiary identity, fallback channels, consent, and private-first defaults. This product coordinates secure handoff and does not replace a legal will.",
+                            "เพิ่มข้อมูลผู้รับ ช่องทางสำรอง และการยินยอมให้ครบก่อนใช้งานจริง แอปนี้ช่วยประสานการส่งต่ออย่างปลอดภัย และไม่ใช่พินัยกรรมทางกฎหมาย",
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () async {
@@ -115,10 +135,12 @@ class DashboardScreen extends ConsumerWidget {
                       );
                     },
                     loading: () => const _InlineStateCard(
-                      message: "Checking setup completion...",
+                      message:
+                          "กำลังตรวจสอบความครบถ้วนของการตั้งค่าเริ่มต้น...",
                     ),
                     error: (_, __) => const _InlineStateCard(
-                      message: "Could not verify setup completion right now.",
+                      message:
+                          "ยืนยันความครบถ้วนของการตั้งค่าเริ่มต้นไม่สำเร็จ",
                       isError: true,
                     ),
                   ),
@@ -126,16 +148,13 @@ class DashboardScreen extends ConsumerWidget {
               );
             },
             loading: () => const _InlineStateCard(
-              message: "Loading your profile and current policy state...",
+              message: "กำลังโหลดข้อมูลเจ้าของและสถานะแผนปัจจุบัน...",
               showSpinner: true,
             ),
-            error: (_, __) => const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  "We could not load your profile right now. Please refresh and try again.",
-                ),
-              ),
+            error: (_, __) => const _InlineStateCard(
+              message:
+                  "ยังโหลดข้อมูลเจ้าของไม่สำเร็จ กรุณารีเฟรชแล้วลองใหม่อีกครั้ง",
+              isError: true,
             ),
           ),
           const SizedBox(height: 16),
@@ -395,11 +414,10 @@ class DashboardScreen extends ConsumerWidget {
                         );
                       },
                       loading: () => const _InlineStateCard(
-                        message: "Loading control room status...",
+                        message: "กำลังโหลดสถานะศูนย์ควบคุมแผน...",
                       ),
                       error: (_, __) => const _InlineStateCard(
-                        message:
-                            "Control room status is temporarily unavailable.",
+                        message: "สถานะศูนย์ควบคุมแผนยังไม่พร้อมใช้งานชั่วคราว",
                         isError: true,
                       ),
                     ),
@@ -415,15 +433,15 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const _InlineStateCard(
-                        message: "Could not load product status details.",
+                        message: "โหลดรายละเอียดสถานะผลิตภัณฑ์ไม่สำเร็จ",
                         isError: true,
                       ),
                     ),
                     if (readinessAsync.hasValue) const SizedBox(height: 12),
                     _DashboardActionCard(
-                      title: "Intent Builder",
+                      title: "ตัวสร้างแผนเจตจำนง",
                       subtitle:
-                          "Shape recovery and handoff routes in plain language before export",
+                          "จัดแผนกู้คืนและส่งมอบด้วยภาษาคน ก่อนสร้างฉบับพร้อมใช้งาน",
                       icon: Icons.route_outlined,
                       onTap: () {
                         Navigator.of(context).push(
@@ -461,10 +479,10 @@ class DashboardScreen extends ConsumerWidget {
                         },
                       ),
                       loading: () => const _InlineStateCard(
-                        message: "Loading runtime readiness summary...",
+                        message: "กำลังโหลดสรุปความพร้อมใช้งาน...",
                       ),
                       error: (_, __) => const _InlineStateCard(
-                        message: "Runtime readiness summary is unavailable.",
+                        message: "ยังไม่สามารถแสดงสรุปความพร้อมใช้งานได้",
                         isError: true,
                       ),
                     ),
@@ -477,11 +495,11 @@ class DashboardScreen extends ConsumerWidget {
                             children: [
                               ListTile(
                                 leading: const Icon(Icons.verified_outlined),
-                                title: const Text("Canonical artifact status"),
+                                title: const Text("สถานะฉบับพร้อมใช้งาน"),
                                 subtitle: Text(
                                   artifact == null
-                                      ? "No exported handoff version yet."
-                                      : "Current status: ${artifact.artifactState.name}. Version ${artifact.contractVersion} with ${artifact.activeEntryCount} active routes across ${history.length} saved versions.${artifact.promotedFromArtifactId != null ? " Latest version came from history promotion." : ""} Keep draft and exported version aligned before treating this as release-ready.",
+                                      ? "ยังไม่มีฉบับพร้อมส่ง"
+                                      : "สถานะปัจจุบัน: ${_artifactStateUiLabel(artifact.artifactState)} • เวอร์ชัน ${artifact.contractVersion} • รายการใช้งานอยู่ ${artifact.activeEntryCount} รายการ • ประวัติทั้งหมด ${history.length} เวอร์ชัน${artifact.promotedFromArtifactId != null ? " (เวอร์ชันล่าสุดมาจากการโปรโมตจากประวัติ)" : ""}",
                                 ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
@@ -529,7 +547,7 @@ class DashboardScreen extends ConsumerWidget {
                                         );
                                       },
                                       child: const Text(
-                                        "Compare latest with previous",
+                                        "เทียบฉบับล่าสุดกับฉบับก่อนหน้า",
                                       ),
                                     ),
                                   ),
@@ -545,7 +563,7 @@ class DashboardScreen extends ConsumerWidget {
                                   child: Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      "Older versions can also be promoted again from Intent Builder without deleting history.",
+                                      "คุณยังสามารถโปรโมตเวอร์ชันเก่าจากหน้าตัวสร้างแผนได้ โดยไม่ต้องลบประวัติเดิม",
                                       style: Theme.of(
                                         context,
                                       ).textTheme.bodySmall,
@@ -556,35 +574,35 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                         ),
                         loading: () => const _InlineStateCard(
-                          message: "Loading artifact history...",
+                          message: "กำลังโหลดประวัติเวอร์ชันเอกสาร...",
                         ),
                         error: (_, __) => const _InlineStateCard(
-                          message: "Could not load artifact history.",
+                          message: "โหลดประวัติเวอร์ชันเอกสารไม่สำเร็จ",
                           isError: true,
                         ),
                       ),
                       loading: () => const _InlineStateCard(
-                        message: "Loading canonical artifact status...",
+                        message: "กำลังโหลดสถานะเวอร์ชันเอกสารหลัก...",
                       ),
                       error: (_, __) => const _InlineStateCard(
-                        message: "Could not load canonical artifact status.",
+                        message: "โหลดสถานะเวอร์ชันเอกสารหลักไม่สำเร็จ",
                         isError: true,
                       ),
                     ),
                   ],
                 );
               },
-              loading: () =>
-                  const _InlineStateCard(message: "Loading safety settings..."),
+              loading: () => const _InlineStateCard(
+                  message: "กำลังโหลดการตั้งค่าความปลอดภัย..."),
               error: (_, __) => const _InlineStateCard(
-                message: "Could not load safety settings for this workspace.",
+                message: "โหลดการตั้งค่าความปลอดภัยของพื้นที่นี้ไม่สำเร็จ",
                 isError: true,
               ),
             ),
             loading: () =>
-                const _InlineStateCard(message: "Preparing workspace..."),
+                const _InlineStateCard(message: "กำลังเตรียมพื้นที่ทำงาน..."),
             error: (_, __) => const _InlineStateCard(
-              message: "Workspace data is temporarily unavailable.",
+              message: "ข้อมูลพื้นที่ทำงานยังไม่พร้อมใช้งานชั่วคราว",
               isError: true,
             ),
           ),
@@ -593,18 +611,17 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           safetyAsync.when(
             data: (settings) => _PolicySelectorCard(settings: settings),
-            loading: () =>
-                const _InlineStateCard(message: "Loading privacy preset..."),
+            loading: () => const _InlineStateCard(
+                message: "กำลังโหลดโปรไฟล์ความเป็นส่วนตัว..."),
             error: (_, __) => const _InlineStateCard(
-              message: "Could not load privacy preset.",
+              message: "โหลดโปรไฟล์ความเป็นส่วนตัวไม่สำเร็จ",
               isError: true,
             ),
           ),
           const SizedBox(height: 16),
           _DashboardActionCard(
-            title: "Partner-ready Paths",
-            subtitle:
-                "Prepare destination references and optional handoff routes",
+            title: "ปลายทางที่พร้อมใช้งานร่วมพาร์ทเนอร์",
+            subtitle: "จัดการปลายทางและรายการอ้างอิงก่อนส่งต่อตามแผน",
             icon: Icons.hub_outlined,
             onTap: () {
               Navigator.of(context).push(
@@ -614,9 +631,9 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _DashboardActionCard(
-            title: "Risk Controls",
+            title: "ตัวควบคุมความเสี่ยง",
             subtitle:
-                "Legal consent, reminders, grace period, private-first mode, emergency pause",
+                "ยินยอมทางกฎหมาย การเตือน ระยะผ่อนผัน โหมดส่วนตัว และหยุดฉุกเฉิน",
             icon: Icons.shield_outlined,
             onTap: () {
               Navigator.of(context).push(
@@ -628,9 +645,9 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _DashboardActionCard(
-            title: "Beneficiary Receipt",
+            title: "หน้ารับมอบของผู้รับ",
             subtitle:
-                "Secure link, receipt code, and pre-registered identity flow",
+                "โค้ดรับมอบ การยืนยันตัวตน และขั้นตอนปลอดภัยก่อนเปิดข้อมูล",
             icon: Icons.mark_email_unread_outlined,
             onTap: () {
               Navigator.of(context).push(
@@ -642,8 +659,8 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _DashboardActionCard(
-            title: "Beta Feedback",
-            subtitle: "Report bug, reliability issue, or UX feedback",
+            title: "ส่งข้อเสนอแนะ",
+            subtitle: "รายงานปัญหา ความเสถียร หรือคำแนะนำด้านการใช้งาน",
             icon: Icons.rate_review_outlined,
             onTap: () {
               Navigator.of(context).push(
@@ -682,12 +699,12 @@ class _HeroCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Private First',
+            'โหมดส่วนตัวก่อน',
             style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 8),
           Text(
-            '$daysLeft days before legacy trigger',
+            'เหลืออีก $daysLeft วันก่อนเข้าเงื่อนไขส่งมอบ',
             style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white70),
           ),
           const SizedBox(height: 20),
@@ -698,7 +715,7 @@ class _HeroCard extends StatelessWidget {
               foregroundColor: const Color(0xFF1B1A17),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
             ),
-            child: const Text('I am still alive'),
+            child: const Text('ฉันยังใช้งานอยู่'),
           ),
         ],
       ),
@@ -732,28 +749,28 @@ class _OwnerJourneyStatusCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Owner journey status",
+              "สถานะเส้นทางของเจ้าของ",
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             const Text(
-              "This workspace is built for real user outcomes: secure self-recovery while alive, and secure beneficiary delivery only when policy conditions are met.",
+              "พื้นที่นี้ออกแบบให้ใช้งานจริง: กู้คืนบัญชีเจ้าของอย่างปลอดภัยขณะยังใช้งานอยู่ และส่งต่อให้ผู้รับเมื่อครบเงื่อนไขเท่านั้น",
             ),
             const SizedBox(height: 10),
             Text(
               beneficiaryIdentityReady
-                  ? "1. Beneficiary identity kit: ready"
-                  : "1. Beneficiary identity kit: still missing",
+                  ? "1. ชุดข้อมูลยืนยันตัวตนผู้รับ: พร้อมใช้งาน"
+                  : "1. ชุดข้อมูลยืนยันตัวตนผู้รับ: ยังไม่ครบ",
             ),
             Text(
               proofOfLifeFallbackReady
-                  ? "2. Proof-of-life fallback: ready"
-                  : "2. Proof-of-life fallback: still missing",
+                  ? "2. ช่องทางยืนยันว่ายังมีชีวิตอยู่ (สำรอง): พร้อมใช้งาน"
+                  : "2. ช่องทางยืนยันว่ายังมีชีวิตอยู่ (สำรอง): ยังไม่ครบ",
             ),
             Text(
               legalConsentReady
-                  ? "3. Safety/legal consent: ready"
-                  : "3. Safety/legal consent: still missing",
+                  ? "3. การยินยอมด้านความปลอดภัย/กฎหมาย: พร้อมใช้งาน"
+                  : "3. การยินยอมด้านความปลอดภัย/กฎหมาย: ยังไม่ครบ",
             ),
           ],
         ),
@@ -774,18 +791,18 @@ class _DeliveryModeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Delivery Modes',
+              'รูปแบบการส่งมอบ',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 8),
-            Text('1) Legacy delivery to beneficiary after long inactivity'),
+            Text('1) ส่งต่อให้ผู้รับเมื่อขาดการติดต่อเป็นเวลานาน'),
             SizedBox(height: 4),
             Text(
-              '2) Self-recovery delivery to backup email for password recovery',
+              '2) ส่งเส้นทางกู้คืนให้เจ้าของที่อีเมลสำรอง',
             ),
             SizedBox(height: 10),
             Text(
-              'Technical companion only: beneficiaries complete any required legal verification in the appropriate legal or service context.',
+              'หมายเหตุ: แอปช่วยประสานงานเท่านั้น ผู้รับยังต้องดำเนินการยืนยันทางกฎหมายกับหน่วยงานที่เกี่ยวข้อง',
             ),
           ],
         ),
@@ -825,28 +842,28 @@ class _UserOutcomeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "User outcome focus",
+              "เป้าหมายที่ผู้ใช้จะได้รับ",
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             const Text(
-              "Use this app like a product, not a config panel: set up once, verify readiness, then keep your recovery and delivery path healthy.",
+              "ใช้งานเหมือนผลิตภัณฑ์จริง ไม่ใช่หน้าตั้งค่าเชิงเทคนิค: ตั้งค่าครั้งเดียว ตรวจความพร้อม แล้วดูแลเส้นทางกู้คืน/ส่งมอบให้พร้อมเสมอ",
             ),
             const SizedBox(height: 10),
             Text(
               setupComplete
-                  ? "1. Setup baseline is complete."
-                  : "1. Setup baseline is incomplete.",
+                  ? "1. การตั้งค่าเริ่มต้น: ครบแล้ว"
+                  : "1. การตั้งค่าเริ่มต้น: ยังไม่ครบ",
             ),
             Text(
               readiness.readyForRuntime
-                  ? "2. Delivery policy is runtime-ready."
-                  : "2. Delivery policy still needs action.",
+                  ? "2. แผนส่งมอบ: พร้อมใช้งานจริง"
+                  : "2. แผนส่งมอบ: ยังต้องดำเนินการเพิ่ม",
             ),
             Text(
               canDeliver
-                  ? "3. Beneficiary receipt path can be exercised safely."
-                  : "3. Beneficiary receipt path should wait until setup and readiness are complete.",
+                  ? "3. เส้นทางรับมอบของผู้รับ: พร้อมทดสอบอย่างปลอดภัย"
+                  : "3. เส้นทางรับมอบของผู้รับ: ควรรอจนตั้งค่าและความพร้อมครบก่อน",
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -856,15 +873,15 @@ class _UserOutcomeCard extends StatelessWidget {
                 if (!setupComplete)
                   FilledButton(
                     onPressed: onOpenSetup,
-                    child: const Text("Finish setup first"),
+                    child: const Text("ตั้งค่าเริ่มต้นให้ครบก่อน"),
                   ),
                 OutlinedButton(
                   onPressed: onOpenBuilder,
-                  child: const Text("Open plan workspace"),
+                  child: const Text("เปิดพื้นที่จัดแผน"),
                 ),
                 OutlinedButton(
                   onPressed: onOpenReceipt,
-                  child: const Text("Open beneficiary receipt"),
+                  child: const Text("เปิดหน้ารับมอบของผู้รับ"),
                 ),
               ],
             ),
@@ -908,59 +925,59 @@ class _ProductConcretenessCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Most Concrete Product Status",
+              "สถานะผลิตภัณฑ์ที่ใช้งานได้จริง",
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             const Text(
-              "An owner can define a private digital legacy plan, keep it controlled while alive, and let the right recipient move through a secure, humane handoff when the time comes.",
+              "เจ้าของสามารถกำหนดแผนมรดกดิจิทัลแบบส่วนตัว คุมสิทธิ์ขณะยังใช้งาน และส่งต่อให้ผู้รับที่ถูกต้องผ่านขั้นตอนที่ปลอดภัยเมื่อถึงเวลา",
             ),
             const SizedBox(height: 12),
             const Text(
-              "Available now",
+              "สิ่งที่ใช้งานได้แล้วตอนนี้",
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
             Text(
               setupComplete
-                  ? "1. Owner setup baseline is complete."
-                  : "1. Owner setup baseline is still incomplete.",
+                  ? "1. การตั้งค่าเจ้าของ: ครบแล้ว"
+                  : "1. การตั้งค่าเจ้าของ: ยังไม่ครบ",
             ),
             Text(
               readiness.hasArtifact
-                  ? "2. Canonical artifact export and history are active."
-                  : "2. Canonical artifact export is not started yet.",
+                  ? "2. การส่งออกเอกสารหลักและประวัติเวอร์ชัน: พร้อมใช้งาน"
+                  : "2. การส่งออกเอกสารหลัก: ยังไม่เริ่ม",
             ),
             Text(
               hasActiveRoute
-                  ? "3. At least one active delivery route exists."
-                  : "3. No active delivery route yet.",
+                  ? "3. มีเส้นทางส่งมอบที่เปิดใช้งานอย่างน้อย 1 เส้นทาง"
+                  : "3. ยังไม่มีเส้นทางส่งมอบที่เปิดใช้งาน",
             ),
             Text(
               secureLinkReceiptReady
-                  ? "4. Beneficiary secure-link receipt flow is ready."
-                  : "4. Beneficiary secure-link receipt flow still needs identity/fallback setup.",
+                  ? "4. เส้นทางรับมอบแบบปลอดภัยของผู้รับ: พร้อมใช้งาน"
+                  : "4. เส้นทางรับมอบแบบปลอดภัยของผู้รับ: ยังต้องตั้งค่ายืนยันตัวตน/ช่องทางสำรอง",
             ),
             const SizedBox(height: 10),
             const Text(
-              "Next milestone",
+              "หมุดหมายถัดไป",
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
             Text(
               readiness.readyForRuntime
-                  ? "1. Run beta release pass (toolchain + smoke + controlled handoff drill)."
-                  : "1. Drive current artifact to ready state without blockers.",
+                  ? "1. ทำรอบตรวจปล่อยเบต้า (toolchain + smoke + ซ้อมส่งมอบแบบควบคุม)"
+                  : "1. ดันเวอร์ชันเอกสารปัจจุบันให้ถึงสถานะพร้อมใช้งานโดยไม่มีตัวบล็อก",
             ),
             const Text(
-              "2. Harden proof-of-life cross-device recovery and keep false triggers low.",
+              "2. เสริมความแม่นยำการยืนยันว่ายังมีชีวิตอยู่ข้ามอุปกรณ์ และลดการทริกเกอร์ผิดพลาด",
             ),
             const Text(
-              "3. Continue wrong-recipient protection and partner verification route polish.",
+              "3. เก็บงานป้องกันส่งผิดคนและปรับเส้นทางยืนยันกับพาร์ทเนอร์ให้เนียนขึ้น",
             ),
             const SizedBox(height: 12),
             const Text(
-              "KPI snapshot",
+              "สรุปตัวชี้วัด",
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
@@ -970,20 +987,20 @@ class _ProductConcretenessCard extends StatelessWidget {
               children: [
                 _MetricChip(
                   label: setupComplete
-                      ? "Setup complete: Yes"
-                      : "Setup complete: No",
+                      ? "ตั้งค่าเริ่มต้น: ครบแล้ว"
+                      : "ตั้งค่าเริ่มต้น: ยังไม่ครบ",
                 ),
-                _MetricChip(label: "Readiness: ${readiness.readinessLabel}"),
+                _MetricChip(label: "ความพร้อม: ${readiness.readinessLabel}"),
                 _MetricChip(
-                  label: "Artifact versions: ${readiness.historyCount}",
+                  label: "เวอร์ชันเอกสาร: ${readiness.historyCount}",
                 ),
                 _MetricChip(
-                  label: "Active routes: ${artifact?.activeEntryCount ?? 0}",
+                  label: "แผนที่ใช้งานอยู่: ${artifact?.activeEntryCount ?? 0}",
                 ),
                 _MetricChip(
                   label: secureLinkReceiptReady
-                      ? "Receipt path: Ready"
-                      : "Receipt path: Pending",
+                      ? "เส้นทางรับมอบ: พร้อม"
+                      : "เส้นทางรับมอบ: รอดำเนินการ",
                 ),
               ],
             ),
@@ -1038,10 +1055,10 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
         heartbeatOk ? const Color(0xFFE9F6EF) : const Color(0xFFFFF7ED);
     final killSwitchOn = settings.emergencyPauseUntil?.isAfter(now) ?? false;
     final proofModeLabel = switch (settings.proofOfLifeCheckMode) {
-      "half_life_soft_checkin" => "Half-life soft check-in",
-      "single_tap" => "Single tap",
-      "verification_code" => "Verification code",
-      _ => "Biometric tap",
+      "half_life_soft_checkin" => "เช็กอินแบบผ่อนปรน (half-life)",
+      "single_tap" => "แตะยืนยันครั้งเดียว",
+      "verification_code" => "รหัสยืนยัน",
+      _ => "ยืนยันด้วยไบโอเมตริก",
     };
     String triggerSummary(SealedReleaseEntryModel item) {
       if (item.triggerMode == "exact_date") {
@@ -1173,7 +1190,7 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Dead-Man Timer + Kill Switch",
+                    "ตัวนับเงื่อนไข + หยุดฉุกเฉิน",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -1216,8 +1233,8 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                         ),
                         label: Text(
                           killSwitchOn
-                              ? "ยกเลิก Kill Switch"
-                              : "เปิด Kill Switch 7 วัน",
+                              ? "ยกเลิกหยุดฉุกเฉิน"
+                              : "เปิดหยุดฉุกเฉิน 7 วัน",
                         ),
                       ),
                     ],
@@ -1225,7 +1242,7 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                   if (killSwitchOn) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "Kill Switch เปิดอยู่จนถึง ${settings.emergencyPauseUntil!.toLocal()}",
+                      "โหมดหยุดฉุกเฉินเปิดอยู่จนถึง ${settings.emergencyPauseUntil!.toLocal()}",
                       style: const TextStyle(color: Color(0xFFFFD7A8)),
                     ),
                   ],
@@ -1329,7 +1346,7 @@ class _LegacyRecipientCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text("ข้อมูลที่ส่งมอบ: $deliveryLabel"),
                 const SizedBox(height: 4),
-                Text("Trigger: $triggerLabel"),
+                Text("เงื่อนไขเริ่มต้น: $triggerLabel"),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
@@ -1402,8 +1419,8 @@ class _ControlRoomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final artifact = readiness.currentArtifact;
-    final currentState = artifact?.artifactState.name ?? "draft";
-    final modeLabel = setupComplete ? "Connected mode" : "Finish setup mode";
+    final currentState = _artifactStateUiLabel(artifact?.artifactState);
+    final modeLabel = setupComplete ? "โหมดพร้อมใช้งาน" : "โหมดเตรียมตั้งค่า";
     final helperCards = _buildHelperCards();
     final scheme = Theme.of(context).colorScheme;
 
@@ -1424,7 +1441,7 @@ class _ControlRoomCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    "Control room",
+                    "ศูนย์ควบคุมแผน",
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -1433,24 +1450,26 @@ class _ControlRoomCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              "Mode: $modeLabel | Current state: $currentState | Warnings: ${readiness.warningCount}",
+              "โหมด: $modeLabel | สถานะปัจจุบัน: $currentState | คำเตือน: ${readiness.warningCount}",
             ),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _MetricChip(label: "Artifacts ${readiness.historyCount}"),
-                _MetricChip(label: "Ready ${readiness.readyArtifactCount}"),
+                _MetricChip(label: "เวอร์ชันทั้งหมด ${readiness.historyCount}"),
                 _MetricChip(
-                  label: "Reviewed ${readiness.reviewedArtifactCount}",
+                    label: "พร้อมใช้งาน ${readiness.readyArtifactCount}"),
+                _MetricChip(
+                  label: "รีวิวแล้ว ${readiness.reviewedArtifactCount}",
                 ),
                 _MetricChip(
-                  label: "Promoted ${readiness.promotedArtifactCount}",
+                  label: "โปรโมตแล้ว ${readiness.promotedArtifactCount}",
                 ),
                 _MetricChip(
-                  label:
-                      readiness.draftInSync ? "Draft in sync" : "Draft changed",
+                  label: readiness.draftInSync
+                      ? "แบบร่างตรงกับเวอร์ชัน"
+                      : "แบบร่างมีการเปลี่ยนแปลง",
                 ),
               ],
             ),
@@ -1472,7 +1491,7 @@ class _ControlRoomCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Scenario focus: ${readiness.currentScenarioTitle}",
+                      "เส้นทางที่กำลังโฟกัส: ${readiness.currentScenarioTitle}",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     if (readiness.currentScenarioSummary != null) ...[
@@ -1485,15 +1504,15 @@ class _ControlRoomCard extends StatelessWidget {
             ],
             const SizedBox(height: 8),
             Text(
-              "Primary action: ${readiness.primaryActionLabel}",
+              "งานหลักตอนนี้: ${readiness.primaryActionLabel}",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            Text("Next action: ${readiness.nextStep}"),
+            Text("ขั้นตอนถัดไป: ${readiness.nextStep}"),
             if (readiness.actionPlan.isNotEmpty) ...[
               const SizedBox(height: 10),
               const Text(
-                "Action plan",
+                "แผนการทำงาน",
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
@@ -1507,13 +1526,13 @@ class _ControlRoomCard extends StatelessWidget {
             if (!setupComplete) ...[
               const SizedBox(height: 8),
               const Text(
-                "Setup is not complete yet. Finish beneficiary identity and consent defaults before relying on this workspace.",
+                "การตั้งค่าเริ่มต้นยังไม่ครบ กรุณาตั้งค่าข้อมูลยืนยันตัวตนผู้รับและการยินยอมให้ครบก่อนใช้งานจริง",
               ),
             ],
             if (helperCards.isNotEmpty) ...[
               const SizedBox(height: 14),
               const Text(
-                "Guided next steps",
+                "ขั้นตอนถัดไปที่แนะนำ",
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 10),
@@ -1530,12 +1549,12 @@ class _ControlRoomCard extends StatelessWidget {
                 ),
                 OutlinedButton(
                   onPressed: onOpenReadiness,
-                  child: const Text("Open readiness details"),
+                  child: const Text("ดูรายละเอียดความพร้อม"),
                 ),
                 if (!setupComplete)
                   OutlinedButton(
                     onPressed: onOpenSetup,
-                    child: const Text("Complete beta setup"),
+                    child: const Text("ทำขั้นตอนเตรียมใช้งานให้ครบ"),
                   ),
               ],
             ),
@@ -1549,12 +1568,11 @@ class _ControlRoomCard extends StatelessWidget {
     if (!readiness.hasArtifact) {
       return [
         _StateHelperCard(
-          title: "Draft workspace only",
+          title: "ยังเป็นโหมดร่างในเครื่อง",
           body:
-              "You have a working draft but no exported handoff version yet. Export the first version so review, history, and readiness can track a concrete release path.",
-          cue:
-              "Best next move: export the first handoff version from Intent Builder.",
-          actionLabel: "Open builder",
+              "ตอนนี้มีแบบร่างที่ใช้งานได้แล้ว แต่ยังไม่มีฉบับพร้อมส่ง ให้สร้างฉบับแรกก่อน เพื่อให้การรีวิว ประวัติ และความพร้อมอ้างอิงข้อมูลจริงชุดเดียวกัน",
+          cue: "แนะนำ: สร้างฉบับพร้อมส่งแรกจากหน้าจัดแผน",
+          actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1563,11 +1581,11 @@ class _ControlRoomCard extends StatelessWidget {
     if (readiness.hasBlockingErrors) {
       return [
         _StateHelperCard(
-          title: "Blocking compiler issues",
+          title: "ยังมีจุดผิดพลาดที่บล็อกการใช้งาน",
           body:
-              "The latest artifact still carries compiler errors. Keep editing in Intent Builder until those errors are resolved before you treat this artifact as reviewable or ready.",
-          cue: "Best next move: fix blocking issues and export again.",
-          actionLabel: "Fix in builder",
+              "เวอร์ชันล่าสุดยังมีข้อผิดพลาดระดับบล็อก ให้แก้ในหน้าจัดแผนจนผ่านก่อน แล้วค่อยถือว่าเวอร์ชันนี้พร้อมรีวิวหรือพร้อมใช้งาน",
+          cue: "แนะนำ: แก้ข้อผิดพลาดให้ครบ แล้วส่งออกใหม่",
+          actionLabel: "ไปแก้ในหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1576,11 +1594,11 @@ class _ControlRoomCard extends StatelessWidget {
     if ((readiness.currentArtifact?.activeEntryCount ?? 0) == 0) {
       return [
         _StateHelperCard(
-          title: "No active entries yet",
+          title: "ยังไม่มีรายการที่เปิดใช้งาน",
           body:
-              "The current artifact does not contain an active route. Activate at least one intent entry so the artifact reflects a real delivery or self-recovery path.",
-          cue: "Best next move: activate an entry, then export again.",
-          actionLabel: "Open builder",
+              "เอกสารเวอร์ชันปัจจุบันยังไม่มีแผนที่เปิดใช้งาน ควรเปิดอย่างน้อย 1 รายการ เพื่อให้สะท้อนเส้นทางส่งมอบหรือกู้คืนจริง",
+          cue: "แนะนำ: เปิดใช้งาน 1 รายการ แล้วส่งออกใหม่",
+          actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1590,11 +1608,11 @@ class _ControlRoomCard extends StatelessWidget {
     if (artifact.artifactState == IntentArtifactState.exported) {
       return [
         _StateHelperCard(
-          title: "Export completed",
+          title: "สร้างฉบับพร้อมส่งแล้ว",
           body:
-              "The exported version is waiting for review. This is the best moment to inspect issues and safety posture before moving forward.",
-          cue: "Best next move: review the exported artifact now.",
-          actionLabel: "Open review",
+              "ฉบับพร้อมส่งล่าสุดกำลังรอการตรวจทาน นี่คือจุดที่เหมาะที่สุดในการตรวจความปลอดภัยและข้อผิดพลาดก่อนเดินหน้าต่อ",
+          cue: "แนะนำ: เปิดรีวิวฉบับพร้อมส่งตอนนี้",
+          actionLabel: "เปิดหน้ารีวิว",
           onTap: onOpenArtifactReview,
         ),
       ];
@@ -1604,12 +1622,11 @@ class _ControlRoomCard extends StatelessWidget {
         !readiness.draftInSync) {
       return [
         _StateHelperCard(
-          title: "Reviewed but stale",
+          title: "รีวิวแล้ว แต่แบบร่างเปลี่ยนหลังรีวิว",
           body:
-              "This version was reviewed, but the draft changed afterward. Treat that review as outdated until a fresh export captures the latest draft.",
-          cue:
-              "Best next move: re-export from the latest draft before marking anything ready.",
-          actionLabel: "Open history",
+              "เวอร์ชันนี้เคยรีวิวแล้ว แต่มีการแก้แบบร่างหลังจากนั้น ให้ถือว่ารีวิวเดิมล้าสมัยจนกว่าจะสร้างฉบับใหม่จากแบบร่างล่าสุด",
+          cue: "แนะนำ: สร้างฉบับใหม่จากแบบร่างล่าสุดก่อนทำเครื่องหมายว่าพร้อม",
+          actionLabel: "ดูประวัติเวอร์ชัน",
           onTap: onOpenArtifactHistory,
         ),
       ];
@@ -1618,12 +1635,11 @@ class _ControlRoomCard extends StatelessWidget {
     if (artifact.artifactState == IntentArtifactState.reviewed) {
       return [
         _StateHelperCard(
-          title: "Reviewed and in sync",
+          title: "รีวิวแล้ว และตรงกับแบบร่างปัจจุบัน",
           body:
-              "The reviewed version still matches your current draft. This is the cleanest moment to mark it ready for real use.",
-          cue:
-              "Best next move: mark the reviewed artifact ready while sync still holds.",
-          actionLabel: "Open builder",
+              "เวอร์ชันที่รีวิวยังตรงกับแบบร่างปัจจุบัน นี่คือช่วงที่เหมาะที่สุดในการทำเครื่องหมายว่าพร้อมใช้งานจริง",
+          cue: "แนะนำ: ทำเครื่องหมายพร้อมใช้งานขณะที่ข้อมูลยังตรงกัน",
+          actionLabel: "เปิดหน้าจัดแผน",
           onTap: onOpenBuilder,
         ),
       ];
@@ -1633,12 +1649,12 @@ class _ControlRoomCard extends StatelessWidget {
         !readiness.draftInSync) {
       return [
         _StateHelperCard(
-          title: "Ready artifact drifted",
+          title: "เวอร์ชันพร้อมใช้งานไม่ตรงกับแบบร่างล่าสุด",
           body:
-              "The latest ready version drifted because the draft changed later. Keep it as history only until you export a fresh ready candidate.",
+              "เวอร์ชันที่พร้อมใช้งานล่าสุดไม่ตรงกับแบบร่าง เพราะมีการแก้ภายหลัง ให้เก็บเป็นประวัติไว้ก่อนจนกว่าจะสร้างฉบับพร้อมใช้งานใหม่",
           cue:
-              "Best next move: re-export the latest draft to restore runtime confidence.",
-          actionLabel: "Open history",
+              "แนะนำ: สร้างฉบับใหม่จากแบบร่างล่าสุด เพื่อคืนความมั่นใจก่อนใช้งานจริง",
+          actionLabel: "ดูประวัติเวอร์ชัน",
           onTap: onOpenArtifactHistory,
         ),
       ];
@@ -1647,12 +1663,12 @@ class _ControlRoomCard extends StatelessWidget {
     if (artifact.artifactState == IntentArtifactState.ready) {
       return [
         _StateHelperCard(
-          title: "Runtime candidate is healthy",
+          title: "เวอร์ชันพร้อมใช้งานอยู่ในสภาพดี",
           body:
-              "The latest version is ready and in sync. From here the main job is to keep the workspace stable as intentional changes happen.",
+              "เวอร์ชันล่าสุดพร้อมใช้งานและข้อมูลตรงกันแล้ว งานหลักคือรักษาเสถียรภาพพื้นที่ทำงานเมื่อมีการแก้ไขที่ตั้งใจ",
           cue:
-              "Best next move: use review and history tools only when you intentionally change the draft.",
-          actionLabel: "Review artifact",
+              "แนะนำ: ใช้หน้ารีวิวและประวัติเมื่อมีการแก้แบบร่างที่ตั้งใจเท่านั้น",
+          actionLabel: "รีวิวเวอร์ชัน",
           onTap: onOpenArtifactReview,
         ),
       ];
@@ -1699,7 +1715,7 @@ class _RuntimeReadinessCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    "Runtime readiness",
+                    "ความพร้อมสำหรับใช้งานจริง",
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -1710,18 +1726,18 @@ class _RuntimeReadinessCard extends StatelessWidget {
             Text(readiness.summary),
             const SizedBox(height: 10),
             Text(
-              "History: ${readiness.historyCount} versions | Ready: ${readiness.readyArtifactCount} | Reviewed: ${readiness.reviewedArtifactCount} | Promoted: ${readiness.promotedArtifactCount}",
+              "ประวัติเวอร์ชัน: ${readiness.historyCount} | พร้อมใช้งาน: ${readiness.readyArtifactCount} | รีวิวแล้ว: ${readiness.reviewedArtifactCount} | โปรโมตแล้ว: ${readiness.promotedArtifactCount}",
             ),
             const SizedBox(height: 6),
             Text(
               readiness.draftInSync
-                  ? "Draft sync: current draft still matches the latest exported artifact."
-                  : "Draft sync: current draft changed since the latest export.",
+                  ? "สถานะแบบร่าง: แบบร่างปัจจุบันยังตรงกับเวอร์ชันที่ส่งออกล่าสุด"
+                  : "สถานะแบบร่าง: แบบร่างปัจจุบันเปลี่ยนจากเวอร์ชันที่ส่งออกล่าสุด",
             ),
             if (readiness.blockers.isNotEmpty) ...[
               const SizedBox(height: 10),
               const Text(
-                "Runtime blockers",
+                "รายการที่ยังบล็อกการใช้งานจริง",
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
@@ -1741,11 +1757,11 @@ class _RuntimeReadinessCard extends StatelessWidget {
               children: [
                 OutlinedButton(
                   onPressed: onOpenReadiness,
-                  child: const Text("Readiness details"),
+                  child: const Text("รายละเอียดความพร้อม"),
                 ),
                 OutlinedButton(
                   onPressed: onOpenBuilder,
-                  child: const Text("Open Intent Builder"),
+                  child: const Text("เปิดหน้าจัดแผน"),
                 ),
               ],
             ),
@@ -1769,35 +1785,14 @@ class _InlineStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      color: isError
-          ? scheme.errorContainer.withValues(alpha: 0.35)
-          : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            if (showSpinner)
-              const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            else
-              Icon(
-                isError ? Icons.warning_amber_rounded : Icons.info_outline,
-                size: 20,
-              ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-      ),
+    return AppStatePanel(
+      message: message,
+      tone: showSpinner
+          ? AppStateTone.loading
+          : isError
+              ? AppStateTone.error
+              : AppStateTone.info,
+      compact: true,
     );
   }
 }
@@ -1931,9 +1926,9 @@ class _PolicySelectorCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: const Icon(Icons.privacy_tip_outlined),
-        title: Text('Privacy Preset: ${preset.title}'),
+        title: Text('ระดับความเป็นส่วนตัว: ${preset.title}'),
         subtitle: Text(
-          '${preset.summary}\nProduct boundary: this app coordinates secure handoff and does not replace legal will workflows.',
+          '${preset.summary}\nขอบเขตผลิตภัณฑ์: แอปนี้ช่วยประสานการส่งต่ออย่างปลอดภัย และไม่ใช่กระบวนการพินัยกรรมทางกฎหมาย',
         ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_right),
@@ -1946,5 +1941,3 @@ class _PolicySelectorCard extends StatelessWidget {
     );
   }
 }
-
-

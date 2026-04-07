@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 
 class UnlockDeliveryScreen extends StatefulWidget {
   const UnlockDeliveryScreen({
@@ -110,13 +111,13 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     if (action == "request_code") {
       _codeRequestAttempts += 1;
       if (_codeRequestAttempts >= _maxCodeRequestsBeforeCooldown) {
-        _lockForCooldown(reason: "too many receipt code requests");
+        _lockForCooldown(reason: "ขอรหัสยืนยันถี่เกินไป");
       }
       return;
     }
     _unlockFailures += 1;
     if (_unlockFailures >= _maxUnlockFailuresBeforeCooldown) {
-      _lockForCooldown(reason: "too many unlock attempts");
+      _lockForCooldown(reason: "ลองปลดล็อกหลายครั้งเกินไป");
     }
   }
 
@@ -130,8 +131,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (initAccessKey.isNotEmpty) {
       _accessKeyController.text = initAccessKey;
-      _message =
-          "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
+      _message = "ตรวจพบข้อมูลรับมอบแล้ว ขอรหัสยืนยันเพื่อทำต่อได้เลย";
     }
 
     final params = Uri.base.queryParameters;
@@ -142,8 +142,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (accessKey.isNotEmpty && _accessKeyController.text.isEmpty) {
       _accessKeyController.text = accessKey;
-      _message =
-          "ตรวจพบข้อมูลรับมอบแล้ว | Handoff details detected. ขอรหัสยืนยันเพื่อทำต่อได้เลย";
+      _message = "ตรวจพบข้อมูลรับมอบแล้ว ขอรหัสยืนยันเพื่อทำต่อได้เลย";
     }
   }
 
@@ -178,7 +177,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     if (raw.isEmpty) {
       setState(() {
         _messageIsError = true;
-        _message = "วางชุดข้อมูลรับมอบก่อน | Paste the handoff packet first.";
+        _message = "กรุณาวางชุดข้อมูลรับมอบก่อน";
       });
       return;
     }
@@ -192,7 +191,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       setState(() {
         _messageIsError = true;
         _message =
-            "อ่าน Access ID + Access Key ไม่ได้ | Could not read Access ID + Access Key. ขอให้ญาติหรือพยานส่งข้อมูลทางการอีกครั้ง";
+            "ไม่พบ Access ID และ Access Key ในข้อความนี้ กรุณาให้ญาติหรือพยานส่งข้อมูลทางการอีกครั้ง";
       });
       return;
     }
@@ -202,7 +201,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _accessKeyController.text = accessKey!;
       _messageIsError = false;
       _message =
-          "ยืนยันชุดข้อมูลรับมอบแล้ว | Access ID และ Access Key ถูกกรอกให้อัตโนมัติ";
+          "ยืนยันชุดข้อมูลรับมอบแล้ว ระบบกรอก Access ID และ Access Key ให้อัตโนมัติ";
     });
   }
 
@@ -248,7 +247,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       });
     } catch (e) {
       setState(() {
-        _message = _friendlyActionError("requesting a receipt code", e);
+        _message = _friendlyActionError("request_code", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
         final lower = e.toString().toLowerCase();
@@ -322,7 +321,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       });
     } catch (e) {
       setState(() {
-        _message = _friendlyActionError("opening the delivery bundle", e);
+        _message = _friendlyActionError("unlock", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
         final lower = e.toString().toLowerCase();
@@ -338,46 +337,26 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   Future<void> _showWrongRecipientDialog() async {
-    await showDialog<void>(
+    if (_busy || !_hasAccessLink) {
+      AppFeedback.showWarning(
+        context,
+        "กรุณากรอก Access ID และ Access Key ให้ครบก่อนแจ้งผู้รับไม่ตรง",
+      );
+      return;
+    }
+
+    final confirmed = await AppFeedback.confirmAction(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Not the intended recipient?"),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "If this receipt was delivered to the wrong person, do not request codes or attempt to open the bundle.",
-            ),
-            SizedBox(height: 10),
-            Text("1. Stop using the access link immediately."),
-            SizedBox(height: 4),
-            Text("2. Do not forward the link, code, or verification phrase."),
-            SizedBox(height: 4),
-            Text(
-                "3. Contact the owner, guardian, operator, or designated partner so the route can be re-verified."),
-            SizedBox(height: 4),
-            Text(
-                "4. Treat this receipt as confidential until the rightful recipient is confirmed."),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("Close"),
-          ),
-          FilledButton(
-            onPressed: _busy || !_hasAccessLink
-                ? null
-                : () async {
-                    Navigator.of(context).pop();
-                    await _reportWrongRecipient();
-                  },
-            child: const Text("Report and pause receipt"),
-          ),
-        ],
-      ),
+      title: "ยืนยันว่าไม่ใช่ผู้รับที่ถูกต้อง",
+      message:
+          "ระบบจะหยุดการเข้าถึงชุดรับมอบนี้ชั่วคราวเพื่อความปลอดภัย และให้รอยืนยันเส้นทางใหม่ ต้องการดำเนินการต่อใช่ไหม",
+      confirmLabel: "ยืนยันและหยุดชุดรับมอบ",
+      destructive: true,
+      icon: Icons.gpp_bad_rounded,
     );
+    if (!confirmed) return;
+
+    await _reportWrongRecipient();
   }
 
   Future<void> _reportWrongRecipient() async {
@@ -400,7 +379,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       final data = response.data as Map<String, dynamic>?;
       setState(() {
         _message = (data?["message"] ??
-                "Receipt reported as wrong recipient. Access is paused pending re-verification.")
+                "แจ้งว่าไม่ใช่ผู้รับเรียบร้อยแล้ว ระบบหยุดการเข้าถึงชั่วคราวเพื่อรอยืนยันใหม่")
             .toString();
         _messageIsError = false;
         _codeController.clear();
@@ -410,7 +389,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       });
     } catch (e) {
       setState(() {
-        _message = _friendlyActionError("reporting wrong recipient", e);
+        _message = _friendlyActionError("report_wrong_recipient", e);
         _messageIsError = true;
         _networkIssue = _looksLikeNetworkError(e.toString());
       });
@@ -515,15 +494,16 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     String? helper,
     Widget? suffixIcon,
   }) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       helperText: helper,
       suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-    );
+    ).applyDefaults(theme.inputDecorationTheme).copyWith(
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          ),
+        );
   }
 
   Widget _buildAntiScamChecklistCard() {
@@ -605,7 +585,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
             minLines: 2,
             maxLines: 4,
             decoration: const InputDecoration(
-              labelText: "Paste handoff packet (no link click)",
+              labelText: "วางชุดข้อมูลรับมอบ (ไม่ต้องกดลิงก์)",
               helperText:
                   "รองรับรูปแบบ access_id=... และ access_key=... จากข้อความทางการ",
             ),
@@ -641,7 +621,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Security Notice | ข้อควรรู้ก่อนทำต่อ",
+            "ข้อควรรู้ก่อนทำต่อ",
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
           SizedBox(height: 6),
@@ -700,6 +680,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   String _friendlyActionError(String action, Object error) {
     final lower = error.toString().toLowerCase();
+    final actionLabel = switch (action) {
+      "request_code" => "การขอรหัสยืนยัน",
+      "unlock" => "การเปิดชุดรับมอบ",
+      "report_wrong_recipient" => "การแจ้งผู้รับไม่ตรง",
+      _ => "การทำรายการนี้",
+    };
     if (lower.contains("temporarily locked")) {
       return "ระบบล็อกชั่วคราวเพื่อความปลอดภัย หลังกรอกผิดหลายครั้ง กรุณารอสักครู่แล้วลองใหม่";
     }
@@ -717,7 +703,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         lower.contains("forbidden")) {
       return "ทำรายการต่อไม่ได้ กรุณาตรวจสอบ Access ID, Access Key และข้อมูลผู้รับ แล้วลองใหม่";
     }
-    return "ทำรายการไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
+    return "$actionLabel ยังไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
 
   Widget _buildStatusCard() {
@@ -741,7 +727,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "สถานะปัจจุบัน | Current status",
+            "สถานะปัจจุบัน",
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
@@ -749,11 +735,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           const SizedBox(height: 6),
           Text("สถานะ: $statusLabel"),
           const SizedBox(height: 6),
-          Text(
-            _lastAction == "none"
-                ? "การทำงานล่าสุด: ยังไม่มีคำขอ"
-                : "การทำงานล่าสุด: ${_lastAction.replaceAll("_", " ")}",
-          ),
+          Text("การทำงานล่าสุด: ${_lastActionLabel()}"),
           if (_isTemporarilyLocked) ...[
             const SizedBox(height: 6),
             Text("เวลารอก่อนลองใหม่: ${_cooldownRemainingLabel()}"),
@@ -817,72 +799,82 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   String _bundleSummary() {
     if (_items.isEmpty) {
-      return "No delivery items have been opened yet.";
+      return "ยังไม่มีรายการที่เปิดรับมอบในรอบนี้";
     }
     if (_items.length == 1) {
-      return "1 delivery item is available in this receipt.";
+      return "มี 1 รายการที่เปิดรับมอบแล้ว";
     }
-    return "${_items.length} delivery items are available in this receipt.";
+    return "มี ${_items.length} รายการที่เปิดรับมอบแล้ว";
+  }
+
+  String _lastActionLabel() {
+    return switch (_lastAction) {
+      "none" => "ยังไม่มีคำขอ",
+      "request_code" => "ขอรหัสยืนยัน",
+      "unlock" => "เปิดชุดรับมอบ",
+      "report_wrong_recipient" => "แจ้งผู้รับไม่ตรง",
+      _ => "กำลังทำรายการ",
+    };
   }
 
   String _kindLabel(String kind) {
     switch (kind.trim().toLowerCase()) {
       case "self_recovery":
-        return "Self-recovery route";
+        return "เส้นทางกู้คืนด้วยตัวเอง";
       case "legacy":
       case "legacy_delivery":
-        return "Legacy delivery route";
+        return "เส้นทางส่งมอบมรดกดิจิทัล";
       case "archive_reference":
-        return "Archive reference";
+        return "รายการอ้างอิงเอกสาร";
       default:
-        return kind.isEmpty ? "Delivery item" : kind.replaceAll("_", " ");
+        return kind.isEmpty ? "รายการรับมอบ" : kind.replaceAll("_", " ");
     }
   }
 
   String _verificationRoute(String kind) {
     switch (kind.trim().toLowerCase()) {
       case "self_recovery":
-        return "Verify the current recovery route directly with the designated provider or recovery service.";
+        return "ตรวจสอบเส้นทางกู้คืนกับผู้ให้บริการหรือหน่วยงานที่ระบุไว้โดยตรง";
       case "legacy":
       case "legacy_delivery":
-        return "Verify the current holdings, balances, or legal status directly with the relevant partner, institution, or law office.";
+        return "ตรวจสอบยอด ทรัพย์สิน หรือสถานะทางกฎหมายกับพาร์ทเนอร์/สถาบัน/สำนักงานกฎหมายโดยตรง";
       case "archive_reference":
-        return "Verify the referenced archive with the designated partner or records custodian before acting on it.";
+        return "ตรวจสอบแหล่งอ้างอิงกับพาร์ทเนอร์หรือผู้ดูแลเอกสารที่ระบุไว้ก่อนดำเนินการ";
       default:
-        return "Verify the latest status directly with the relevant partner, institution, or professional advisor.";
+        return "ตรวจสอบสถานะล่าสุดกับพาร์ทเนอร์ สถาบัน หรือผู้เชี่ยวชาญที่เกี่ยวข้องโดยตรง";
     }
   }
 
   String _visibilityLabel(String visibility) {
     switch (visibility) {
       case "existence_only":
-        return "Existence only";
+        return "ยืนยันการมีอยู่ของแผน";
       case "route_and_instructions":
-        return "Route and instructions";
+        return "แสดงเส้นทางและคำแนะนำ";
       default:
-        return "Route only";
+        return "แสดงเส้นทาง";
     }
   }
 
   String _phaseLabel(String visibility) {
     switch (visibility) {
       case "existence_only":
-        return "Phase 1: Existence confirmation";
+        return "เฟส 1: ยืนยันการมีอยู่ของแผน";
       case "route_and_instructions":
-        return "Phase 3: Route + instructions";
+        return "เฟส 3: เส้นทาง + คำแนะนำ";
       default:
-        return "Phase 2: Route verification";
+        return "เฟส 2: ยืนยันเส้นทาง";
     }
   }
 
   String _phaseActionCue(String visibility) {
     switch (visibility) {
       case "existence_only":
-        return "Next: verify identity and wait for partner/operator confirmation.";
+        return "ถัดไป: ยืนยันตัวตน และรอพาร์ทเนอร์/ผู้ดูแลยืนยัน";
       case "route_and_instructions":
-        return "Next: follow the instruction summary and verify with the destination partner.";
+        return "ถัดไป: ทำตามคำแนะนำสรุป และยืนยันกับพาร์ทเนอร์ปลายทาง";
       default:
-        return "Next: follow verification route with institution or legal partner.";
+        return "ถัดไป: ทำตามเส้นทางยืนยันกับสถาบันหรือพาร์ทเนอร์กฎหมาย";
     }
   }
 
@@ -935,13 +927,13 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title.isEmpty ? "Untitled delivery item" : title,
+            title.isEmpty ? "รายการรับมอบ (ยังไม่ตั้งชื่อ)" : title,
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
-          Text("Type: ${_kindLabel(kind)}"),
+          Text("ประเภทรายการ: ${_kindLabel(kind)}"),
           const SizedBox(height: 6),
-          Text("Post-trigger visibility: ${_visibilityLabel(visibility)}"),
+          Text("ระดับข้อมูลหลังเข้าเงื่อนไข: ${_visibilityLabel(visibility)}"),
           const SizedBox(height: 6),
           Text(
             _phaseLabel(visibility),
@@ -949,22 +941,22 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            "Value disclosure: ${valueDisclosure == "hidden" ? "Hidden in receipt" : "Institution verified only"}",
+            "ระดับการเปิดเผยมูลค่า: ${valueDisclosure == "hidden" ? "ซ่อนไว้ในใบรับมอบ" : "ตรวจที่สถาบันเท่านั้น"}",
           ),
           const SizedBox(height: 6),
           if (visibility == "existence_only")
             const Text(
-              "This receipt confirms that a protected legacy route exists. Continue with recipient verification before route details are shown.",
+              "ใบรับมอบนี้ยืนยันว่ามีเส้นทางที่ถูกปกป้องอยู่ กรุณายืนยันผู้รับให้ครบก่อนดูรายละเอียดเส้นทาง",
             ),
           if (visibility == "route_only" ||
               visibility == "route_and_instructions")
             Text(
-              "Verification route: ${item["verification_route"] ?? _verificationRoute(kind)}",
+              "เส้นทางการยืนยัน: ${item["verification_route"] ?? _verificationRoute(kind)}",
             ),
           if (visibility == "route_and_instructions" &&
               instructionSummary.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text("Instruction summary: $instructionSummary"),
+            Text("สรุปคำแนะนำ: $instructionSummary"),
           ],
           const SizedBox(height: 6),
           Text(_phaseActionCue(visibility)),
@@ -977,9 +969,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-          title:
-              const Text("หน้ารับมอบผู้รับผลประโยชน์ | Beneficiary Receipt")),
+      appBar: AppBar(title: const Text("หน้ารับมอบของผู้รับผลประโยชน์")),
       body: ListView(
         physics: const BouncingScrollPhysics(),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -1037,7 +1027,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "สิ่งที่ผู้รับควรเตรียม | What you need",
+                          "สิ่งที่ผู้รับควรเตรียม",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
@@ -1068,7 +1058,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "ถ้าไม่ใช่ของคุณ | Not the intended recipient?",
+                          "ถ้าไม่ใช่ของคุณ",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 6),
@@ -1078,8 +1068,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                         const SizedBox(height: 10),
                         OutlinedButton(
                           onPressed: _showWrongRecipientDialog,
-                          child: const Text(
-                              "ไม่ใช่ของฉัน | This receipt is not mine"),
+                          child: const Text("ไม่ใช่ของฉัน"),
                         ),
                       ],
                     ),
@@ -1092,7 +1081,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     complete: _hasAccessLink,
                     cue: _hasAccessLink
                         ? "พบข้อมูลรับมอบแล้ว ขอรหัสยืนยันได้ทันที"
-                        : "ขั้นตอนถัดไป: วาง handoff packet หรือกรอก Access ID/Access Key ให้ครบ",
+                        : "ขั้นตอนถัดไป: วางชุดข้อมูลรับมอบ หรือกรอก Access ID/Access Key ให้ครบ",
                   ),
                   _buildJourneyStep(
                     title: "2) ยืนยันตัวตนผู้รับ",
@@ -1192,7 +1181,7 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                     controller: _codeController,
                     onChanged: (_) => setState(() {}),
                     decoration: _unlockInputDecoration(
-                      label: "รหัสยืนยัน | Verification code",
+                      label: "รหัสยืนยัน",
                       helper: "รหัสครั้งเดียวจากช่องทางสำรองที่เปิดใช้งาน",
                     ),
                     keyboardType: TextInputType.number,
@@ -1366,19 +1355,19 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                           ),
                           SizedBox(height: 6),
                           Text(
-                              "1. Review which delivery items were released before forwarding anything."),
+                              "1. ตรวจก่อนว่ามีรายการใดถูกเปิดให้รับมอบแล้ว ก่อนส่งต่อข้อมูลใด ๆ"),
                           SizedBox(height: 4),
                           Text(
-                              "2. Keep the access link, receipt code, and verification phrase private."),
+                              "2. เก็บลิงก์เข้าถึง รหัสรับมอบ และวลียืนยันเป็นความลับ"),
                           SizedBox(height: 4),
                           Text(
-                              "3. Verify balances, legal status, or account details directly with the relevant partner, institution, or law office."),
+                              "3. ตรวจสอบยอด สถานะทางกฎหมาย หรือข้อมูลบัญชี กับพาร์ทเนอร์/สถาบัน/สำนักงานกฎหมายโดยตรง"),
                           SizedBox(height: 4),
                           Text(
-                              "4. Complete any legal or service-specific verification outside this technical receipt flow."),
+                              "4. ขั้นตอนกฎหมายหรือเงื่อนไขบริการเฉพาะ ให้ดำเนินการนอกหน้าเทคนิครับมอบนี้"),
                           SizedBox(height: 4),
                           Text(
-                              "5. If you think this receipt reached the wrong person, stop and re-verify the recipient path before sharing anything."),
+                              "5. หากสงสัยว่าส่งผิดคน ให้หยุดทันที และยืนยันเส้นทางผู้รับใหม่ก่อนแชร์ข้อมูล"),
                         ],
                       ),
                     ),
@@ -1393,5 +1382,3 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 }
-
-

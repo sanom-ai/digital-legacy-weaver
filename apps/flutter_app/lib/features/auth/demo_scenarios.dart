@@ -128,9 +128,9 @@ class DemoScenario {
       metadata: const {
         'source': 'demo_scenario',
         'demo_scenario': 'self_recovery',
-        'demo_title': 'Owner self-recovery',
-        'demo_summary': 'A recovery route that helps the owner regain access before escalating to legacy delivery.',
-        'demo_next_step': 'Review the recovery route, then export a canonical artifact to validate the self-recovery handoff path.',
+        'demo_title': 'กู้คืนบัญชีของฉัน',
+        'demo_summary': 'เดโมกู้คืนบัญชีที่ช่วยให้เจ้าของกลับมาเข้าถึงระบบได้ก่อนส่งต่อให้ผู้รับ',
+        'demo_next_step': 'ตรวจเส้นทางกู้คืนให้ครบ แล้วสร้างเวอร์ชันเอกสารเพื่อยืนยันว่ากู้คืนได้จริง',
       },
     );
   }
@@ -212,9 +212,9 @@ class DemoScenario {
       metadata: const {
         'source': 'demo_scenario',
         'demo_scenario': 'family_handoff',
-        'demo_title': 'Family beneficiary handoff',
-        'demo_summary': 'A secure-link handoff route for an intended beneficiary after long inactivity.',
-        'demo_next_step': 'Review the beneficiary route, then export and compare the artifact so the handoff flow becomes concrete.',
+        'demo_title': 'เส้นทางมอบมรดกดิจิทัลให้คนที่คุณรัก',
+        'demo_summary': 'เดโมส่งต่อแบบปลอดภัยให้ผู้รับที่กำหนดไว้ เมื่อครบเงื่อนไขขาดการติดต่อ',
+        'demo_next_step': 'ตรวจเส้นทางผู้รับให้ครบ แล้วสร้างและเทียบเวอร์ชันเอกสารเพื่อเห็นภาพการส่งต่อจริง',
       },
     );
   }
@@ -302,9 +302,9 @@ class DemoScenario {
       metadata: const {
         'source': 'demo_scenario',
         'demo_scenario': 'private_archive',
-        'demo_title': 'Private-first archive',
-        'demo_summary': 'A confidentiality-focused handoff path that keeps PTN and trace posture as tight as possible.',
-        'demo_next_step': 'Inspect the privacy posture, export the artifact, and confirm how a confidentiality-heavy route changes readiness.',
+        'demo_title': 'คลังส่วนตัวเข้มงวด',
+        'demo_summary': 'เดโมที่เน้นความลับสูงสุด จำกัดการมองเห็นข้อมูลจนกว่าจะถึงเงื่อนไขจริง',
+        'demo_next_step': 'ตรวจระดับความเป็นส่วนตัว สร้างเวอร์ชันเอกสาร แล้วดูผลต่อความพร้อมใช้งาน',
       },
     );
   }
@@ -325,23 +325,23 @@ DemoScenario? demoScenarioById(String? id) {
 const demoScenarios = <DemoScenario>[
   DemoScenario(
     id: 'family_handoff',
-    title: 'Family beneficiary handoff',
-    summary: 'Start from a secure-link legacy handoff that shows the full artifact and readiness journey.',
-    badge: 'Best first demo',
-    primaryActionLabel: 'Start family handoff demo',
+    title: 'เส้นทางมอบมรดกดิจิทัลให้คนที่คุณรัก',
+    summary: 'เริ่มจากเดโมแนะนำที่เห็นภาพครบตั้งแต่ตั้งค่า จนถึงเส้นทางส่งมอบ',
+    badge: 'แนะนำเริ่มจากอันนี้',
+    primaryActionLabel: 'เริ่มเดโมนี้ก่อน',
   ),
   DemoScenario(
     id: 'self_recovery',
-    title: 'Owner self-recovery',
-    summary: 'Open a lighter recovery route focused on helping the owner regain access first.',
-    badge: 'Recovery path',
-    primaryActionLabel: 'Start self-recovery demo',
+    title: 'กู้คืนบัญชีของฉัน',
+    summary: 'เริ่มจากกู้คืนสิทธิ์เจ้าของก่อน ลดความเสี่ยงส่งผิดคน',
+    badge: 'เส้นทางกู้คืน',
+    primaryActionLabel: 'เริ่มเดโมกู้คืน',
   ),
   DemoScenario(
     id: 'private_archive',
-    title: 'Private-first archive',
-    summary: 'Explore a confidentiality-heavy notice flow with stronger privacy posture and handoff routing.',
-    badge: 'Highest privacy',
-    primaryActionLabel: 'Start private archive demo',
+    title: 'คลังส่วนตัวเข้มงวด',
+    summary: 'เหมาะกับข้อมูลอ่อนไหวสูง เน้นความเป็นส่วนตัวและการเปิดเผยตามเงื่อนไขเท่านั้น',
+    badge: 'ความเป็นส่วนตัวสูง',
+    primaryActionLabel: 'เริ่มเดโมคลังส่วนตัว',
   ),
 ];

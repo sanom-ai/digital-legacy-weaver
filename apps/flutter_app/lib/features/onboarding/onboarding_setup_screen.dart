@@ -7,6 +7,7 @@ import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -102,9 +103,15 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
 
   String? _requiredEmail(String? value, {bool required = true}) {
     final text = (value ?? "").trim();
-    if (!required && text.isEmpty) return null;
-    if (text.isEmpty) return "กรุณากรอกข้อมูล";
-    if (!text.contains("@") || !text.contains(".")) return "รูปแบบอีเมลไม่ถูกต้อง";
+    if (!required && text.isEmpty) {
+      return null;
+    }
+    if (text.isEmpty) {
+      return "กรุณากรอกข้อมูล";
+    }
+    if (!text.contains("@") || !text.contains(".")) {
+      return "รูปแบบอีเมลไม่ถูกต้อง";
+    }
     return null;
   }
 
@@ -163,8 +170,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
   }
 
   void _showStepError(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    AppFeedback.showWarning(context, message);
   }
 
   String _friendlySaveError(Object error) {
@@ -259,17 +265,16 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     IconData? icon,
     String? helper,
   }) {
+    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
       helperText: helper,
       prefixIcon: icon == null ? null : Icon(icon),
-      filled: true,
-      fillColor:
-          Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.24,
-              ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-    );
+    ).applyDefaults(theme.inputDecorationTheme).copyWith(
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.24,
+          ),
+        );
   }
 
   IntentDocumentModel _buildDraftIntentDocument(PrivacyProfilePreset preset) {
@@ -339,9 +344,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     if (!_formKey.currentState!.validate()) return;
     final guardrailMessage = _productionGuardrailMessage();
     if (guardrailMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(guardrailMessage)),
-      );
+      AppFeedback.showWarning(context, guardrailMessage);
       return;
     }
     final selectedPreset = presetById(_selectedPresetId);
@@ -359,24 +362,18 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       iosBackgroundRiskAcknowledged: _iosBackgroundRiskAcknowledged,
     );
     if (draftReport.errorCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("กรุณาแก้รายการที่ติดบล็อกก่อนบันทึก")),
-      );
+      AppFeedback.showWarning(context, "กรุณาแก้รายการที่ติดบล็อกก่อนบันทึก");
       return;
     }
     if (draftReport.warningCount > 0 && !_warningAcknowledged) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("กรุณายืนยันว่าได้ตรวจคำเตือนแล้วก่อนบันทึก")),
+      AppFeedback.showWarning(
+        context,
+        "กรุณายืนยันว่าได้ตรวจคำเตือนแล้วก่อนบันทึก",
       );
       return;
     }
     if (!_legalAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("กรุณายอมรับข้อตกลงก่อนดำเนินการต่อ")),
-      );
+      AppFeedback.showWarning(context, "กรุณายอมรับข้อตกลงก่อนดำเนินการต่อ");
       return;
     }
     setState(() => _saving = true);
@@ -443,43 +440,28 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       if (!mounted) return;
       ref.invalidate(profileProvider);
       ref.invalidate(safetySettingsProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                "ตั้งค่าเสร็จแล้ว ระบบพร้อมใช้งานในโหมดความเป็นส่วนตัวสูงสุด")),
+      AppFeedback.showSuccess(
+        context,
+        "ตั้งค่าเสร็จแล้ว ระบบพร้อมใช้งานในโหมดความเป็นส่วนตัวสูงสุด",
       );
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_friendlySaveError(error))),
-      );
+      AppFeedback.showError(context, _friendlySaveError(error));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
   Future<void> _skipToDashboard() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await AppFeedback.confirmAction(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("ข้ามการตั้งค่าตอนนี้?"),
-          content: const Text(
-            "คุณสามารถเริ่มใช้งานต่อในหน้าแดชบอร์ดก่อน แล้วค่อยกลับมาตั้งค่าให้ครบทีหลังได้",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text("อยู่หน้านี้ต่อ"),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("ไปหน้าแดชบอร์ด"),
-            ),
-          ],
-        );
-      },
+      title: "ข้ามการตั้งค่าตอนนี้?",
+      message:
+          "คุณสามารถเริ่มใช้งานต่อในหน้าแดชบอร์ดก่อน แล้วค่อยกลับมาตั้งค่าให้ครบทีหลังได้",
+      confirmLabel: "ไปหน้าแดชบอร์ด",
+      cancelLabel: "อยู่หน้านี้ต่อ",
+      icon: Icons.forward_to_inbox_rounded,
     );
     if (!mounted || confirmed != true) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -596,12 +578,14 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         onPressed: _saving || (isFinalStep && !canFinalize)
                             ? null
                             : details.onStepContinue,
-                        child: Text(isFinalStep ? "ยืนยันและเริ่มใช้งาน" : "ถัดไป"),
+                        child: Text(
+                            isFinalStep ? "ยืนยันและเริ่มใช้งาน" : "ถัดไป"),
                       ),
                       const SizedBox(width: 12),
                       TextButton(
                         onPressed: _saving ? null : details.onStepCancel,
-                        child: Text(_stepIndex == 0 ? "ไปหน้าหลัก" : "ย้อนกลับ"),
+                        child:
+                            Text(_stepIndex == 0 ? "ไปหน้าหลัก" : "ย้อนกลับ"),
                       ),
                     ],
                   );
@@ -686,8 +670,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         _stepIntro(
                           icon: Icons.schedule_outlined,
                           title: "ขั้นตอน 2 จาก 3: เงื่อนไขเวลา",
-                          detail:
-                              "กำหนดเวลาให้พอดี เพื่อกันการส่งต่อผิดพลาด",
+                          detail: "กำหนดเวลาให้พอดี เพื่อกันการส่งต่อผิดพลาด",
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
@@ -729,17 +712,17 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           items: const [
                             DropdownMenuItem(
                               value: 'half_life_soft_checkin',
-                              child: Text("Soft check-in (recommended)"),
+                              child: Text("เช็กแบบนุ่มนวล (แนะนำ)"),
                             ),
                             DropdownMenuItem(
                                 value: 'biometric_tap',
-                                child: Text("Biometric tap (strict)")),
+                                child: Text("แตะยืนยันด้วยชีวมิติ (เข้มงวด)")),
                             DropdownMenuItem(
                                 value: 'single_tap',
-                                child: Text("Single tap (light)")),
+                                child: Text("แตะครั้งเดียว (เบา)")),
                             DropdownMenuItem(
                                 value: 'verification_code',
-                                child: Text("Verification code (very strict)")),
+                                child: Text("รหัสยืนยัน (เข้มงวดมาก)")),
                           ],
                           onChanged: (value) {
                             if (value != null) {
@@ -819,7 +802,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           value: _serverHeartbeatFallbackEnabled,
                           onChanged: (v) => setState(
                               () => _serverHeartbeatFallbackEnabled = v),
-                          title: const Text("เปิดการเช็กสัญญาณชีพสำรองจากเซิร์ฟเวอร์"),
+                          title: const Text(
+                              "เปิดการเช็กสัญญาณชีพสำรองจากเซิร์ฟเวอร์"),
                           subtitle: const Text(
                               "แนะนำสำหรับ iOS หรือช่วงที่แอปไม่ได้เปิดนาน เพื่อลดการทริกเกอร์ผิดพลาด"),
                         ),
@@ -828,7 +812,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                           value: _iosBackgroundRiskAcknowledged,
                           onChanged: (v) => setState(() =>
                               _iosBackgroundRiskAcknowledged = v ?? false),
-                          title: const Text("ฉันเข้าใจข้อจำกัดการทำงานเบื้องหลังของมือถือ"),
+                          title: const Text(
+                              "ฉันเข้าใจข้อจำกัดการทำงานเบื้องหลังของมือถือ"),
                           subtitle: const Text(
                               "บางช่วงระบบมือถืออาจพักการทำงานเบื้องหลัง จึงควรเปิดการเช็กสำรองไว้"),
                         ),
@@ -928,13 +913,13 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                             title: const Text(
                                 "ฉันตรวจคำเตือนแล้ว และต้องการดำเนินการต่อ"),
                             subtitle: const Text(
-                              "Warnings are allowed, but they must be acknowledged before activation.",
+                              "ระบบอนุญาตให้มีคำเตือนได้ แต่ต้องยืนยันรับทราบก่อนเริ่มใช้งาน",
                             ),
                           ),
                         ],
                         const SizedBox(height: 8),
                         const Text(
-                          "This product helps coordinate secure access handoff. It does not replace a legal will.",
+                          "ผลิตภัณฑ์นี้ช่วยประสานการส่งต่อการเข้าถึงอย่างปลอดภัย และไม่ใช่เอกสารพินัยกรรมทางกฎหมาย",
                         ),
                       ],
                     ),
@@ -948,5 +933,3 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     );
   }
 }
-
-

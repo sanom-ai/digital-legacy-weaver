@@ -31,8 +31,8 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
   final _payloadController = TextEditingController();
   final _notesController = TextEditingController();
   RecoveryKind _kind = RecoveryKind.legacy;
-  String _postTriggerVisibility = "route_only";
-  String _valueDisclosureMode = "institution_verified_only";
+  String _postTriggerVisibility = 'route_only';
+  String _valueDisclosureMode = 'institution_verified_only';
 
   @override
   void dispose() {
@@ -93,40 +93,65 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      title: const Text("Add Recovery Item"),
+      title: const Text('เพิ่มรายการสินทรัพย์'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF8F1E7), Color(0xFFFFFCF8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(color: const Color(0xFFE5D5BE)),
+              ),
+              child: const Text(
+                'เก็บเฉพาะข้อมูลอ้างอิงที่จำเป็น เช่น ชื่อรายการ จุดตรวจสอบ และวิธีปล่อยข้อมูล โดยไม่ใส่มูลค่าจริงลงในฟอร์มนี้',
+              ),
+            ),
+            const SizedBox(height: 14),
             DropdownButtonFormField<RecoveryKind>(
               initialValue: _kind,
               items: const [
                 DropdownMenuItem(
-                    value: RecoveryKind.legacy, child: Text("Legacy")),
+                  value: RecoveryKind.legacy,
+                  child: Text('ส่งต่อมรดกดิจิทัล'),
+                ),
                 DropdownMenuItem(
-                    value: RecoveryKind.selfRecovery,
-                    child: Text("Self Recovery")),
+                  value: RecoveryKind.selfRecovery,
+                  child: Text('กู้คืนด้วยตัวเอง'),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
                   setState(() => _kind = value);
                 }
               },
-              decoration: const InputDecoration(labelText: "Mode"),
+              decoration: const InputDecoration(labelText: 'ประเภทเส้นทาง'),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(labelText: "Title"),
+              decoration: const InputDecoration(
+                labelText: 'ชื่อรายการ',
+                hintText: 'เช่น บัญชีธนาคารหลัก หรือ โฟลเดอร์รูปครอบครัว',
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             TextField(
               controller: _payloadController,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
-                labelText: "Encrypted payload",
-                hintText: "Base64/Ciphertext",
+                labelText: 'ข้อมูลเข้ารหัสอ้างอิง',
+                hintText:
+                    'เช่น รหัสอ้างอิงเอกสาร หรือข้อความว่าให้ตรวจที่ปลายทาง',
               ),
               minLines: 2,
               maxLines: 4,
@@ -137,7 +162,7 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(14),
                   color: const Color(0xFFFFF4E8),
                   border: Border.all(color: const Color(0xFFF0C48A)),
                 ),
@@ -145,12 +170,12 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "พบข้อมูลที่คล้ายยอดเงิน",
+                      'พบข้อความที่คล้ายยอดเงิน',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'เพื่อความปลอดภัย ฟิลด์นี้ควรเก็บเป็นข้อมูลอ้างอิง ไม่ใช่ยอดเงินจริง',
+                      'เพื่อความปลอดภัย ควรเก็บเป็นข้อมูลอ้างอิง ไม่ใส่ยอดเงินจริงในช่องนี้',
                     ),
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
@@ -167,12 +192,14 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
                 ),
               ),
             ],
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             TextField(
               controller: _notesController,
               onChanged: (_) => setState(() {}),
-              decoration:
-                  const InputDecoration(labelText: "Release notes (optional)"),
+              decoration: const InputDecoration(
+                labelText: 'หมายเหตุการส่งมอบ (ไม่บังคับ)',
+                hintText: 'เช่น ใครควรเริ่มติดต่อก่อน หรือควรตรวจเอกสารชุดไหน',
+              ),
             ),
             if (_containsMoneyLikeText(_notesController.text)) ...[
               const SizedBox(height: 8),
@@ -190,47 +217,66 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
                 ),
               ),
             ],
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              initialValue: _postTriggerVisibility,
-              items: const [
-                DropdownMenuItem(
-                    value: "existence_only",
-                    child: Text("Post-trigger: existence only")),
-                DropdownMenuItem(
-                    value: "route_only",
-                    child: Text("Post-trigger: route only")),
-                DropdownMenuItem(
-                  value: "route_and_instructions",
-                  child: Text("Post-trigger: route and instructions"),
+            const SizedBox(height: 12),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: EdgeInsets.zero,
+              iconColor: scheme.primary,
+              collapsedIconColor: scheme.onSurfaceVariant,
+              title: const Text('รายละเอียดการส่งมอบ'),
+              subtitle: const Text(
+                'เปิดเมื่อต้องการกำหนดระดับการมองเห็นและการเปิดเผยมูลค่า',
+              ),
+              children: [
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _postTriggerVisibility,
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'existence_only',
+                      child: Text('หลังเข้าเงื่อนไข: ยืนยันการมีอยู่เท่านั้น'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'route_only',
+                      child: Text('หลังเข้าเงื่อนไข: แสดงเส้นทางเท่านั้น'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'route_and_instructions',
+                      child: Text('หลังเข้าเงื่อนไข: เส้นทางและคำแนะนำ'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _postTriggerVisibility = value);
+                    }
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'ระดับการมองเห็นหลังเข้าเงื่อนไข',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: _valueDisclosureMode,
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'hidden',
+                      child: Text('การเปิดเผยมูลค่า: ซ่อนไว้'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'institution_verified_only',
+                      child: Text('การเปิดเผยมูลค่า: ให้สถาบันยืนยันเท่านั้น'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _valueDisclosureMode = value);
+                    }
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'โหมดการเปิดเผยมูลค่า',
+                  ),
                 ),
               ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _postTriggerVisibility = value);
-                }
-              },
-              decoration:
-                  const InputDecoration(labelText: "Visibility after trigger"),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              initialValue: _valueDisclosureMode,
-              items: const [
-                DropdownMenuItem(
-                    value: "hidden", child: Text("Value disclosure: hidden")),
-                DropdownMenuItem(
-                  value: "institution_verified_only",
-                  child: Text("Value disclosure: institution verified only"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _valueDisclosureMode = value);
-                }
-              },
-              decoration:
-                  const InputDecoration(labelText: "Value disclosure mode"),
             ),
           ],
         ),
@@ -238,11 +284,11 @@ class _RecoveryItemFormDialogState extends State<RecoveryItemFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
+          child: const Text('ยกเลิก'),
         ),
         FilledButton(
           onPressed: _submit,
-          child: const Text("Save"),
+          child: const Text('บันทึก'),
         ),
       ],
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -24,14 +25,14 @@ class _SignInScreenState extends State<SignInScreen> {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       setState(() {
-        _message = "Please enter your email.";
+        _message = "กรุณากรอกอีเมล";
         _messageIsError = true;
       });
       return;
     }
     if (!email.contains("@") || !email.contains(".")) {
       setState(() {
-        _message = "Please enter a valid email.";
+        _message = "กรุณากรอกอีเมลให้ถูกต้อง";
         _messageIsError = true;
       });
       return;
@@ -48,7 +49,7 @@ class _SignInScreenState extends State<SignInScreen> {
       );
       setState(() {
         _message =
-            "Secure sign-in link sent. Check your inbox (and spam) then return to continue.";
+            "ส่งลิงก์เข้าสู่ระบบแบบปลอดภัยแล้ว กรุณาตรวจกล่องจดหมาย (รวมถึงสแปม) แล้วกลับมาทำต่อ";
         _messageIsError = false;
       });
     } on AuthException catch (e) {
@@ -68,71 +69,133 @@ class _SignInScreenState extends State<SignInScreen> {
     if (lower.contains("network") ||
         lower.contains("timed out") ||
         lower.contains("failed host lookup")) {
-      return "Network looks unstable. Please check your connection and try again.";
+      return "เครือข่ายไม่เสถียร กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่";
     }
     return raw;
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Welcome to Digital Legacy Weaver",
-                      style: TextStyle(fontSize: 30, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Sign in to manage self-recovery and beneficiary handoff in one place.",
-                    ),
-                    const SizedBox(height: 10),
-                    const Text("What this app helps you do right now"),
-                    const SizedBox(height: 6),
-                    const Text("1. Keep critical access information private-first"),
-                    const Text("2. Prevent accidental loss of access while alive"),
-                    const Text("3. Prepare secure delivery for the right beneficiary"),
-                    const SizedBox(height: 18),
-                    TextField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: "Email address",
-                        hintText: "you@example.com",
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFAF6F0), Color(0xFFF4EEE5), Color(0xFFF9F5EE)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: const Color(0xFFE7F0EE),
+                          border: Border.all(color: const Color(0xFFD5E7E3)),
+                        ),
+                        child: Text(
+                          "พื้นที่ทำงานส่วนตัวและปลอดภัย",
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: const Color(0xFF17444D),
+                                  ),
+                        ),
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _sending ? null : _sendMagicLink,
-                        child: Text(_sending ? "Sending..." : "Send secure sign-in link"),
+                      const SizedBox(height: 16),
+                      Text(
+                        "ยินดีต้อนรับสู่ Digital Legacy Weaver",
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              height: 1.05,
+                            ),
                       ),
-                    ),
-                    if (_message != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
+                      Text(
+                        "เข้าสู่ระบบเพื่อจัดการการกู้คืนตัวเองและการส่งต่อให้ผู้รับในที่เดียว",
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.8),
+                              height: 1.4,
+                            ),
+                      ),
+                      const SizedBox(height: 18),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _messageIsError
-                              ? const Color(0xFFFFF1F1)
-                              : const Color(0xFFE9F6EF),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(18),
+                          color: Colors.white.withValues(alpha: 0.72),
+                          border: Border.all(color: const Color(0xFFE5D6C2)),
                         ),
-                        child: Text(_message!),
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "สิ่งที่แอปช่วยคุณได้ทันที",
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                                "1. เก็บข้อมูลการเข้าถึงสำคัญแบบ private-first"),
+                            SizedBox(height: 4),
+                            Text(
+                                "2. ลดความเสี่ยงสูญเสียการเข้าถึงขณะยังใช้งานอยู่"),
+                            SizedBox(height: 4),
+                            Text(
+                                "3. เตรียมการส่งต่ออย่างปลอดภัยให้ผู้รับที่ถูกต้อง"),
+                          ],
+                        ),
                       ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          labelText: "อีเมล",
+                          hintText: "you@example.com",
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: _sending ? null : _sendMagicLink,
+                          child: Text(
+                            _sending
+                                ? "กำลังส่ง..."
+                                : "ส่งลิงก์เข้าสู่ระบบแบบปลอดภัย",
+                          ),
+                        ),
+                      ),
+                      if (_message != null) ...[
+                        const SizedBox(height: 14),
+                        AppStatePanel(
+                          message: _message!,
+                          tone: _messageIsError
+                              ? (appStateLooksOfflineMessage(_message!)
+                                  ? AppStateTone.offline
+                                  : AppStateTone.error)
+                              : AppStateTone.success,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

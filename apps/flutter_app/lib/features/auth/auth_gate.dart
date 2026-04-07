@@ -1,4 +1,5 @@
 import 'package:digital_legacy_weaver/core/config/app_config.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
 import 'package:digital_legacy_weaver/features/auth/config_landing_screen.dart';
 import 'package:digital_legacy_weaver/features/auth/sign_in_screen.dart';
 import 'package:digital_legacy_weaver/features/dashboard/dashboard_screen.dart';
@@ -20,13 +21,14 @@ class AuthGate extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 12),
-                  Text("Checking secure session..."),
-                ],
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: AppStatePanel(
+                  title: "กำลังตรวจสอบพื้นที่ทำงาน",
+                  message: "กำลังตรวจสอบเซสชันที่ปลอดภัยของคุณ...",
+                  tone: AppStateTone.loading,
+                  layout: AppStateLayout.centered,
+                ),
               ),
             ),
           );

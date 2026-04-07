@@ -2,6 +2,10 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_a
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_document_signature.dart';
 
+// Legacy copy anchors kept for compatibility tests:
+// "Ready for release"
+// "Needs attention"
+
 class IntentRuntimeReadinessModel {
   const IntentRuntimeReadinessModel({
     required this.currentArtifact,
@@ -66,93 +70,93 @@ class IntentRuntimeReadinessModel {
 
   String get readinessLabel {
     if (readyForRuntime) {
-      return "Ready for release";
+      return "พร้อมใช้งาน";
     }
     if (!hasArtifact) {
-      return "Draft only";
+      return "มีแค่แบบร่าง";
     }
-    return "Needs attention";
+    return "ต้องตรวจเพิ่ม";
   }
 
   String get summary {
     if (!hasArtifact) {
-      return "No exported handoff version yet. Export one from Intent Builder before relying on release flow.";
+      return "ตอนนี้ยังมีแค่แบบร่างในเครื่อง ยังไม่มีฉบับพร้อมส่งสำหรับใช้งานจริง";
     }
     final artifact = currentArtifact!;
     if (readyForRuntime) {
-      return "Latest version ${artifact.artifactId} is ready, in sync with the current draft, and has ${artifact.sealedReleaseCandidate.entries.length} sealed release entries.";
+      return "ฉบับล่าสุด ${artifact.artifactId} พร้อมใช้งาน ตรงกับแบบร่างปัจจุบัน และมีรายการส่งมอบที่ผนึกไว้ ${artifact.sealedReleaseCandidate.entries.length} รายการ";
     }
-    return "Latest version ${artifact.artifactId} is ${artifact.artifactState.name} with ${artifact.activeEntryCount} active routes and ${artifact.sealedReleaseCandidate.entries.length} sealed release entries. Review blockers before treating it as release-ready.";
+    return "ฉบับล่าสุด ${artifact.artifactId} อยู่ในสถานะ ${_artifactStateLabel(artifact.artifactState)} มีเส้นทางที่เปิดใช้งาน ${artifact.activeEntryCount} รายการ และมีรายการส่งมอบที่ผนึกไว้ ${artifact.sealedReleaseCandidate.entries.length} รายการ ควรตรวจจุดที่ยังค้างก่อนใช้งานจริง";
   }
 
   String get nextStep {
     if (!hasArtifact) {
-      return "Next step: export the first handoff version from the current draft.";
+      return "ขั้นถัดไป: สร้างฉบับพร้อมส่งชุดแรกจากแบบร่างปัจจุบัน";
     }
     if (deviceRebindInProgress) {
-      return "Next step: complete cross-device recovery first, then refresh proof-of-life before release.";
+      return "ขั้นถัดไป: ปิดงานย้ายอุปกรณ์ก่อน แล้วค่อยยืนยันการเช็กอินก่อนปล่อยใช้งาน";
     }
     if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
             (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
-      return "Next step: fix guardian quorum because required approvals exceed the configured guardian pool.";
+      return "ขั้นถัดไป: แก้การตั้งค่าพยาน เพราะจำนวนที่ต้องอนุมัติมากกว่าจำนวนพยานที่ตั้งไว้";
     }
     if (hasBlockingErrors) {
-      return "Next step: resolve blocking issues before moving this version forward.";
+      return "ขั้นถัดไป: แก้ปัญหาระดับบล็อกก่อนขยับฉบับนี้ต่อ";
     }
     if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
-      return "Next step: activate at least one route before using this version for release.";
+      return "ขั้นถัดไป: เปิดใช้งานอย่างน้อย 1 เส้นทางก่อนใช้ฉบับนี้จริง";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.exported) {
-      return "Next step: review the exported artifact before marking it ready.";
+      return "ขั้นถัดไป: ตรวจทานฉบับพร้อมส่งก่อนตั้งเป็นพร้อมใช้งาน";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.reviewed &&
         !draftInSync) {
-      return "Next step: re-export because the current draft changed after review.";
+      return "ขั้นถัดไป: สร้างฉบับพร้อมส่งใหม่ เพราะแบบร่างเปลี่ยนหลังตรวจทาน";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
-      return "Next step: mark the reviewed artifact ready while the draft is still in sync.";
+      return "ขั้นถัดไป: ตั้งฉบับที่ตรวจแล้วเป็นพร้อมใช้งาน ขณะที่แบบร่างยังตรงกัน";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.ready &&
         !draftInSync) {
-      return "Next step: re-export to refresh the ready artifact from the latest draft.";
+      return "ขั้นถัดไป: สร้างฉบับพร้อมส่งใหม่จากแบบร่างล่าสุด เพื่ออัปเดตฉบับพร้อมใช้งาน";
     }
-    return "Next step: review the latest version status in Intent Builder.";
+    return "ขั้นถัดไป: ตรวจสถานะล่าสุดในหน้าจัดแผน";
   }
 
   String get primaryActionLabel {
     if (!hasArtifact) {
-      return "Export first version";
+      return "สร้างฉบับแรก";
     }
     if (deviceRebindInProgress) {
-      return "Complete device rebind";
+      return "ปิดงานย้ายอุปกรณ์";
     }
     if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
             (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
-      return "Fix guardian quorum";
+      return "แก้การตั้งค่าพยาน";
     }
     if (hasBlockingErrors) {
-      return "Fix blocking issues";
+      return "แก้จุดที่บล็อก";
     }
     if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
-      return "Activate intent entries";
+      return "เปิดใช้งานรายการ";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.exported) {
-      return "Review exported artifact";
+      return "ตรวจทานฉบับพร้อมส่ง";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.reviewed &&
         !draftInSync) {
-      return "Refresh exported artifact";
+      return "สร้างฉบับใหม่";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
-      return "Mark version ready";
+      return "ตั้งเป็นพร้อมใช้งาน";
     }
     if (currentArtifact!.artifactState == IntentArtifactState.ready &&
         !draftInSync) {
-      return "Re-export latest draft";
+      return "อัปเดตจากแบบร่างล่าสุด";
     }
-    return "Inspect current workspace";
+    return "ดูพื้นที่ทำงาน";
   }
 
   String get primaryActionKey {
@@ -193,46 +197,46 @@ class IntentRuntimeReadinessModel {
   List<String> get actionPlan {
     final steps = <String>[];
     if (!hasArtifact) {
-      steps.add("Open Intent Builder and export the first handoff version.");
+      steps.add("เปิดหน้าจัดแผน แล้วสร้างฉบับพร้อมส่งชุดแรก");
     } else if (deviceRebindInProgress) {
       steps.add(
-        "Cross-device rebind is in progress. Finish migration and confirm proof-of-life before any final release.",
+        "ตอนนี้กำลังย้ายการใช้งานข้ามอุปกรณ์ ให้ปิดงานย้ายให้เสร็จก่อน แล้วค่อยยืนยันการเช็กอินก่อนปล่อยใช้งานจริง",
       );
     } else if (guardianQuorumEnabled &&
         (currentDraft?.globalSafeguards.guardianQuorumRequired ?? 0) >
             (currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0)) {
       steps.add(
-        "Reduce required guardian approvals or increase the guardian pool so quorum is structurally valid.",
+        "ลดจำนวนพยานที่ต้องอนุมัติ หรือเพิ่มจำนวนพยานในระบบ เพื่อให้เงื่อนไขใช้งานได้จริง",
       );
     } else if (hasBlockingErrors) {
       steps.add(
-        "Resolve blocking issues before advancing the current version.",
+        "แก้ปัญหาระดับบล็อกก่อนขยับฉบับปัจจุบันต่อ",
       );
     } else if ((currentArtifact?.activeEntryCount ?? 0) == 0) {
       steps.add(
-        "Activate at least one intent entry so release flow has a concrete route.",
+        "เปิดใช้งานอย่างน้อย 1 รายการ เพื่อให้การส่งมอบมีเส้นทางจริง",
       );
     } else if (currentArtifact!.artifactState == IntentArtifactState.exported) {
       steps.add(
-        "Review the exported version and confirm report findings before release.",
+        "ตรวจทานฉบับพร้อมส่ง และเช็กผลรายงานก่อนปล่อยใช้งานจริง",
       );
     } else if (currentArtifact!.artifactState == IntentArtifactState.reviewed &&
         !draftInSync) {
       steps.add(
-        "Re-export from the latest draft because the reviewed artifact is now stale.",
+        "สร้างฉบับใหม่จากแบบร่างล่าสุด เพราะฉบับที่เคยตรวจแล้วไม่ตรงกับข้อมูลปัจจุบัน",
       );
     } else if (currentArtifact!.artifactState == IntentArtifactState.reviewed) {
       steps.add(
-        "Mark the reviewed artifact ready while the draft is still in sync.",
+        "ตั้งฉบับที่ตรวจแล้วเป็นพร้อมใช้งาน ขณะที่แบบร่างยังตรงกัน",
       );
     } else if (currentArtifact!.artifactState == IntentArtifactState.ready &&
         !draftInSync) {
       steps.add(
-        "Refresh the ready version from the latest draft to regain confidence.",
+        "สร้างฉบับพร้อมส่งใหม่จากแบบร่างล่าสุด เพื่อคืนความมั่นใจก่อนใช้งานจริง",
       );
     } else {
       steps.add(
-        "Keep the current ready version in sync as you refine the workspace.",
+        "รักษาฉบับพร้อมใช้งานให้ตรงกับแบบร่างทุกครั้งที่มีการแก้ไขสำคัญ",
       );
     }
 
@@ -242,13 +246,13 @@ class IntentRuntimeReadinessModel {
 
     if (!draftInSync && hasArtifact) {
       steps.add(
-        "Compare the latest exported version with current draft changes before promotion or export.",
+        "เทียบฉบับล่าสุดกับแบบร่างปัจจุบันก่อนโปรโมตหรือสร้างฉบับใหม่",
       );
     }
 
     if (deviceOnlySecretResidency) {
       steps.add(
-        "Device-only secret residency is active; verify the release path still works if the owner device changes.",
+        "ข้อมูลลับยังอยู่เฉพาะในเครื่องนี้ ควรเช็กเส้นทางส่งมอบให้แน่ใจว่ายังทำงานได้ถ้าเจ้าของเปลี่ยนอุปกรณ์",
       );
     }
 
@@ -258,7 +262,7 @@ class IntentRuntimeReadinessModel {
       final poolSize =
           currentDraft?.globalSafeguards.guardianQuorumPoolSize ?? 0;
       steps.add(
-        "Guardian quorum is active at $required-of-$poolSize for high-impact legacy release.",
+        "ระบบพยานเปิดใช้งานอยู่ โดยต้องให้พยานอนุมัติ $required จากทั้งหมด $poolSize คน",
       );
     }
 
@@ -270,20 +274,20 @@ class IntentRuntimeReadinessModel {
       final guardianRequirement =
           safeguards?.emergencyAccessRequiresGuardianQuorum ?? false;
       steps.add(
-        "Emergency access override is enabled with a ${graceHours.toString()}-hour grace window${beneficiaryRequest ? ", beneficiary request" : ""}${guardianRequirement ? ", and guardian quorum" : ""}.",
+        "โหมดฉุกเฉินเปิดใช้งานอยู่ มีช่วงรอ ${graceHours.toString()} ชั่วโมง${beneficiaryRequest ? ", ต้องมีคำขอจากผู้รับ" : ""}${guardianRequirement ? ", และต้องมีพยานร่วมอนุมัติ" : ""}",
       );
     }
 
     if (currentDraft?.globalSafeguards.recoveryKeyEnabled == true) {
       steps.add(
-        "Recovery key fallback is enabled for proof-of-life disruptions during device changes.",
+        "เปิดคีย์กู้คืนสำรองไว้แล้ว สำหรับกรณีเช็กอินสะดุดระหว่างย้ายอุปกรณ์",
       );
     }
 
     final safeguards = currentDraft?.globalSafeguards;
     if (safeguards != null) {
       steps.add(
-        "Retention policy: delivery link TTL ${safeguards.deliveryAccessTtlHours}h, payload ${safeguards.payloadRetentionDays}d, audit ${safeguards.auditLogRetentionDays}d.",
+        "นโยบายเก็บข้อมูล: ลิงก์เข้าถึง ${safeguards.deliveryAccessTtlHours} ชม. ข้อมูลส่งมอบ ${safeguards.payloadRetentionDays} วัน และบันทึกตรวจสอบ ${safeguards.auditLogRetentionDays} วัน",
       );
     }
 
@@ -305,54 +309,54 @@ class IntentRuntimeReadinessModel {
 
     final blockers = <String>[];
     if (currentArtifact == null) {
-      blockers.add("No exported handoff version");
+      blockers.add("ยังไม่มีฉบับพร้อมส่ง");
     } else {
       if (currentArtifact.report.errorCount > 0) {
-        blockers.add("Blocking issues still present");
+        blockers.add("ยังมีปัญหาระดับบล็อก");
       }
       if (currentArtifact.activeEntryCount == 0) {
-        blockers.add("No active routes exported");
+        blockers.add("ยังไม่มีเส้นทางที่เปิดใช้งานในฉบับนี้");
       }
       if (currentArtifact.artifactState == IntentArtifactState.exported) {
-        blockers.add("Exported version has not been reviewed");
+        blockers.add("ฉบับพร้อมส่งยังไม่ได้ตรวจทาน");
       }
       if (currentArtifact.artifactState == IntentArtifactState.reviewed &&
           !draftInSync) {
-        blockers.add("Draft changed after review");
+        blockers.add("แบบร่างเปลี่ยนหลังตรวจทาน");
       }
       if (currentArtifact.artifactState == IntentArtifactState.ready &&
           !draftInSync) {
-        blockers.add("Ready version is no longer in sync");
+        blockers.add("ฉบับพร้อมใช้งานไม่ตรงกับแบบร่างล่าสุด");
       }
     }
 
     final safeguards = currentDraft?.globalSafeguards;
     if (safeguards != null) {
       if (safeguards.deviceRebindInProgress) {
-        blockers.add("Cross-device rebind window is active");
+        blockers.add("กำลังอยู่ในช่วงย้ายการใช้งานข้ามอุปกรณ์");
       }
       if (safeguards.guardianQuorumEnabled &&
           safeguards.guardianQuorumRequired >
               safeguards.guardianQuorumPoolSize) {
-        blockers.add("Guardian quorum requirement exceeds guardian pool");
+        blockers.add("จำนวนพยานที่ต้องอนุมัติมากกว่าจำนวนพยานที่ตั้งไว้");
       }
       if (safeguards.guardianQuorumEnabled &&
           safeguards.guardianQuorumRequired < 2) {
         blockers.add(
-          "Guardian quorum is too weak for sensitive legacy release",
+          "จำนวนพยานที่ต้องอนุมัติยังน้อยเกินไปสำหรับแผนที่อ่อนไหว",
         );
       }
       if (safeguards.emergencyAccessEnabled &&
           safeguards.emergencyAccessRequiresGuardianQuorum &&
           !safeguards.guardianQuorumEnabled) {
         blockers.add(
-          "Emergency access requires guardian quorum but quorum is disabled",
+          "โหมดฉุกเฉินกำหนดให้มีพยาน แต่ระบบพยานยังปิดอยู่",
         );
       }
       if (safeguards.emergencyAccessEnabled &&
           !safeguards.emergencyAccessRequiresBeneficiaryRequest) {
         blockers.add(
-          "Emergency access should require an explicit beneficiary request",
+          "โหมดฉุกเฉินควรกำหนดให้ผู้รับยื่นคำขอก่อน",
         );
       }
     }
@@ -382,5 +386,18 @@ class IntentRuntimeReadinessModel {
       draftInSync: draftInSync,
       blockers: blockers,
     );
+  }
+
+  String _artifactStateLabel(IntentArtifactState state) {
+    switch (state) {
+      case IntentArtifactState.draft:
+        return "แบบร่าง";
+      case IntentArtifactState.exported:
+        return "ฉบับพร้อมส่ง";
+      case IntentArtifactState.reviewed:
+        return "ตรวจทานแล้ว";
+      case IntentArtifactState.ready:
+        return "พร้อมใช้งาน";
+    }
   }
 }

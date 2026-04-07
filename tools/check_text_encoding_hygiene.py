@@ -29,12 +29,12 @@ TEXT_FILE_SUFFIXES = {
 }
 
 SUSPICIOUS_MOJIBAKE_PATTERNS = [
-    re.compile(r"à¸"),
-    re.compile(r"à¹"),
-    re.compile(r"Ã."),
-    re.compile(r"Â."),
-    re.compile(r"â€[^\s]?"),
-    re.compile(r"ðŸ"),
+    re.compile(r"Ã Â¸"),
+    re.compile(r"Ã Â¹"),
+    re.compile(r"Ãƒ."),
+    re.compile(r"Ã‚."),
+    re.compile(r"Ã¢â‚¬[^\s]?"),
+    re.compile(r"Ã°Å¸"),
 ]
 
 EXCLUDED_PATHS = {

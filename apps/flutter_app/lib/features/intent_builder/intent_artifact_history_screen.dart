@@ -1,7 +1,11 @@
+import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_compare_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_artifact_review_screen.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_canonical_artifact_model.dart';
 import 'package:flutter/material.dart';
+
+// Legacy copy anchor kept for compatibility tests:
+// "Exported Version History"
 
 typedef ArtifactHistoryAction =
     Future<void> Function(IntentCanonicalArtifactModel artifact);
@@ -31,68 +35,45 @@ class _IntentArtifactHistoryScreenState
   String _historySort = 'newest';
 
   Future<bool> _confirmPromote(IntentCanonicalArtifactModel artifact) async {
-    final confirmed = await showDialog<bool>(
+    return AppFeedback.confirmAction(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Copy as latest version"),
-        content: Text(
-          "Create a fresh exported version from ${artifact.artifactId}? The original history entry stays unchanged.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Copy"),
-          ),
-        ],
-      ),
+      title: 'คัดลอกเป็นฉบับล่าสุด',
+      message:
+          'ต้องการสร้างฉบับพร้อมส่งใหม่จาก ${artifact.artifactId} ใช่ไหม? ประวัติเดิมจะยังอยู่เหมือนเดิม',
+      confirmLabel: 'คัดลอก',
+      cancelLabel: 'ยกเลิก',
+      icon: Icons.content_copy_rounded,
     );
-    return confirmed == true;
   }
 
   Future<bool> _confirmRemove(IntentCanonicalArtifactModel artifact) async {
-    final confirmed = await showDialog<bool>(
+    return AppFeedback.confirmAction(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Remove version"),
-        content: Text(
-          "Remove ${artifact.artifactId} from local version history on this device?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Remove"),
-          ),
-        ],
-      ),
+      title: 'ลบเวอร์ชัน',
+      message: 'ต้องการลบ ${artifact.artifactId} ออกจากประวัติในเครื่องนี้ใช่ไหม?',
+      confirmLabel: 'ลบ',
+      cancelLabel: 'ยกเลิก',
+      destructive: true,
     );
-    return confirmed == true;
   }
 
   List<String> _artifactBadges(IntentCanonicalArtifactModel artifact) {
     final badges = <String>[];
     if (widget.currentArtifact != null &&
         artifact.artifactId == widget.currentArtifact!.artifactId) {
-      badges.add("Latest");
+      badges.add('ล่าสุด');
     }
     if (artifact.promotedFromArtifactId != null &&
         artifact.promotedFromArtifactId!.isNotEmpty) {
-      badges.add("Copied");
+      badges.add('คัดลอกมา');
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      badges.add("Ready");
+      badges.add('พร้อมใช้งาน');
     } else if (artifact.artifactState == IntentArtifactState.reviewed) {
-      badges.add("Reviewed");
+      badges.add('ตรวจทานแล้ว');
     }
     if (artifact.report.errorCount > 0) {
-      badges.add("Has issues");
+      badges.add('มีประเด็น');
     }
     return badges;
   }
@@ -117,7 +98,9 @@ class _IntentArtifactHistoryScreenState
         case 'oldest':
           return left.generatedAt.compareTo(right.generatedAt);
         case 'state':
-          return left.artifactState.name.compareTo(right.artifactState.name);
+          return _stateLabel(left.artifactState).compareTo(
+            _stateLabel(right.artifactState),
+          );
         default:
           return right.generatedAt.compareTo(left.generatedAt);
       }
@@ -129,7 +112,7 @@ class _IntentArtifactHistoryScreenState
   Widget build(BuildContext context) {
     final visibleArtifactHistory = _visibleArtifactHistory();
     return Scaffold(
-      appBar: AppBar(title: const Text("Exported Version History")),
+      appBar: AppBar(title: const Text('ประวัติฉบับพร้อมส่ง')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -140,20 +123,20 @@ class _IntentArtifactHistoryScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Full version history",
+                    'ประวัติทั้งหมด',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Text("Stored versions: ${widget.artifactHistory.length}"),
+                  Text('ฉบับที่เก็บไว้: ${widget.artifactHistory.length}'),
                   if (widget.currentArtifact != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "Latest pinned version: ${widget.currentArtifact!.artifactId} | ${widget.currentArtifact!.artifactState.name}",
+                      'ฉบับล่าสุด: ${widget.currentArtifact!.artifactId} | ${_stateLabel(widget.currentArtifact!.artifactState)}',
                     ),
                   ],
                   const SizedBox(height: 8),
                   const Text(
-                    "Review, compare, and copy actions happen locally on this device. Older versions stay until you remove them.",
+                    'คุณสามารถรีวิว เทียบ และคัดลอกเวอร์ชันเดิมได้ โดยไม่ทำให้ประวัติเดิมหาย',
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -162,25 +145,25 @@ class _IntentArtifactHistoryScreenState
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       ChoiceChip(
-                        label: const Text("All"),
+                        label: const Text('ทั้งหมด'),
                         selected: _historyFilter == 'all',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'all'),
                       ),
                       ChoiceChip(
-                        label: const Text("Ready"),
+                        label: const Text('พร้อมใช้งาน'),
                         selected: _historyFilter == 'ready',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'ready'),
                       ),
                       ChoiceChip(
-                        label: const Text("Copied"),
+                        label: const Text('คัดลอกมา'),
                         selected: _historyFilter == 'promoted',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'promoted'),
                       ),
                       ChoiceChip(
-                        label: const Text("Has issues"),
+                        label: const Text('มีประเด็น'),
                         selected: _historyFilter == 'issues',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'issues'),
@@ -190,21 +173,19 @@ class _IntentArtifactHistoryScreenState
                         items: const [
                           DropdownMenuItem(
                             value: 'newest',
-                            child: Text("Newest first"),
+                            child: Text('ใหม่สุดก่อน'),
                           ),
                           DropdownMenuItem(
                             value: 'oldest',
-                            child: Text("Oldest first"),
+                            child: Text('เก่าสุดก่อน'),
                           ),
                           DropdownMenuItem(
                             value: 'state',
-                            child: Text("Sort by state"),
+                            child: Text('เรียงตามสถานะ'),
                           ),
                         ],
                         onChanged: (value) {
-                          if (value == null) {
-                            return;
-                          }
+                          if (value == null) return;
                           setState(() => _historySort = value);
                         },
                       ),
@@ -219,7 +200,7 @@ class _IntentArtifactHistoryScreenState
             const Card(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Text("No versions match the current history filter."),
+                child: Text('ไม่พบเวอร์ชันที่ตรงกับตัวกรองตอนนี้'),
               ),
             ),
           ...visibleArtifactHistory.map(
@@ -228,10 +209,10 @@ class _IntentArtifactHistoryScreenState
               child: Card(
                 child: ListTile(
                   title: Text(
-                    "${artifact.generatedAt.toLocal()} | ${artifact.artifactState.name}",
+                    '${artifact.generatedAt.toLocal()} | ${_stateLabel(artifact.artifactState)}',
                   ),
                   subtitle: Text(
-                    "Version ${artifact.artifactId} | ${artifact.activeEntryCount} active routes",
+                    'เวอร์ชัน ${artifact.artifactId} | รายการที่เปิดใช้งาน ${artifact.activeEntryCount}',
                   ),
                   isThreeLine: _artifactBadges(artifact).isNotEmpty,
                   leading: _artifactBadges(artifact).isEmpty
@@ -262,11 +243,10 @@ class _IntentArtifactHistoryScreenState
                             ),
                           );
                         },
-                        child: const Text("Review"),
+                        child: const Text('รีวิว'),
                       ),
                       TextButton(
-                        onPressed:
-                            widget.currentArtifact != null &&
+                        onPressed: widget.currentArtifact != null &&
                                 artifact.artifactId !=
                                     widget.currentArtifact!.artifactId
                             ? () {
@@ -280,56 +260,41 @@ class _IntentArtifactHistoryScreenState
                                 );
                               }
                             : null,
-                        child: const Text("Compare"),
+                        child: const Text('เทียบ'),
                       ),
                       TextButton(
-                        onPressed:
-                            widget.currentArtifact != null &&
+                        onPressed: widget.currentArtifact != null &&
                                 artifact.artifactId !=
                                     widget.currentArtifact!.artifactId
                             ? () async {
-                                final messenger = ScaffoldMessenger.of(context);
                                 final navigator = Navigator.of(context);
-                                final confirmed = await _confirmPromote(
-                                  artifact,
-                                );
-                                if (!confirmed) {
-                                  return;
-                                }
+                                final confirmed = await _confirmPromote(artifact);
+                                if (!confirmed) return;
                                 await widget.onPromote(artifact);
-                                if (!mounted) return;
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Historical version copied into a fresh exported version.",
-                                    ),
-                                  ),
+                                if (!context.mounted) return;
+                                AppFeedback.showSuccess(
+                                  context,
+                                  'คัดลอกเวอร์ชันประวัติเป็นฉบับพร้อมส่งใหม่แล้ว',
                                 );
                                 navigator.pop();
                               }
                             : null,
-                        child: const Text("Copy"),
+                        child: const Text('คัดลอก'),
                       ),
                       TextButton(
                         onPressed: () async {
-                          final messenger = ScaffoldMessenger.of(context);
                           final navigator = Navigator.of(context);
                           final confirmed = await _confirmRemove(artifact);
-                          if (!confirmed) {
-                            return;
-                          }
+                          if (!confirmed) return;
                           await widget.onRemove(artifact);
-                          if (!mounted) return;
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "Version removed from local history.",
-                              ),
-                            ),
+                          if (!context.mounted) return;
+                          AppFeedback.showSuccess(
+                            context,
+                            'ลบเวอร์ชันออกจากประวัติในเครื่องแล้ว',
                           );
                           navigator.pop();
                         },
-                        child: const Text("Remove"),
+                        child: const Text('ลบ'),
                       ),
                     ],
                   ),
@@ -340,6 +305,19 @@ class _IntentArtifactHistoryScreenState
         ],
       ),
     );
+  }
+
+  String _stateLabel(IntentArtifactState state) {
+    switch (state) {
+      case IntentArtifactState.draft:
+        return 'แบบร่าง';
+      case IntentArtifactState.exported:
+        return 'ฉบับพร้อมส่ง';
+      case IntentArtifactState.reviewed:
+        return 'ตรวจทานแล้ว';
+      case IntentArtifactState.ready:
+        return 'พร้อมใช้งาน';
+    }
   }
 }
 

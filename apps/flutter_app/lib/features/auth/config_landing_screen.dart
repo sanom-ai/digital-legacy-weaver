@@ -1,4 +1,4 @@
-﻿import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
+import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
@@ -59,7 +59,7 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     _thaiMode = locale.languageCode.toLowerCase().startsWith('th');
   }
 
-  String _tr(String th, String en) => en;
+  String _tr(String th, String en) => _isThai ? th : en;
 
   DemoScenario get _selectedScenario {
     return demoScenarioById(_selectedScenarioId) ?? demoScenarios.first;
@@ -106,16 +106,59 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
   void _showBackendSetupSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF7EFE3), Color(0xFFFDF8F2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(color: const Color(0xFFE4D3BC)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE6F1EF),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.cloud_outlined,
+                        color: Color(0xFF1E6C77),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _tr(
+                          'คุณเริ่มในโหมดส่วนตัวบนเครื่องได้ก่อน แล้วค่อยเพิ่มการเชื่อมคลาวด์เมื่อทีมพร้อม',
+                          'You can begin in private local mode first, then add cloud connectivity later when your team is ready.',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
               Text(
-                _tr('เชื่อมคลาวด์ทีหลังได้ (ไม่บังคับ)', 'Connect cloud later (optional)'),
+                _tr('เชื่อมคลาวด์ทีหลังได้ (ไม่บังคับ)',
+                    'Connect cloud later (optional)'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
@@ -128,10 +171,11 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
               const SizedBox(height: 12),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: const Color(0xFFF4EFE8),
+                  borderRadius: BorderRadius.circular(18),
+                  color: const Color(0xFFFFFCF8),
+                  border: Border.all(color: const Color(0xFFE2D4C2)),
                 ),
                 child: const SelectableText(
                   'flutter run --dart-define=SUPABASE_URL=<url> --dart-define=SUPABASE_ANON_KEY=<publishable_key>',
@@ -147,7 +191,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
   String _scenarioTitle(DemoScenario scenario) {
     switch (scenario.id) {
       case 'family_handoff':
-        return _tr('เส้นทางมอบมรดกดิจิทัลให้คนที่คุณรัก', 'Digital Legacy Handoff');
+        return _tr(
+            'เส้นทางมอบมรดกดิจิทัลให้คนที่คุณรัก', 'Digital Legacy Handoff');
       case 'self_recovery':
         return _tr('กู้คืนบัญชีของฉัน', 'Owner Self-Recovery');
       case 'private_archive':
@@ -240,8 +285,10 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     final compact = MediaQuery.of(context).size.width < 920;
 
     final title = widget.unlockAttempt
-        ? _tr('เปิดคำขอแล้ว ดำเนินการต่ออย่างปลอดภัย', 'Receipt opened. Continue safely now.')
-        : _tr('เริ่มเลยในโหมดส่วนตัวบนเครื่อง', 'Start now in private local mode');
+        ? _tr('เปิดคำขอแล้ว ดำเนินการต่ออย่างปลอดภัย',
+            'Receipt opened. Continue safely now.')
+        : _tr('เริ่มเลยในโหมดส่วนตัวบนเครื่อง',
+            'Start now in private local mode');
 
     final summary = widget.unlockAttempt
         ? _tr(
@@ -267,14 +314,20 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                     title: title,
                     summary: summary,
                     isThai: _isThai,
-                    onLanguageChanged: (isThai) => setState(() => _thaiMode = isThai),
-                    primaryActionLabel: _tr('เริ่มโหมดส่วนตัวทันที', 'Start in private mode'),
-                    onPrimaryAction: () => _openScenario(context, _selectedScenario),
-                    secondaryActionLabel: _tr('ฉันพร้อมแล้ว ไปหน้าใช้งานหลัก', 'I already know, go to dashboard'),
+                    onLanguageChanged: (isThai) =>
+                        setState(() => _thaiMode = isThai),
+                    primaryActionLabel:
+                        _tr('เริ่มโหมดส่วนตัวทันที', 'Start in private mode'),
+                    onPrimaryAction: () =>
+                        _openScenario(context, _selectedScenario),
+                    secondaryActionLabel: _tr('ฉันพร้อมแล้ว ไปหน้าใช้งานหลัก',
+                        'I already know, go to dashboard'),
                     onSecondaryAction: () => _openWorkspaceQuick(context),
-                    tertiaryActionLabel: _tr('ดูวิธีเชื่อมคลาวด์', 'Cloud setup later'),
+                    tertiaryActionLabel:
+                        _tr('ดูวิธีเชื่อมคลาวด์', 'Cloud setup later'),
                     onTertiaryAction: () => _showBackendSetupSheet(context),
-                    stepTitle: _tr('ขั้นตอน 1 จาก 3: เลือกเส้นทางแรก', 'Step 1 of 3: Choose your first journey'),
+                    stepTitle: _tr('ขั้นตอน 1 จาก 3: เลือกเส้นทางแรก',
+                        'Step 1 of 3: Choose your first journey'),
                   ),
                   const SizedBox(height: 16),
                   Card(
@@ -283,7 +336,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.security_rounded, color: Color(0xFF0E7C86)),
+                          const Icon(Icons.security_rounded,
+                              color: Color(0xFF0E7C86)),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -302,10 +356,12 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                     _buildJourneySection(theme),
                     const SizedBox(height: 12),
                     _LocalExplanationCard(
-                      title: _tr('ในโหมด local จะเกิดอะไรขึ้น', 'What happens in local mode'),
+                      title: _tr('ในโหมด local จะเกิดอะไรขึ้น',
+                          'What happens in local mode'),
                       expanded: _localGuideExpanded,
                       collapsible: true,
-                      onExpandedChanged: (value) => setState(() => _localGuideExpanded = value),
+                      onExpandedChanged: (value) =>
+                          setState(() => _localGuideExpanded = value),
                       items: _localGuideItems(),
                     ),
                   ] else ...[
@@ -317,7 +373,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                         Expanded(
                           flex: 2,
                           child: _LocalExplanationCard(
-                            title: _tr('ในโหมด local จะเกิดอะไรขึ้น', 'What happens in local mode'),
+                            title: _tr('ในโหมด local จะเกิดอะไรขึ้น',
+                                'What happens in local mode'),
                             expanded: true,
                             collapsible: false,
                             items: _localGuideItems(),
@@ -333,7 +390,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.gpp_good_rounded, color: Color(0xFF0E7C86)),
+                          const Icon(Icons.gpp_good_rounded,
+                              color: Color(0xFF0E7C86)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -369,7 +427,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _tr('เลือก 1 เส้นทางที่ใกล้ชีวิตจริงที่สุด แล้วค่อยปรับรายละเอียดภายหลัง', 'Pick one concrete path now, then tune details later.'),
+              _tr('เลือก 1 เส้นทางที่ใกล้ชีวิตจริงที่สุด แล้วค่อยปรับรายละเอียดภายหลัง',
+                  'Pick one concrete path now, then tune details later.'),
             ),
             const SizedBox(height: 14),
             ...demoScenarios.map((scenario) {
@@ -386,7 +445,8 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                   detail: _scenarioDetail(scenario),
                   selected: selected,
                   highlighted: scenario.id == 'family_handoff',
-                  onSelect: () => setState(() => _selectedScenarioId = scenario.id),
+                  onSelect: () =>
+                      setState(() => _selectedScenarioId = scenario.id),
                   onStart: () => _openScenario(context, scenario),
                 ),
               );
@@ -401,15 +461,18 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
     return [
       _LocalGuideItemData(
         icon: Icons.smartphone_rounded,
-        title: _tr('เริ่มจากเดโมที่พร้อมใช้ทันที', 'Start with a ready-to-use demo'),
+        title: _tr(
+            'เริ่มจากเดโมที่พร้อมใช้ทันที', 'Start with a ready-to-use demo'),
       ),
       _LocalGuideItemData(
         icon: Icons.visibility_rounded,
-        title: _tr('ตรวจแผนและความปลอดภัยได้บนเครื่องของคุณ', 'Review plan and safety directly on your device'),
+        title: _tr('ตรวจแผนและความปลอดภัยได้บนเครื่องของคุณ',
+            'Review plan and safety directly on your device'),
       ),
       _LocalGuideItemData(
         icon: Icons.verified_user_rounded,
-        title: _tr('เช็กความพร้อมก่อนเชื่อมคลาวด์ทีหลัง', 'Confirm readiness before optional cloud setup'),
+        title: _tr('เช็กความพร้อมก่อนเชื่อมคลาวด์ทีหลัง',
+            'Confirm readiness before optional cloud setup'),
       ),
     ];
   }
@@ -454,86 +517,148 @@ class _HeroCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.16),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x18040A0C),
+            blurRadius: 28,
+            offset: Offset(0, 14),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  stepTitle,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+          Positioned(
+            top: -28,
+            right: -16,
+            child: Container(
+              width: 138,
+              height: 138,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -34,
+            left: -22,
+            child: Container(
+              width: 112,
+              height: 112,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: Colors.white.withValues(alpha: 0.12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.18),
+                          ),
+                        ),
+                        child: Text(
+                          stepTitle,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _LanguageToggle(
+                      isThai: isThai,
+                      onChanged: onLanguageChanged,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: const LinearProgressIndicator(
+                    value: 1 / 3,
+                    minHeight: 7,
+                    backgroundColor: Color(0x3387C3CE),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xFFFFE7B8)),
                   ),
                 ),
-              ),
-              _LanguageToggle(
-                isThai: isThai,
-                onChanged: onLanguageChanged,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: const LinearProgressIndicator(
-              value: 1 / 3,
-              minHeight: 6,
-              backgroundColor: Color(0x3387C3CE),
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFE7B8)),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            summary,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.93),
-            ),
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: onPrimaryAction,
-            icon: const Icon(Icons.play_arrow_rounded),
-            label: Text(primaryActionLabel),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFFFE0A6),
-              foregroundColor: const Color(0xFF183743),
-              textStyle: const TextStyle(fontWeight: FontWeight.w700),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              TextButton(
-                onPressed: onSecondaryAction,
-                child: Text(
-                  secondaryActionLabel,
-                  style: const TextStyle(color: Colors.white),
+                const SizedBox(height: 18),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    height: 1.05,
+                  ),
                 ),
-              ),
-              OutlinedButton(
-                onPressed: onTertiaryAction,
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.65)),
-                  foregroundColor: Colors.white,
+                const SizedBox(height: 10),
+                Text(
+                  summary,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.93),
+                    height: 1.35,
+                  ),
                 ),
-                child: Text(tertiaryActionLabel),
-              ),
-            ],
+                const SizedBox(height: 18),
+                FilledButton.icon(
+                  onPressed: onPrimaryAction,
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: Text(primaryActionLabel),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFE0A6),
+                    foregroundColor: const Color(0xFF183743),
+                    textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 15,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    TextButton(
+                      onPressed: onSecondaryAction,
+                      child: Text(
+                        secondaryActionLabel,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: onTertiaryAction,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.65),
+                        ),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(tertiaryActionLabel),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -585,10 +710,12 @@ class _PathCardState extends State<_PathCard> {
       onTap: widget.onSelect,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          color: widget.selected ? const Color(0xFFFFFBF5) : const Color(0xFFFFFDF9),
+          borderRadius: BorderRadius.circular(24),
+          color: widget.selected
+              ? const Color(0xFFFFFBF5)
+              : const Color(0xFFFFFDF9),
           border: Border.all(
             color: widget.selected ? selectedColor : const Color(0xFFE6DDD1),
             width: widget.selected ? 2 : 1,
@@ -596,9 +723,9 @@ class _PathCardState extends State<_PathCard> {
           boxShadow: widget.selected
               ? const [
                   BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 20,
-                    offset: Offset(0, 8),
+                    color: Color(0x16000000),
+                    blurRadius: 26,
+                    offset: Offset(0, 12),
                   ),
                 ]
               : null,
@@ -609,20 +736,24 @@ class _PathCardState extends State<_PathCard> {
             Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: selectedColor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: selectedColor.withValues(alpha: 0.16),
+                    ),
                   ),
                   child: Icon(widget.icon, color: selectedColor),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     widget.title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
+                          height: 1.2,
                         ),
                   ),
                 ),
@@ -630,17 +761,20 @@ class _PathCardState extends State<_PathCard> {
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
-                color: const Color(0xFFF3ECE1),
+                color: const Color(0xFFF8F0E5),
+                border: Border.all(color: const Color(0xFFE9DAC3)),
               ),
               child: Text(widget.badge),
             ),
             const SizedBox(height: 10),
             Text(widget.summary),
             AnimatedCrossFade(
-              crossFadeState: _showDetail ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              crossFadeState: _showDetail
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 170),
               firstChild: const SizedBox(height: 0),
               secondChild: Padding(
@@ -661,9 +795,17 @@ class _PathCardState extends State<_PathCard> {
                 FilledButton(
                   onPressed: widget.onStart,
                   style: FilledButton.styleFrom(
-                    backgroundColor: widget.highlighted ? const Color(0xFFF2A64D) : const Color(0xFF1E6A79),
-                    foregroundColor: widget.highlighted ? const Color(0xFF2A1808) : Colors.white,
+                    backgroundColor: widget.highlighted
+                        ? const Color(0xFFF2A64D)
+                        : const Color(0xFF1E6A79),
+                    foregroundColor: widget.highlighted
+                        ? const Color(0xFF2A1808)
+                        : Colors.white,
                     textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
                   ),
                   child: Text(widget.actionLabel),
                 ),
@@ -714,7 +856,8 @@ class _LocalExplanationCard extends StatelessWidget {
                         color: const Color(0xFFDBF0EF),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(item.icon, size: 20, color: const Color(0xFF1E6C77)),
+                      child: Icon(item.icon,
+                          size: 20, color: const Color(0xFF1E6C77)),
                     ),
                     const SizedBox(width: 10),
                     Expanded(child: Text(item.title)),

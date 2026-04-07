@@ -1,4 +1,4 @@
-import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
+﻿import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/dashboard/dashboard_screen.dart';
 import 'package:digital_legacy_weaver/features/unlock/unlock_delivery_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
@@ -133,15 +133,15 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'Save Safety Settings'),
+        find.widgetWithText(FilledButton, 'บันทึกการตั้งค่าความปลอดภัย'),
       );
       await tester.tap(
-        find.widgetWithText(FilledButton, 'Save Safety Settings'),
+        find.widgetWithText(FilledButton, 'บันทึกการตั้งค่าความปลอดภัย'),
       );
       await tester.pumpAndSettle();
 
       expect(
-          find.text('Safety settings updated successfully.'), findsOneWidget);
+          find.text('บันทึกการตั้งค่าความปลอดภัยเรียบร้อยแล้ว'), findsOneWidget);
       expect(find.text('Best for audits'), findsOneWidget);
       expect(
         find.textContaining('sanitized evidence and owner references'),
@@ -192,21 +192,12 @@ void main() {
         ),
       );
 
-      await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-      );
-      await tester.tap(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-        warnIfMissed: false,
-      );
+      final nextButtonFinder = find.widgetWithText(FilledButton, 'ถัดไป');
+      await tester.ensureVisible(nextButtonFinder.first);
+      await tester.tap(nextButtonFinder.first, warnIfMissed: false);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-      );
-      await tester.tap(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-        warnIfMissed: false,
-      );
+      await tester.ensureVisible(nextButtonFinder.first);
+      await tester.tap(nextButtonFinder.first, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       expect(find.text('ฉันเข้าใจขอบเขตทางกฎหมายของแอป'), findsOneWidget);
@@ -265,14 +256,14 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.textContaining('Privacy Preset: Minimal'),
+      find.textContaining('ระดับความเป็นส่วนตัว: Minimal'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Privacy Preset: Minimal'), findsOneWidget);
-    expect(find.textContaining('Product boundary:'), findsWidgets);
+    expect(find.textContaining('ระดับความเป็นส่วนตัว: Minimal'), findsOneWidget);
+    expect(find.textContaining('ขอบเขตผลิตภัณฑ์:'), findsWidgets);
   });
 
   testWidgets('Unlock flow shows anti-scam no-link guidance', (tester) async {
@@ -284,19 +275,21 @@ void main() {
 
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.textContaining('Security Notice'),
+      find.textContaining('ข้อควรรู้ก่อนทำต่อ'),
       250,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Security Notice'), findsOneWidget);
+    expect(find.textContaining('ข้อควรรู้ก่อนทำต่อ'), findsOneWidget);
     expect(find.textContaining('ไม่ขอรหัสผ่าน'), findsWidgets);
     expect(find.textContaining('อย่ากดลิงก์จากข้อความ'), findsOneWidget);
     expect(
       find.textContaining('เปิดแอป Digital Legacy Weaver เอง แล้วกรอกรหัส'),
       findsOneWidget,
     );
-    expect(find.text('Paste handoff packet (no link click)'), findsOneWidget);
+    expect(find.text('วางชุดข้อมูลรับมอบ (ไม่ต้องกดลิงก์)'), findsOneWidget);
   });
 }
+
+
