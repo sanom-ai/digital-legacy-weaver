@@ -146,18 +146,24 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     return _requiredEmail(_backupEmailController.text) == null &&
         _requiredEmail(_beneficiaryEmailController.text) == null &&
         _requiredText(_beneficiaryNameController.text, minLength: 3) == null &&
-        _requiredText(_beneficiaryVerificationHintController.text, minLength: 4) == null &&
-        _verificationPhraseValidator(_beneficiaryVerificationPhraseController.text) == null;
+        _requiredText(_beneficiaryVerificationHintController.text,
+                minLength: 4) ==
+            null &&
+        _verificationPhraseValidator(
+                _beneficiaryVerificationPhraseController.text) ==
+            null;
   }
 
   bool _stepTwoReady() {
     return _requiredIntInRange(_legacyDaysController.text, 90, 3650) == null &&
-        _requiredIntInRange(_selfRecoveryDaysController.text, 30, 180) == null &&
+        _requiredIntInRange(_selfRecoveryDaysController.text, 30, 180) ==
+            null &&
         _requiredIntInRange(_graceDaysController.text, 7, 30) == null;
   }
 
   void _showStepError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _friendlySaveError(Object error) {
@@ -176,7 +182,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
 
   String? _productionGuardrailMessage() {
     final legacyDays = int.tryParse(_legacyDaysController.text) ?? 0;
-    final selfRecoveryDays = int.tryParse(_selfRecoveryDaysController.text) ?? 0;
+    final selfRecoveryDays =
+        int.tryParse(_selfRecoveryDaysController.text) ?? 0;
     final fallbackCount = <String>[
       if (_fallbackEmail) "email",
       if (_fallbackSms) "sms",
@@ -209,6 +216,59 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
       default:
         return const Color(0xFFE5D7C5);
     }
+  }
+
+  Widget _stepIntro({
+    required IconData icon,
+    required String title,
+    required String detail,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: scheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(detail, style: theme.textTheme.bodyMedium),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _fieldDecoration({
+    required String label,
+    IconData? icon,
+    String? helper,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      helperText: helper,
+      prefixIcon: icon == null ? null : Icon(icon),
+      filled: true,
+      fillColor:
+          Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.24,
+              ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+    );
   }
 
   IntentDocumentModel _buildDraftIntentDocument(PrivacyProfilePreset preset) {
@@ -434,6 +494,7 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
         _save();
       }
     }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Finish Setup")),
       body: Form(
@@ -445,8 +506,17 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
               margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7F1E8),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outlineVariant
+                      .withValues(alpha: 0.5),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,7 +558,8 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                         onPressed: _saving || (isFinalStep && !canFinalize)
                             ? null
                             : details.onStepContinue,
-                        child: Text(isFinalStep ? "Finalize setup" : "Continue"),
+                        child:
+                            Text(isFinalStep ? "Finalize setup" : "Continue"),
                       ),
                       const SizedBox(width: 12),
                       TextButton(
@@ -499,303 +570,336 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
                   );
                 },
                 steps: [
-            Step(
-              isActive: _stepIndex >= 0,
-              title: const Text("Contacts"),
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Step 1 of 3: add trusted contact details for secure handoff and recovery.",
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _backupEmailController,
-                    decoration:
-                        const InputDecoration(labelText: "Backup email"),
-                    validator: (v) => _requiredEmail(v),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _beneficiaryEmailController,
-                    decoration:
-                        const InputDecoration(labelText: "Beneficiary email"),
-                    validator: (v) => _requiredEmail(v),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _beneficiaryNameController,
-                    decoration: const InputDecoration(
-                        labelText: "Beneficiary legal name"),
-                    validator: (v) => _requiredText(v, minLength: 3),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _beneficiaryPhoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                        labelText: "Beneficiary fallback phone (optional)"),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _beneficiaryVerificationHintController,
-                    decoration: const InputDecoration(
-                        labelText: "Beneficiary verification hint"),
-                    validator: (v) => _requiredText(v, minLength: 4),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _beneficiaryVerificationPhraseController,
-                    decoration: const InputDecoration(
-                        labelText: "Beneficiary verification phrase"),
-                    validator: _verificationPhraseValidator,
-                  ),
-                ],
-              ),
-            ),
-            Step(
-              isActive: _stepIndex >= 1,
-              title: const Text("Triggers"),
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Step 2 of 3: choose timing so recovery is safe and accidental release is less likely.",
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _legacyDaysController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                        labelText: "Legacy inactivity days"),
-                    validator: (v) => _requiredIntInRange(v, 90, 3650),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _selfRecoveryDaysController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                        labelText: "Self-recovery inactivity days"),
-                    validator: (v) => _requiredIntInRange(v, 30, 180),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _graceDaysController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                        labelText: "Final grace period (days)"),
-                    validator: (v) => _requiredIntInRange(v, 7, 30),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: _proofOfLifeCheckMode,
-                    decoration: const InputDecoration(
-                        labelText: "Proof-of-life confirmation"),
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'biometric_tap', child: Text("Biometric tap")),
-                      DropdownMenuItem(
-                          value: 'single_tap',
-                          child: Text("Single tap fallback")),
-                      DropdownMenuItem(
-                          value: 'verification_code',
-                          child: Text("Verification code")),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _proofOfLifeCheckMode = value);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      FilterChip(
-                        selected: _fallbackEmail,
-                        label: const Text("Email fallback"),
-                        onSelected: (value) =>
-                            setState(() => _fallbackEmail = value),
-                      ),
-                      FilterChip(
-                        selected: _fallbackSms,
-                        label: const Text("SMS fallback"),
-                        onSelected: (value) =>
-                            setState(() => _fallbackSms = value),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Production baseline: keep both fallback channels on, and add beneficiary phone when SMS fallback is enabled.",
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            Step(
-              isActive: _stepIndex >= 2,
-              title: const Text("Consent"),
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF7F1E8),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      "Final step: confirm safety defaults so your workspace stays private-first and false-trigger resistant.",
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    value: _remindersEnabled,
-                    onChanged: (v) => setState(() => _remindersEnabled = v),
-                    title: const Text("Enable reminders"),
-                    subtitle: const Text(
-                        "Send reminders before trigger windows to reduce accidental release."),
-                  ),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: _legalAccepted,
-                    onChanged: (v) =>
-                        setState(() => _legalAccepted = v ?? false),
-                    title: const Text("I understand legal companion mode"),
-                    subtitle: const Text(
-                      "This app is a technical companion and does not replace legal will procedures or legal decision-making.",
-                    ),
-                  ),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    value: _privateFirstMode,
-                    onChanged: (v) => setState(() => _privateFirstMode = v),
-                    title: const Text("Keep private-first mode enabled"),
-                    subtitle: const Text(
-                        "Keep the stricter privacy posture between app settings and active policy."),
-                  ),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    value: _serverHeartbeatFallbackEnabled,
-                    onChanged: (v) =>
-                        setState(() => _serverHeartbeatFallbackEnabled = v),
-                    title: const Text("Enable server heartbeat fallback"),
-                    subtitle: const Text(
-                        "Recommended for iOS and long background gaps so false triggers stay less likely."),
-                  ),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: _iosBackgroundRiskAcknowledged,
-                    onChanged: (v) => setState(
-                        () => _iosBackgroundRiskAcknowledged = v ?? false),
-                    title: const Text(
-                        "I understand iOS/background delivery limits"),
-                    subtitle: const Text(
-                        "Mobile platforms may pause background execution, so fallback heartbeat is strongly recommended."),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text("Privacy preset",
-                      style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Column(
-                    children: privacyProfilePresets.map((preset) {
-                      final selected = preset.id == _selectedPresetId;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () => setState(() {
-                            _selectedPresetId = preset.id;
-                            _privateFirstMode = preset.privateFirstMode;
-                          }),
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: selected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).dividerColor,
-                                width: selected ? 2 : 1,
-                              ),
-                              color: selected
-                                  ? Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withValues(alpha: 0.06)
-                                  : null,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          preset.title,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(999),
-                                          color: _badgeColor(preset),
-                                        ),
-                                        child: Text(preset.badgeLabel,
-                                            style:
-                                                const TextStyle(fontSize: 12)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(preset.summary),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    preset.detail,
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ),
+                  Step(
+                    isActive: _stepIndex >= 0,
+                    title: const Text("Contacts"),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _stepIntro(
+                          icon: Icons.group_outlined,
+                          title: "Step 1 of 3: trusted contacts",
+                          detail:
+                              "Add trusted contact details for secure handoff and recovery.",
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _backupEmailController,
+                          decoration: _fieldDecoration(
+                            label: "Backup email",
+                            icon: Icons.alternate_email_outlined,
+                          ),
+                          validator: (v) => _requiredEmail(v),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _beneficiaryEmailController,
+                          decoration: _fieldDecoration(
+                            label: "Beneficiary email",
+                            icon: Icons.mark_email_read_outlined,
+                          ),
+                          validator: (v) => _requiredEmail(v),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _beneficiaryNameController,
+                          decoration: _fieldDecoration(
+                            label: "Beneficiary legal name",
+                            icon: Icons.badge_outlined,
+                          ),
+                          validator: (v) => _requiredText(v, minLength: 3),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _beneficiaryPhoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: _fieldDecoration(
+                            label: "Beneficiary fallback phone (optional)",
+                            icon: Icons.phone_outlined,
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  Text(selectedPreset.summary),
-                  const SizedBox(height: 12),
-                  IntentReviewCard(report: draftReport),
-                  if (draftReport.warningCount > 0) ...[
-                    const SizedBox(height: 8),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _warningAcknowledged,
-                      onChanged: (v) =>
-                          setState(() => _warningAcknowledged = v ?? false),
-                      title: const Text(
-                          "I reviewed these warnings and want to continue"),
-                      subtitle: const Text(
-                        "Warnings are allowed, but they must be acknowledged before activation.",
-                      ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _beneficiaryVerificationHintController,
+                          decoration: _fieldDecoration(
+                            label: "Beneficiary verification hint",
+                            icon: Icons.help_outline,
+                            helper: "Example: our family memory question",
+                          ),
+                          validator: (v) => _requiredText(v, minLength: 4),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _beneficiaryVerificationPhraseController,
+                          decoration: _fieldDecoration(
+                            label: "Beneficiary verification phrase",
+                            icon: Icons.password_outlined,
+                          ),
+                          validator: _verificationPhraseValidator,
+                        ),
+                      ],
                     ),
-                  ],
-                  const SizedBox(height: 8),
-                  const Text(
-                    "This product helps coordinate secure access handoff. It does not replace a legal will.",
                   ),
-                ],
-              ),
-            ),
+                  Step(
+                    isActive: _stepIndex >= 1,
+                    title: const Text("Triggers"),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _stepIntro(
+                          icon: Icons.schedule_outlined,
+                          title: "Step 2 of 3: release timing",
+                          detail:
+                              "Set timing so recovery stays safe and accidental release is less likely.",
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _legacyDaysController,
+                          keyboardType: TextInputType.number,
+                          decoration: _fieldDecoration(
+                            label: "Legacy inactivity days",
+                            icon: Icons.history_toggle_off,
+                          ),
+                          validator: (v) => _requiredIntInRange(v, 90, 3650),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _selfRecoveryDaysController,
+                          keyboardType: TextInputType.number,
+                          decoration: _fieldDecoration(
+                            label: "Self-recovery inactivity days",
+                            icon: Icons.restore_outlined,
+                          ),
+                          validator: (v) => _requiredIntInRange(v, 30, 180),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _graceDaysController,
+                          keyboardType: TextInputType.number,
+                          decoration: _fieldDecoration(
+                            label: "Final grace period (days)",
+                            icon: Icons.timer_outlined,
+                          ),
+                          validator: (v) => _requiredIntInRange(v, 7, 30),
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          initialValue: _proofOfLifeCheckMode,
+                          decoration: _fieldDecoration(
+                            label: "Proof-of-life confirmation",
+                            icon: Icons.fact_check_outlined,
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'biometric_tap',
+                                child: Text("Biometric tap")),
+                            DropdownMenuItem(
+                                value: 'single_tap',
+                                child: Text("Single tap fallback")),
+                            DropdownMenuItem(
+                                value: 'verification_code',
+                                child: Text("Verification code")),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _proofOfLifeCheckMode = value);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            FilterChip(
+                              selected: _fallbackEmail,
+                              label: const Text("Email fallback"),
+                              onSelected: (value) =>
+                                  setState(() => _fallbackEmail = value),
+                            ),
+                            FilterChip(
+                              selected: _fallbackSms,
+                              label: const Text("SMS fallback"),
+                              onSelected: (value) =>
+                                  setState(() => _fallbackSms = value),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Production baseline: keep both fallback channels on, and add beneficiary phone when SMS fallback is enabled.",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Step(
+                    isActive: _stepIndex >= 2,
+                    title: const Text("Consent"),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _stepIntro(
+                          icon: Icons.verified_user_outlined,
+                          title: "Step 3 of 3: consent and safety",
+                          detail:
+                              "Confirm safety defaults so your workspace stays private-first and false-trigger resistant.",
+                        ),
+                        const SizedBox(height: 10),
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          value: _remindersEnabled,
+                          onChanged: (v) =>
+                              setState(() => _remindersEnabled = v),
+                          title: const Text("Enable reminders"),
+                          subtitle: const Text(
+                              "Send reminders before trigger windows to reduce accidental release."),
+                        ),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _legalAccepted,
+                          onChanged: (v) =>
+                              setState(() => _legalAccepted = v ?? false),
+                          title:
+                              const Text("I understand legal companion mode"),
+                          subtitle: const Text(
+                            "This app is a technical companion and does not replace legal will procedures or legal decision-making.",
+                          ),
+                        ),
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          value: _privateFirstMode,
+                          onChanged: (v) =>
+                              setState(() => _privateFirstMode = v),
+                          title: const Text("Keep private-first mode enabled"),
+                          subtitle: const Text(
+                              "Keep the stricter privacy posture between app settings and active policy."),
+                        ),
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          value: _serverHeartbeatFallbackEnabled,
+                          onChanged: (v) => setState(
+                              () => _serverHeartbeatFallbackEnabled = v),
+                          title: const Text("Enable server heartbeat fallback"),
+                          subtitle: const Text(
+                              "Recommended for iOS and long background gaps so false triggers stay less likely."),
+                        ),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _iosBackgroundRiskAcknowledged,
+                          onChanged: (v) => setState(() =>
+                              _iosBackgroundRiskAcknowledged = v ?? false),
+                          title: const Text(
+                              "I understand iOS/background delivery limits"),
+                          subtitle: const Text(
+                              "Mobile platforms may pause background execution, so fallback heartbeat is strongly recommended."),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text("Privacy preset",
+                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        Column(
+                          children: privacyProfilePresets.map((preset) {
+                            final selected = preset.id == _selectedPresetId;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () => setState(() {
+                                  _selectedPresetId = preset.id;
+                                  _privateFirstMode = preset.privateFirstMode;
+                                }),
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: selected
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                          : Theme.of(context).dividerColor,
+                                      width: selected ? 2 : 1,
+                                    ),
+                                    color: selected
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.06)
+                                        : null,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(14),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                preset.title,
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(999),
+                                                color: _badgeColor(preset),
+                                              ),
+                                              child: Text(preset.badgeLabel,
+                                                  style: const TextStyle(
+                                                      fontSize: 12)),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(preset.summary),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          preset.detail,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        Text(selectedPreset.summary),
+                        const SizedBox(height: 12),
+                        IntentReviewCard(report: draftReport),
+                        if (draftReport.warningCount > 0) ...[
+                          const SizedBox(height: 8),
+                          CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            value: _warningAcknowledged,
+                            onChanged: (v) => setState(
+                                () => _warningAcknowledged = v ?? false),
+                            title: const Text(
+                                "I reviewed these warnings and want to continue"),
+                            subtitle: const Text(
+                              "Warnings are allowed, but they must be acknowledged before activation.",
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        const Text(
+                          "This product helps coordinate secure access handoff. It does not replace a legal will.",
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

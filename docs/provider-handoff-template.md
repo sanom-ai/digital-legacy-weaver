@@ -13,16 +13,18 @@ It does not adjudicate legal entitlement or replace provider legal/compliance de
 
 Subject:
 
-- `Legacy Handoff Notice (Technical Coordination)`
+- `แจ้งเตือนแผนรับมรดกดิจิทัลที่ตั้งไว้ล่วงหน้า | Digital Legacy Weaver`
 
 Body:
 
-1. A policy-approved legacy handoff notice has been issued.
-2. Use the one-time secure link from this notice.
-3. Contact the destination app/provider directly for entitlement verification.
-4. Submit legal documents to destination provider process (not to this platform).
-5. Complete any provider security checks (KYC/AML/2FA).
-6. This platform only coordinates workflow and does not decide legal ownership.
+1. คุณได้รับข้อความนี้เพราะเจ้าของแต่งตั้งคุณไว้ล่วงหน้า (You are pre-assigned by the owner).
+2. ข้อความนี้จะไม่ขอให้โอนเงิน ขอรหัสผ่าน หรือเก็บค่าธรรมเนียม (No transfer/password/fee request).
+3. คุณไม่จำเป็นต้องรีบดำเนินการทันที หากไม่มั่นใจให้ปรึกษาพยานหรือญาติอีกคนก่อน.
+4. เส้นทางที่ปลอดภัยกว่า: เปิดแอปด้วยตัวเอง แล้วกรอก handoff packet (`access_id` + `access_key`) แทนการคลิกลิงก์ที่ไม่แน่ใจ.
+5. ติดต่อผู้ให้บริการปลายทางโดยตรงเพื่อยืนยันสิทธิ์ทางกฎหมาย.
+6. ส่งเอกสารตามกระบวนการของผู้ให้บริการปลายทาง (ไม่ใช่ส่งให้แพลตฟอร์มนี้).
+7. ทำขั้นตอน KYC/AML/2FA ตามที่ผู้ให้บริการกำหนด.
+8. แพลตฟอร์มนี้ทำหน้าที่ประสานงานทางเทคนิคเท่านั้น ไม่ได้ตัดสินสิทธิ์ทางกฎหมาย.
 
 ## Provider-facing summary fields
 

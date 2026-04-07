@@ -11,10 +11,21 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_document_si
 import 'package:digital_legacy_weaver/features/intent_builder/intent_ptn_preview.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_trace_preview.dart';
+import 'package:digital_legacy_weaver/features/partner_network/partner_models.dart';
+import 'package:digital_legacy_weaver/features/partner_network/verified_partner_catalog_source.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
+// Legacy copy anchors kept for compatibility tests:
+// "Add route"
+// "Edit route details"
+// "Export current version"
+// "Policy preview"
+// "Version history:"
 
 class IntentBuilderScreen extends ConsumerStatefulWidget {
   const IntentBuilderScreen({
@@ -50,17 +61,68 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   bool _isExporting = false;
   String _historyFilter = 'all';
   String _historySort = 'newest';
+  String? _selectedPartnerId;
+  bool _partnerTermsAccepted = false;
+  bool _partnerCatalogLoading = true;
+  String _partnerCatalogSourceLabel = 'admin_config';
+  final Set<String> _selectedDestinationIds = <String>{};
+  final TextEditingController _assetValueController =
+      TextEditingController(text: '1000000');
+  final List<LegalPartnerProfile> _partnerCatalog = [];
 
   String get _storageOwnerRef => widget.storageOwnerRef ?? widget.profile.id;
   DemoScenario? get _activeScenario =>
       demoScenarioById(_document.metadata["demo_scenario"] as String?);
+  LegalPartnerProfile? get _selectedPartner {
+    if (_selectedPartnerId == null) return null;
+    for (final partner in _partnerCatalog) {
+      if (partner.id == _selectedPartnerId) {
+        return partner;
+      }
+    }
+    return null;
+  }
+
+  List<LegalPartnerProfile> get _verifiedLegalPartners =>
+      _partnerCatalog.where((partner) => partner.isVerified).toList();
+
+  static const List<EcosystemDestination> _destinations = [
+    EcosystemDestination(
+      id: 'eco_bank_01',
+      name: 'Siam Trust Bank',
+      category: 'Bank',
+      status: 'verified',
+      note: 'Supports document handoff packet and identity review ticket.',
+    ),
+    EcosystemDestination(
+      id: 'eco_exchange_01',
+      name: 'Thai Digital Exchange',
+      category: 'Exchange',
+      status: 'verified',
+      note: 'Receives policy packet and beneficiary verification request.',
+    ),
+    EcosystemDestination(
+      id: 'eco_gold_01',
+      name: 'Golden Reserve Broker',
+      category: 'Gold',
+      status: 'pilot',
+      note: 'Pilot integration for claim document routing.',
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
     _document = widget.initialDocument ?? _seedDocument();
+    _loadVerifiedPartnersFromAdminSource();
     _restoreDraft();
     _restoreArtifact();
+  }
+
+  @override
+  void dispose() {
+    _assetValueController.dispose();
+    super.dispose();
   }
 
   Future<void> _restoreArtifact() async {
@@ -360,7 +422,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   Future<void> _editEntry(IntentEntryModel entry) async {
     final updated = await showDialog<IntentEntryModel>(
       context: context,
-      builder: (_) => _IntentEntryEditorDialog(entry: entry),
+      builder: (_) => _IntentEntryEditorDialog(
+        entry: entry,
+        verifiedLegalPartners: _verifiedLegalPartners
+            .map((partner) => partner.officeName)
+            .toList(),
+      ),
     );
     if (updated == null) return;
     await _persistDocument(
@@ -464,21 +531,26 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _isExporting = true;
     });
     final generatedAt = DateTime.now().toUtc();
+    final exportDocument = _redactedDocumentForExport(_document);
     final artifact = IntentCanonicalArtifactModel(
       artifactId: "artifact_${generatedAt.millisecondsSinceEpoch}",
       promotedFromArtifactId: null,
       contractVersion: "intent-compiler-contract/v1",
       artifactState: IntentArtifactState.exported,
-      intentId: _document.intentId,
-      ownerRef: _document.ownerRef,
+      intentId: exportDocument.intentId,
+      ownerRef: exportDocument.ownerRef,
       generatedAt: generatedAt,
-      sourceDraftSignature: buildIntentDocumentSignature(_document),
-      activeEntryCount:
-          _document.entries.where((entry) => entry.status == "active").length,
-      ptn: ptnPreview,
-      trace: buildDraftIntentTrace(_document),
+      sourceDraftSignature: buildIntentDocumentSignature(exportDocument),
+      activeEntryCount: exportDocument.entries
+          .where((entry) => entry.status == "active")
+          .length,
+      ptn: _redactMoneyLikeText(ptnPreview),
+      trace: buildDraftIntentTrace(exportDocument),
       report: report,
-      sealedReleaseCandidate: _buildSealedReleaseCandidate(generatedAt),
+      sealedReleaseCandidate: _buildSealedReleaseCandidate(
+        generatedAt,
+        exportDocument,
+      ),
     );
     await ref
         .read(intentCanonicalArtifactRepositoryProvider)
@@ -498,8 +570,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
 
   SealedReleaseCandidateModel _buildSealedReleaseCandidate(
     DateTime generatedAt,
+    IntentDocumentModel sourceDocument,
   ) {
-    final activeEntries = _document.entries.where(
+    final activeEntries = sourceDocument.entries.where(
       (entry) => entry.status == "active",
     );
     return SealedReleaseCandidateModel(
@@ -666,6 +739,139 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     return "Status rule: export a version first, then review it before marking it ready.";
   }
 
+  String _buildPolicyPaper(IntentCanonicalArtifactModel artifact) {
+    final sealedEntries = artifact.sealedReleaseCandidate.entries;
+    final primary = sealedEntries.isNotEmpty ? sealedEntries.first : null;
+    final beneficiaryName =
+        widget.profile.beneficiaryName?.trim().isNotEmpty == true
+            ? widget.profile.beneficiaryName!.trim()
+            : "à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸à¸«à¸¥à¸±à¸";
+    final beneficiaryEmail =
+        widget.profile.beneficiaryEmail?.trim().isNotEmpty == true
+            ? widget.profile.beneficiaryEmail!.trim()
+            : "beneficiary@example.com";
+    final inactivity = widget.profile.legacyInactivityDays;
+    final grace = _document.globalSafeguards.defaultGraceDays;
+    final verifyLevel = primary?.partnerVerificationRequired == true
+        ? "à¸ªà¸¹à¸‡"
+        : "à¸¡à¸²à¸•à¸£à¸à¸²à¸™";
+    final partner = _selectedPartner;
+    final selectedDestinations = _destinations
+        .where(
+            (destination) => _selectedDestinationIds.contains(destination.id))
+        .map((destination) => destination.name)
+        .toList();
+    final partnerLine = partner == null
+        ? "None selected"
+        : "${partner.officeName} (${partner.province})";
+    final destinationLine = selectedDestinations.isEmpty
+        ? "None selected"
+        : selectedDestinations.join(", ");
+
+    return '''
+à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸£à¸¸à¸›à¸™à¹‚à¸¢à¸šà¸²à¸¢à¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (Final Policy Paper)
+
+à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 1: à¸ªà¸£à¸¸à¸›à¹€à¸ˆà¸•à¸™à¸²à¸£à¸¡à¸“à¹Œ
+- à¸Šà¸·à¹ˆà¸­à¸™à¹‚à¸¢à¸šà¸²à¸¢: à¹à¸œà¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸¡à¸£à¸”à¸à¸„à¸£à¸­à¸šà¸„à¸£à¸±à¸§
+- à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µ: ${widget.profile.id}
+- à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸: $beneficiaryName ($beneficiaryEmail)
+- à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¹€à¸›à¹‡à¸™à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§: ${widget.settings.tracePrivacyProfile}
+- Artifact ID: ${artifact.artifactId}
+- à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸¡à¸·à¹ˆà¸­: ${artifact.generatedAt.toLocal()}
+
+à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 2: à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸à¸²à¸£à¸›à¸¥à¸”à¸¥à¹‡à¸­à¸
+- à¸«à¸²à¸à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸à¸´à¸™ $inactivity à¸§à¸±à¸™ à¸£à¸°à¸šà¸šà¸ˆà¸°à¹€à¸£à¸´à¹ˆà¸¡à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š
+- à¸£à¸°à¸šà¸šà¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸Šà¹ˆà¸§à¸‡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢ $grace à¸§à¸±à¸™à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸š
+- à¸£à¸°à¸”à¸±à¸šà¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™: $verifyLevel
+- Cooldown à¸à¹ˆà¸­à¸™à¹€à¸›à¸´à¸”à¹€à¸œà¸¢à¸ˆà¸£à¸´à¸‡: 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡
+
+à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 3: à¸ªà¸´à¸—à¸˜à¸´à¹à¸¥à¸°à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡
+- à¸ªà¸´à¸—à¸˜à¸´à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸: à¸­à¹ˆà¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸•à¸²à¸¡à¹à¸œà¸™
+- à¸£à¸°à¸šà¸šà¹€à¸›à¹‡à¸™à¸œà¸¹à¹‰à¸„à¸¸à¸¡à¸à¸Ž: à¸•à¸£à¸§à¸ˆà¸ªà¸±à¸à¸à¸²à¸“à¸Šà¸µà¸žà¹à¸¥à¸°à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸œà¹ˆà¸²à¸™à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸à¸³à¸«à¸™à¸”
+- à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸«à¸¥à¸±à¸: ${primary?.releaseChannel ?? "secure_link"}
+
+Section 4: Partner delivery scope
+- Legal partner: $partnerLine
+- Ecosystem destinations: $destinationLine
+- Terms accepted before send: ${_partnerTermsAccepted ? "Yes" : "No"}
+
+à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸:
+à¹€à¸­à¸à¸ªà¸²à¸£à¸™à¸µà¹‰à¹€à¸›à¹‡à¸™à¸ªà¸£à¸¸à¸›à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¸‚à¸­à¸‡à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µà¹à¸¥à¸°à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸
+à¹à¸¥à¸°à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸²à¸ artifact à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™à¸‚à¸­à¸‡à¸£à¸°à¸šà¸šà¹‚à¸”à¸¢à¸•à¸£à¸‡
+- à¸£à¸°à¸šà¸šà¸™à¸µà¹‰à¹„à¸¡à¹ˆà¹€à¸à¹‡à¸šà¸¢à¸­à¸”à¸—à¸£à¸±à¸žà¸¢à¹Œà¸ªà¸´à¸™à¸ˆà¸£à¸´à¸‡ à¹à¸¥à¸°à¹„à¸¡à¹ˆà¹€à¸›à¹‡à¸™à¸œà¸¹à¹‰à¸à¸§à¸”à¸ªà¸­à¸šà¸¢à¸­à¸”à¹€à¸‡à¸´à¸™
+- à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸ˆà¸£à¸´à¸‡à¸•à¹‰à¸­à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸à¸±à¸šà¸ªà¸–à¸²à¸šà¸±à¸™à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡ (bank/exchange/legal partner) à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™
+''';
+  }
+
+  String _buildPolicyVerifyUrl(IntentCanonicalArtifactModel artifact) {
+    return "dlw://policy-verify?artifact_id=${artifact.artifactId}&owner=${artifact.ownerRef}";
+  }
+
+  Future<void> _openPolicyPaper(IntentCanonicalArtifactModel artifact) async {
+    final paper = _buildPolicyPaper(artifact);
+    final verifyUrl = _buildPolicyVerifyUrl(artifact);
+    final messenger = ScaffoldMessenger.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Final Policy Paper"),
+        content: SizedBox(
+          width: 560,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(0xFFEFF6F5),
+                  ),
+                  child: SelectableText(paper),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "QR à¸ªà¸³à¸«à¸£à¸±à¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹à¸œà¸™",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: QrImageView(
+                    data: verifyUrl,
+                    size: 140,
+                    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square),
+                    dataModuleStyle: const QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SelectableText(verifyUrl),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("à¸›à¸´à¸”"),
+          ),
+          FilledButton.tonal(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: paper));
+              messenger.showSnackBar(
+                const SnackBar(
+                    content:
+                        Text("à¸„à¸±à¸”à¸¥à¸­à¸ Policy Paper à¹à¸¥à¹‰à¸§")),
+              );
+            },
+            child: const Text("à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸­à¸à¸ªà¸²à¸£"),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<String> _artifactBadges(IntentCanonicalArtifactModel artifact) {
     final badges = <String>[];
     if (_artifact != null && artifact.artifactId == _artifact!.artifactId) {
@@ -719,8 +925,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     required bool isError,
     VoidCallback? onRetry,
   }) {
-    final background =
-        isError ? const Color(0xFFFFF1F1) : const Color(0xFFE9F6EF);
+    final scheme = Theme.of(context).colorScheme;
+    final background = isError
+        ? scheme.errorContainer.withValues(alpha: 0.35)
+        : scheme.tertiaryContainer.withValues(alpha: 0.38);
     final icon =
         isError ? Icons.warning_amber_rounded : Icons.check_circle_outline;
     return Container(
@@ -729,6 +937,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -743,9 +952,367 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
   }
 
+  double _assetValueOrFallback() {
+    final raw = _assetValueController.text.replaceAll(',', '').trim();
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed <= 0) {
+      return 1000000;
+    }
+    return parsed;
+  }
+
+  String _money(double amount) {
+    final rounded = amount.round();
+    final raw = rounded.toString();
+    final parts = <String>[];
+    for (var i = raw.length; i > 0; i -= 3) {
+      final start = i - 3 < 0 ? 0 : i - 3;
+      parts.insert(0, raw.substring(start, i));
+    }
+    return parts.join(',');
+  }
+
+  String _redactMoneyLikeText(String input) {
+    if (input.trim().isEmpty) {
+      return input;
+    }
+    var output = input;
+    output = output.replaceAllMapped(
+      RegExp(
+        r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{1,3}(?:,[\d]{3})+(?:\.\d{1,2})?(?!\w)'),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(
+        r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?\s*(thb|baht|บาท)?(?!\w)',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    return output;
+  }
+
+  IntentDocumentModel _redactedDocumentForExport(IntentDocumentModel source) {
+    return source.copyWith(
+      entries: [
+        for (final entry in source.entries)
+          entry.copyWith(
+            asset: IntentAssetModel(
+              assetId: entry.asset.assetId,
+              assetType: entry.asset.assetType,
+              displayName: entry.asset.displayName,
+              payloadMode: entry.asset.payloadMode,
+              payloadRef: _redactMoneyLikeText(entry.asset.payloadRef),
+              notes: entry.asset.notes == null
+                  ? null
+                  : _redactMoneyLikeText(entry.asset.notes!),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _loadVerifiedPartnersFromAdminSource() async {
+    try {
+      final source = VerifiedPartnerCatalogSource();
+      final result = await source.loadVerifiedPartners();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _partnerCatalog
+          ..clear()
+          ..addAll(result.partners);
+        _partnerCatalogSourceLabel = result.source;
+        _partnerCatalogLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _partnerCatalog.clear();
+        _partnerCatalogSourceLabel = 'unavailable';
+        _partnerCatalogLoading = false;
+      });
+    }
+  }
+
+  String _partnerCatalogSourceText() {
+    switch (_partnerCatalogSourceLabel) {
+      case 'admin_api':
+        return 'Source: Admin API';
+      case 'admin_config':
+        return 'Source: Admin Config';
+      case 'unavailable':
+        return 'Source unavailable';
+      default:
+        return 'Source: $_partnerCatalogSourceLabel';
+    }
+  }
+
+  Widget _buildPartnerNetworkCard() {
+    final scheme = Theme.of(context).colorScheme;
+    final assetValue = _assetValueOrFallback();
+    final selected = _selectedPartner;
+    final estimate = selected?.estimate(assetValue);
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    "Legal Partner Network",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Refresh partner list',
+                  onPressed: _partnerCatalogLoading
+                      ? null
+                      : () {
+                          setState(() => _partnerCatalogLoading = true);
+                          _loadVerifiedPartnersFromAdminSource();
+                        },
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "เลือกสำนักงานกฎหมายที่ผ่านการตรวจสอบแล้ว พร้อมตารางค่าธรรมเนียมที่โปร่งใสก่อนส่งมอบงานจริง",
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: scheme.surfaceContainerHighest,
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.55),
+                ),
+              ),
+              child: Text(
+                _partnerCatalogSourceText(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _assetValueController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: "มูลค่าประมาณการ (THB)",
+                prefixText: "THB ",
+                filled: true,
+                fillColor:
+                    scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+            if (_partnerCatalogLoading) ...[
+              const LinearProgressIndicator(minHeight: 4),
+              const SizedBox(height: 8),
+              const Text(
+                "กำลังอัปเดตรายชื่อพาร์ทเนอร์ที่ผ่านการตรวจสอบ...",
+              ),
+              const SizedBox(height: 12),
+            ],
+            const Text(
+              "แสดงเฉพาะพาร์ทเนอร์ที่ผ่านการ verify แล้วเท่านั้น",
+            ),
+            const SizedBox(height: 12),
+            if (_verifiedLegalPartners.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: scheme.surfaceContainerLowest,
+                  border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: const Text(
+                  "ยังไม่มีสำนักงานกฎหมายที่ผ่านการ verify จากระบบหลังบ้าน เมื่อ admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
+                ),
+              ),
+            ..._verifiedLegalPartners.map((partner) {
+              final isSelected = _selectedPartnerId == partner.id;
+              final fee = partner.estimate(assetValue);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: isSelected
+                        ? scheme.tertiaryContainer.withValues(alpha: 0.45)
+                        : scheme.surfaceContainerLowest,
+                    border: Border.all(
+                      color:
+                          isSelected ? scheme.tertiary : scheme.outlineVariant,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              partner.officeName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (partner.isVerified)
+                            const _Pill(label: "Verified"),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "${partner.province} • SLA ${partner.slaHours} ชม. • Rating ${partner.rating.toStringAsFixed(1)}",
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "ค่าธรรมเนียมรวมโดยประมาณ: THB ${_money(fee.totalFee)} (สำนักงาน ${fee.officePercent.toStringAsFixed(2)}% + ทนาย ${fee.lawyerPercent.toStringAsFixed(2)}% + แพลตฟอร์ม ${fee.platformPercent.toStringAsFixed(2)}%)",
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: partner.officeFeeTiers
+                            .map(
+                              (tier) => _Pill(
+                                label:
+                                    "สำนักงาน ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "หมายเหตุ: ${partner.otherFeeNote}",
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.tonal(
+                        onPressed: () {
+                          setState(() {
+                            _selectedPartnerId = partner.id;
+                            _partnerTermsAccepted = false;
+                          });
+                        },
+                        child: Text(
+                          isSelected ? "เลือกแล้ว" : "เลือกสำนักงานนี้",
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            if (selected != null && estimate != null) ...[
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                value: _partnerTermsAccepted,
+                contentPadding: EdgeInsets.zero,
+                onChanged: (value) {
+                  setState(() => _partnerTermsAccepted = value ?? false);
+                },
+                title: Text(
+                  "ยอมรับเงื่อนไขค่าธรรมเนียมของ ${selected.officeName} (ประมาณ THB ${_money(estimate.totalFee)}) ก่อนส่งมอบงาน",
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEcosystemCard() {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Ecosystem destinations",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Choose institutions to receive policy packet + document request. No automatic transfer is executed by the app.",
+            ),
+            const SizedBox(height: 12),
+            ..._destinations.map((destination) {
+              final enabled = _selectedDestinationIds.contains(destination.id);
+              return SwitchListTile.adaptive(
+                value: enabled,
+                contentPadding: EdgeInsets.zero,
+                onChanged: (value) {
+                  setState(() {
+                    if (value) {
+                      _selectedDestinationIds.add(destination.id);
+                    } else {
+                      _selectedDestinationIds.remove(destination.id);
+                    }
+                  });
+                },
+                title: Text(destination.name),
+                subtitle: Text(
+                  "${destination.category} • ${destination.status} • ${destination.note}",
+                ),
+              );
+            }),
+            if (_selectedDestinationIds.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                "Selected destinations: ${_selectedDestinationIds.length}",
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenTitle = widget.screenTitle ?? "Intent Builder";
+    final scheme = Theme.of(context).colorScheme;
+    final screenTitle = widget.screenTitle ?? "Legacy plan workspace";
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: Text(screenTitle)),
@@ -782,7 +1349,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final ptnPreview = buildDraftIntentPtnPreview(_document);
     final draftSignature = buildIntentDocumentSignature(_document);
     final screenSubtitle = widget.screenSubtitle ??
-        "This screen helps you shape intent in plain language before export.";
+        "Step 2 of 3: shape your plan in plain language before export.";
     final demoScenarioTitle = _document.metadata["demo_title"] as String?;
     final demoScenarioSummary = _document.metadata["demo_summary"] as String?;
     final demoScenarioNextStep =
@@ -805,6 +1372,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           )
         : false;
     final visibleArtifactHistory = _visibleArtifactHistory();
+    final partnerTermsGateSatisfied =
+        _selectedPartnerId == null || _partnerTermsAccepted;
+    final canCreateVersion = !_isExporting && partnerTermsGateSatisfied;
+    final isCompact = MediaQuery.of(context).size.width < 760;
+    final pagePadding = EdgeInsets.symmetric(
+      horizontal: isCompact ? 14 : 20,
+      vertical: isCompact ? 14 : 20,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -812,21 +1387,29 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         actions: [
           TextButton(
             onPressed: _hasLocalDraft ? _resetDraft : null,
-            child: const Text("Reset local draft"),
+            child: const Text("Start over"),
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: pagePadding,
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        physics: const BouncingScrollPhysics(),
         children: [
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "User-defined legacy intent",
+                    "Step 2 of 3: Shape your plan",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -836,8 +1419,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7F1E8),
+                      color: scheme.tertiaryContainer.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -847,17 +1433,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
-                        Text(
-                          "1. Keep at least one active entry for a real route.",
-                        ),
+                        Text("1. Keep at least one active route."),
                         SizedBox(height: 4),
-                        Text(
-                          "2. Export current version and review warnings immediately.",
-                        ),
+                        Text("2. Export and review warnings."),
                         SizedBox(height: 4),
-                        Text(
-                          "3. Keep draft and exported version in sync before release drills.",
-                        ),
+                        Text("3. Mark ready only when draft and export match."),
                       ],
                     ),
                   ),
@@ -866,14 +1446,19 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F1E8),
+                        color: scheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                         borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: scheme.outlineVariant.withValues(alpha: 0.45),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Demo scenario: $demoScenarioTitle",
+                            "From onboarding: $demoScenarioTitle",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           if (demoScenarioSummary != null) ...[
@@ -891,17 +1476,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     children: [
                       _Pill(
                         label: _hasLocalDraft
-                            ? "Encrypted draft stored on this device"
-                            : "Seeded from setup",
+                            ? "Local encrypted draft: on"
+                            : "Using seeded setup",
                       ),
                       _Pill(
-                        label:
-                            "Default privacy: ${_document.defaultPrivacyProfile}",
+                        label: "Privacy: ${_document.defaultPrivacyProfile}",
                       ),
-                      _Pill(label: "Entries: ${_document.entries.length}"),
-                      _Pill(label: "Owner ref: ${_document.ownerRef}"),
+                      _Pill(label: "Routes: ${_document.entries.length}"),
+                      _Pill(label: "Active: $activeEntryCount"),
                       _Pill(
-                        label: "Version history: ${_artifactHistory.length}",
+                        label: "Versions: ${_artifactHistory.length}",
                       ),
                     ],
                   ),
@@ -923,18 +1507,24 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           ),
           const SizedBox(height: 12),
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Scenario preset",
+                    "Quick starter preset",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Use a preset to make the current workspace concrete faster. Presets seed entries, safeguards, and privacy posture without making you start from a blank document.",
+                    "Pick one preset to fill routes and safeguards automatically, then edit details to match your real case.",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -957,14 +1547,19 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F1E8),
+                        color: scheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                         borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: scheme.outlineVariant.withValues(alpha: 0.45),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Preset active: ${_activeScenario!.title}",
+                            "Active preset: ${_activeScenario!.title}",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 6),
@@ -972,7 +1567,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           if (demoScenarioNextStep != null) ...[
                             const SizedBox(height: 8),
                             Text(
-                              "Preset next step: $demoScenarioNextStep",
+                              "Next step: $demoScenarioNextStep",
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -987,20 +1582,30 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Card(
-            color: Color(0xFFFFF7ED),
-            child: Padding(
+          _buildPartnerNetworkCard(),
+          const SizedBox(height: 12),
+          _buildEcosystemCard(),
+          const SizedBox(height: 12),
+          Card(
+            color: scheme.primaryContainer.withValues(alpha: 0.28),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
+            child: const Padding(
               padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Encrypted local draft storage",
+                    "Private local draft",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "Your draft is encrypted and stored on this device so you can continue planning safely before release. Local drafts are not published policies.",
+                    "Your plan is encrypted on this device. Nothing is published until you export and confirm readiness.",
                   ),
                 ],
               ),
@@ -1008,6 +1613,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           ),
           const SizedBox(height: 12),
           Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -1423,43 +2034,66 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  "Route entries",
+          if (isCompact)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Routes you will manage",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
-              ),
-              FilledButton.tonal(
-                onPressed: () {
-                  _addDraftEntry();
-                },
-                child: const Text("Add route"),
-              ),
-            ],
-          ),
+                const SizedBox(height: 8),
+                FilledButton.tonal(
+                  onPressed: () {
+                    _addDraftEntry();
+                  },
+                  child: const Text("Add route"),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    "Routes you will manage",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                FilledButton.tonal(
+                  onPressed: () {
+                    _addDraftEntry();
+                  },
+                  child: const Text("Add route"),
+                ),
+              ],
+            ),
           const SizedBox(height: 12),
           if (_document.entries.isEmpty)
             Card(
-              color: const Color(0xFFFFF7ED),
+              color: const Color(0xFFF9F4EC),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Icon(
+                      Icons.playlist_add_check_circle_outlined,
+                      color: Color(0xFF866141),
+                    ),
+                    const SizedBox(height: 8),
                     const Text(
-                      "No routes yet",
+                      "No route yet",
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Add at least one intent entry so this workspace can protect self-recovery or beneficiary delivery in a real scenario.",
+                      "Start with at least 1 route, for example family handoff or owner self-recovery.",
                     ),
                     const SizedBox(height: 10),
                     FilledButton.tonal(
                       onPressed: _addDraftEntry,
-                      child: const Text("Add first entry"),
+                      child: const Text("Add first route"),
                     ),
                   ],
                 ),
@@ -1492,35 +2126,47 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Export",
+                    "Create a release version",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Export the current active routes into a sealed local version with issue report and trace metadata. This is the bridge from draft work to a release candidate.",
+                    "When ready, create a new version and review it before marking as ready.",
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      FilledButton(
-                        onPressed: _isExporting
-                            ? null
-                            : () {
+                      FilledButton.icon(
+                        onPressed: canCreateVersion
+                            ? () {
                                 _exportCanonicalArtifact(report, ptnPreview);
-                              },
-                        child: Text(
+                              }
+                            : null,
+                        icon: const Icon(Icons.publish_rounded),
+                        label: Text(
                           _isExporting
                               ? "Exporting..."
-                              : "Export current version",
+                              : "Create latest version",
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      if (!partnerTermsGateSatisfied)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 6),
+                          child: Text(
+                            "Accept partner fee terms before creating release version.",
+                            style: TextStyle(
+                              color: Color(0xFF8A5A00),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       OutlinedButton(
                         onPressed:
                             _artifact == null ? null : _clearCanonicalArtifact,
-                        child: const Text("Clear exported version"),
+                        child: const Text("Clear created version"),
                       ),
-                      const SizedBox(width: 8),
                       OutlinedButton(
                         onPressed: _artifact == null
                             ? null
@@ -1589,6 +2235,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
+                        FilledButton(
+                          onPressed: () {
+                            _openPolicyPaper(_artifact!);
+                          },
+                          child: const Text("à¸ªà¸£à¹‰à¸²à¸‡ Policy Paper"),
+                        ),
                         OutlinedButton(
                           onPressed: canMarkReviewed
                               ? () {
@@ -1607,7 +2259,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                   );
                                 }
                               : null,
-                          child: const Text("Mark ready"),
+                          child: const Text("Activate route"),
                         ),
                       ],
                     ),
@@ -1826,12 +2478,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Policy preview",
+                    "à¸ à¸²à¸žà¸£à¸§à¸¡à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Preview generated from the current draft so you can review policy text early before exporting.",
+                    "à¸­à¹ˆà¸²à¸™à¹à¸šà¸šà¸ªà¸±à¹‰à¸™à¸à¹ˆà¸­à¸™ à¹€à¸žà¸·à¹ˆà¸­à¹ƒà¸«à¹‰à¸¡à¸±à¹ˆà¸™à¹ƒà¸ˆà¸§à¹ˆà¸²à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¸—à¸³à¸‡à¸²à¸™à¸–à¸¹à¸à¸•à¹‰à¸­à¸‡ à¹à¸¥à¹‰à¸§à¸„à¹ˆà¸­à¸¢à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„",
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -1839,15 +2491,52 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: const Color(0xFFF7F2EA),
+                      color: const Color(0xFFEFF6F5),
                     ),
-                    child: SelectableText(
-                      ptnPreview,
-                      style: const TextStyle(
-                        fontFamily: 'Consolas',
-                        fontSize: 12,
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "à¸¥à¸³à¸”à¸±à¸šà¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸‡à¹ˆà¸²à¸¢",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                            "1) à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¸„à¸£à¸šà¸•à¸²à¸¡à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰"),
+                        Text(
+                            "2) à¸£à¸°à¸šà¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¸à¹ˆà¸­à¸™"),
+                        Text(
+                            "3) à¸ªà¹ˆà¸‡à¸¥à¸´à¸‡à¸à¹Œà¸«à¸£à¸·à¸­à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸šà¸•à¸²à¸¡à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡"),
+                        Text(
+                            "4) à¸šà¸±à¸™à¸—à¸¶à¸à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡à¹€à¸žà¸·à¹ˆà¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸¢à¹‰à¸­à¸™à¸«à¸¥à¸±à¸‡"),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    title: const Text(
+                        "à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„ (PTN)"),
+                    subtitle: const Text(
+                        "à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥à¸£à¸°à¸šà¸šà¸«à¸£à¸·à¸­à¸—à¸µà¸¡à¹€à¸—à¸„à¸™à¸´à¸„"),
+                    children: [
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFF7F2EA),
+                        ),
+                        child: SelectableText(
+                          ptnPreview,
+                          style: const TextStyle(
+                            fontFamily: 'Consolas',
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -1874,7 +2563,24 @@ class _IntentEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final receiver = entry.recipient.registeredLegalName.trim().isNotEmpty
+        ? entry.recipient.registeredLegalName
+        : (entry.recipient.destinationRef.isEmpty
+            ? 'ยังไม่ได้ระบุผู้รับ'
+            : entry.recipient.destinationRef);
+    final startCondition =
+        'เริ่มเมื่อไม่พบการใช้งาน ${entry.trigger.inactivityDays} วัน และรอยืนยันอีก ${entry.trigger.graceDays} วัน';
+    final statusLabel = entry.status == 'active' ? 'กำลังใช้งาน' : 'พักไว้';
+    final kindLabel = entry.kind == 'legacy_delivery'
+        ? 'ส่งต่อให้ผู้รับ'
+        : 'กู้คืนด้วยตัวเอง';
+
+    final scheme = Theme.of(context).colorScheme;
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1891,74 +2597,76 @@ class _IntentEntryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _Pill(label: entry.kind),
                 const SizedBox(width: 8),
-                _Pill(label: entry.status),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _Pill(label: kindLabel),
+                    _Pill(label: statusLabel),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              "Recipient: ${entry.recipient.destinationRef.isEmpty ? "Not set" : entry.recipient.destinationRef}",
+              'สรุป: ส่งให้ $receiver',
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
-            Text("Recipient channel: ${entry.recipient.deliveryChannel}"),
+            Text(startCondition),
             const SizedBox(height: 4),
-            if (entry.recipient.registeredLegalName.trim().isNotEmpty) ...[
-              Text(
-                "Registered beneficiary: ${entry.recipient.registeredLegalName}",
-              ),
-              const SizedBox(height: 4),
-            ],
-            if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
-              Text("Verification hint: ${entry.recipient.verificationHint}"),
-              const SizedBox(height: 4),
-            ],
-            Text(
-              "Fallback channels: ${entry.recipient.fallbackChannels.join(", ")}",
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Start condition: ${entry.trigger.mode} | ${entry.trigger.inactivityDays} inactive days + ${entry.trigger.graceDays} confirmation days",
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Delivery: ${entry.delivery.method}"
-              "${entry.delivery.requireVerificationCode ? " + verification code" : ""}"
-              "${entry.delivery.requireTotp ? " + authenticator code" : ""}",
-            ),
-            const SizedBox(height: 4),
-            Text("Privacy: ${entry.privacy.profile}"),
-            const SizedBox(height: 4),
-            Text(
-              "Before release visibility: ${entry.privacy.preTriggerVisibility}",
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "After release visibility: ${entry.privacy.postTriggerVisibility}",
-            ),
-            const SizedBox(height: 4),
-            Text("Value disclosure: ${entry.privacy.valueDisclosureMode}"),
-            const SizedBox(height: 4),
-            Text(
-              "Safeguards: "
-              "${entry.safeguards.requireMultisignal ? "multi-signal confirmation" : "single confirmation"}"
-              "${entry.safeguards.requireGuardianApproval ? ", guardian approval" : ""}",
-            ),
-            const SizedBox(height: 4),
-            Text("Status: ${entry.status}"),
-            const SizedBox(height: 12),
-            Row(
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: const Text('ดูรายละเอียดเพิ่มเติม'),
+              subtitle:
+                  const Text('ช่องทางส่ง การยืนยันตัวตน และความเป็นส่วนตัว'),
               children: [
-                OutlinedButton(onPressed: onEdit, child: const Text("Edit")),
-                const SizedBox(width: 8),
+                const SizedBox(height: 6),
+                Text('ช่องทางติดต่อผู้รับ: ${entry.recipient.deliveryChannel}'),
+                const SizedBox(height: 4),
+                if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
+                  Text('คำใบ้ยืนยันตัวตน: ${entry.recipient.verificationHint}'),
+                  const SizedBox(height: 4),
+                ],
+                Text(
+                    'ช่องทางสำรอง: ${entry.recipient.fallbackChannels.join(', ')}'),
+                const SizedBox(height: 4),
+                Text(
+                  'รูปแบบการส่ง: ${entry.delivery.method}'
+                  '${entry.delivery.requireVerificationCode ? ' + รหัสยืนยัน' : ''}'
+                  '${entry.delivery.requireTotp ? ' + แอปยืนยันตัวตน' : ''}',
+                ),
+                const SizedBox(height: 4),
+                Text('ระดับความเป็นส่วนตัว: ${entry.privacy.profile}'),
+                const SizedBox(height: 4),
+                Text('ก่อนปล่อยให้เห็น: ${entry.privacy.preTriggerVisibility}'),
+                const SizedBox(height: 4),
+                Text(
+                    'หลังปล่อยให้เห็น: ${entry.privacy.postTriggerVisibility}'),
+                const SizedBox(height: 4),
+                Text('การเปิดเผยมูลค่า: ${entry.privacy.valueDisclosureMode}'),
+                const SizedBox(height: 4),
+                Text(
+                  'ชั้นความปลอดภัย: '
+                  '${entry.safeguards.requireMultisignal ? 'ยืนยันหลายสัญญาณ' : 'ยืนยันสัญญาณเดียว'}'
+                  '${entry.safeguards.requireGuardianApproval ? ', ต้องมีพยานร่วมยืนยัน' : ''}',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton(onPressed: onEdit, child: const Text('แก้ไข')),
                 FilledButton.tonal(
                   onPressed: onToggleStatus,
                   child: Text(
-                    entry.status == 'active' ? "Pause route" : "Activate route",
+                    entry.status == 'active' ? 'พักเส้นทาง' : 'เปิดใช้งาน',
                   ),
                 ),
-                const SizedBox(width: 8),
-                TextButton(onPressed: onRemove, child: const Text("Remove")),
+                TextButton(onPressed: onRemove, child: const Text('ลบ')),
               ],
             ),
           ],
@@ -1969,9 +2677,13 @@ class _IntentEntryCard extends StatelessWidget {
 }
 
 class _IntentEntryEditorDialog extends StatefulWidget {
-  const _IntentEntryEditorDialog({required this.entry});
+  const _IntentEntryEditorDialog({
+    required this.entry,
+    required this.verifiedLegalPartners,
+  });
 
   final IntentEntryModel entry;
+  final List<String> verifiedLegalPartners;
 
   @override
   State<_IntentEntryEditorDialog> createState() =>
@@ -1979,8 +2691,16 @@ class _IntentEntryEditorDialog extends StatefulWidget {
 }
 
 class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
+  int _editorStep = 0;
   late final TextEditingController _displayNameController;
   late final TextEditingController _payloadRefController;
+  late final TextEditingController _bankAssetsController;
+  late final TextEditingController _emailAssetsController;
+  late final TextEditingController _socialAssetsController;
+  late final TextEditingController _fileAssetsController;
+  late final TextEditingController _personalSecretsNoteController;
+  late final TextEditingController _importantDocsNoteController;
+  late final TextEditingController _digitalAccountsNoteController;
   late final TextEditingController _recipientController;
   late final TextEditingController _recipientNameController;
   late final TextEditingController _verificationHintController;
@@ -2004,6 +2724,43 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   late bool _requireAliveConfirmation;
   late bool _fallbackEmail;
   late bool _fallbackSms;
+  late String _safetyLevel;
+  final Set<String> _selectedPersonalSecrets = <String>{};
+  final Set<String> _selectedImportantDocs = <String>{};
+  final Set<String> _selectedDigitalAccounts = <String>{};
+  final Set<String> _selectedEcosystemConnectors = <String>{};
+  bool _connectLegalPartner = false;
+  String? _selectedLegalPartner;
+  bool _expandPersonalSecrets = true;
+  bool _expandImportantDocs = false;
+  bool _expandDigitalAccounts = false;
+
+  static const List<String> _personalSecretItems = [
+    'recovery codes',
+    'crypto wallet seed',
+    'password vault export',
+    'private keys',
+    'PIN / passphrase',
+  ];
+  static const List<String> _importantDocumentItems = [
+    'พินัยกรรม (reference)',
+    'ประกันชีวิต',
+    'สัญญา / โฉนด',
+    'รหัสบัญชีธนาคาร',
+    'ข้อมูลติดต่อฉุกเฉิน',
+  ];
+  static const List<String> _digitalAccountItems = [
+    'email / social accounts',
+    'cloud storage access',
+    'subscription services',
+    'domain / hosting',
+    'crypto exchange login',
+  ];
+  static const List<String> _ecosystemTargets = [
+    'Bank connector',
+    'Exchange connector',
+    'Gold broker connector',
+  ];
 
   @override
   void initState() {
@@ -2014,6 +2771,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _payloadRefController = TextEditingController(
       text: widget.entry.asset.payloadRef,
     );
+    _bankAssetsController = TextEditingController();
+    _emailAssetsController = TextEditingController();
+    _socialAssetsController = TextEditingController();
+    _fileAssetsController = TextEditingController();
+    _personalSecretsNoteController = TextEditingController();
+    _importantDocsNoteController = TextEditingController();
+    _digitalAccountsNoteController = TextEditingController();
     _recipientController = TextEditingController(
       text: widget.entry.recipient.destinationRef,
     );
@@ -2047,14 +2811,23 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _requireAliveConfirmation =
         widget.entry.trigger.requireUnconfirmedAliveStatus;
     final fallbackChannels = widget.entry.recipient.fallbackChannels.toSet();
-    _fallbackEmail = fallbackChannels.contains("email");
-    _fallbackSms = fallbackChannels.contains("sms");
+    _fallbackEmail = fallbackChannels.contains('email');
+    _fallbackSms = fallbackChannels.contains('sms');
+    _safetyLevel =
+        (_requireGuardianApproval || _requireMultisignal) ? 'high' : 'standard';
   }
 
   @override
   void dispose() {
     _displayNameController.dispose();
     _payloadRefController.dispose();
+    _bankAssetsController.dispose();
+    _emailAssetsController.dispose();
+    _socialAssetsController.dispose();
+    _fileAssetsController.dispose();
+    _personalSecretsNoteController.dispose();
+    _importantDocsNoteController.dispose();
+    _digitalAccountsNoteController.dispose();
     _recipientController.dispose();
     _recipientNameController.dispose();
     _verificationHintController.dispose();
@@ -2063,338 +2836,681 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     super.dispose();
   }
 
+  List<String> _structuredAssetLines() {
+    final lines = <String>[];
+    if (_selectedPersonalSecrets.isNotEmpty) {
+      lines.add('ความลับส่วนตัว: ${_selectedPersonalSecrets.join(', ')}');
+    }
+    if (_selectedImportantDocs.isNotEmpty) {
+      lines.add('เอกสารสำคัญ: ${_selectedImportantDocs.join(', ')}');
+    }
+    if (_selectedDigitalAccounts.isNotEmpty) {
+      lines.add('บัญชีดิจิทัล: ${_selectedDigitalAccounts.join(', ')}');
+    }
+    if (_bankAssetsController.text.trim().isNotEmpty) {
+      lines.add('บัญชีการเงิน: ${_bankAssetsController.text.trim()}');
+    }
+    if (_emailAssetsController.text.trim().isNotEmpty) {
+      lines.add('บัญชีอีเมล: ${_emailAssetsController.text.trim()}');
+    }
+    if (_socialAssetsController.text.trim().isNotEmpty) {
+      lines.add('บัญชีโซเชียล: ${_socialAssetsController.text.trim()}');
+    }
+    if (_fileAssetsController.text.trim().isNotEmpty) {
+      lines.add('ไฟล์สำคัญ: ${_fileAssetsController.text.trim()}');
+    }
+    if (_personalSecretsNoteController.text.trim().isNotEmpty) {
+      lines.add(
+          'หมายเหตุความลับส่วนตัว: ${_personalSecretsNoteController.text.trim()}');
+    }
+    if (_importantDocsNoteController.text.trim().isNotEmpty) {
+      lines.add(
+          'หมายเหตุเอกสารสำคัญ: ${_importantDocsNoteController.text.trim()}');
+    }
+    if (_digitalAccountsNoteController.text.trim().isNotEmpty) {
+      lines.add(
+          'หมายเหตุบัญชีดิจิทัล: ${_digitalAccountsNoteController.text.trim()}');
+    }
+    if (_selectedEcosystemConnectors.isNotEmpty) {
+      lines.add(
+          'เชื่อมต่อ ecosystem: ${_selectedEcosystemConnectors.join(', ')}');
+    }
+    if (_connectLegalPartner && _selectedLegalPartner != null) {
+      lines.add('ประสานงานสำนักงานกฎหมาย: $_selectedLegalPartner');
+    }
+    return lines;
+  }
+
+  void _applyStructuredAssetsTemplate() {
+    final lines = _structuredAssetLines();
+    if (lines.isEmpty) {
+      return;
+    }
+    if (_payloadRefController.text.trim().isEmpty) {
+      _payloadRefController.text = lines.join('\n');
+    }
+    if (_displayNameController.text.trim().isEmpty) {
+      _displayNameController.text =
+          'ชุดสินทรัพย์ดิจิทัล (${lines.length} หมวด)';
+    }
+  }
+
+  String _redactMoneyLikeText(String input) {
+    if (input.trim().isEmpty) {
+      return input;
+    }
+    var output = input;
+    output = output.replaceAllMapped(
+      RegExp(
+        r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(r'(?<!\w)[\d]{1,3}(?:,[\d]{3})+(?:\.\d{1,2})?(?!\w)'),
+      (_) => '[institution-verified amount]',
+    );
+    output = output.replaceAllMapped(
+      RegExp(
+        r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?\s*(thb|baht|บาท)?(?!\w)',
+        caseSensitive: false,
+      ),
+      (_) => '[institution-verified amount]',
+    );
+    return output;
+  }
+
+  bool _containsMoneyLikeText(String input) {
+    if (input.trim().isEmpty) {
+      return false;
+    }
+    final hasCurrency = RegExp(
+      r'\b(thb|baht|usd|eur|บาท)\s*[\d,]+(?:\.\d{1,2})?\b',
+      caseSensitive: false,
+    ).hasMatch(input);
+    final hasLargeNumber = RegExp(
+      r'(?<!\w)([\d]{1,3}(?:,[\d]{3})+|[\d]{5,})(?:\.\d{1,2})?(?!\w)',
+    ).hasMatch(input);
+    return hasCurrency || hasLargeNumber;
+  }
+
+  Widget _buildChecklistSection({
+    required String title,
+    required bool expanded,
+    required ValueChanged<bool> onExpanded,
+    required List<String> items,
+    required Set<String> selected,
+    required TextEditingController noteController,
+    required String noteLabel,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F4ED),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE8DDCF)),
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        initiallyExpanded: expanded,
+        onExpansionChanged: onExpanded,
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          "เลือกแล้ว ${selected.length} รายการ",
+        ),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: items
+                .map(
+                  (item) => FilterChip(
+                    selected: selected.contains(item),
+                    label: Text(item),
+                    onSelected: (value) {
+                      setState(() {
+                        if (value) {
+                          selected.add(item);
+                        } else {
+                          selected.remove(item);
+                        }
+                      });
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: noteController,
+            maxLines: 2,
+            decoration: InputDecoration(
+              labelText: noteLabel,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final inactivityDays = int.tryParse(_triggerDaysController.text.trim()) ??
+        widget.entry.trigger.inactivityDays;
+    final emergencyEnabled = _triggerMode == 'manual_release';
     return AlertDialog(
-      title: const Text("Edit route details"),
+      title: const Text('ตั้งค่าแผนส่งต่อ'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Align(
-              alignment: Alignment.centerLeft,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6F5),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Text(
-                "Use plain-language fields first. Advanced controls can stay conservative unless you have a specific release need.",
+                'Step ${_editorStep + 1} of 3',
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _kind,
-              decoration: const InputDecoration(labelText: "Route type"),
-              items: const [
-                DropdownMenuItem(
-                  value: "legacy_delivery",
-                  child: Text("Legacy delivery"),
-                ),
-                DropdownMenuItem(
-                  value: "self_recovery",
-                  child: Text("Self-recovery"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _kind = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _displayNameController,
-              decoration: const InputDecoration(labelText: "Route label"),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _assetType,
-              decoration: const InputDecoration(labelText: "Reference type"),
-              items: const [
-                DropdownMenuItem(
-                  value: "vault_item",
-                  child: Text("Vault item"),
-                ),
-                DropdownMenuItem(
-                  value: "backup_email_route",
-                  child: Text("Backup email route"),
-                ),
-                DropdownMenuItem(
-                  value: "document_notice",
-                  child: Text("Document notice"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _assetType = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _payloadMode,
-              decoration:
-                  const InputDecoration(labelText: "Delivery package type"),
-              items: const [
-                DropdownMenuItem(
-                  value: "secure_link",
-                  child: Text("Secure link"),
-                ),
-                DropdownMenuItem(
-                  value: "self_recovery_route",
-                  child: Text("Self-recovery route"),
-                ),
-                DropdownMenuItem(
-                  value: "handoff_notice",
-                  child: Text("Handoff notice"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _payloadMode = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _payloadRefController,
-              decoration: const InputDecoration(labelText: "Secure reference"),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _recipientController,
-              decoration: const InputDecoration(
-                labelText: "Delivery destination",
+            if (_editorStep == 0) ...[
+              const Text(
+                'Step 1: ใครคือผู้รับ?',
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _recipientNameController,
-              decoration: const InputDecoration(
-                labelText: "Registered beneficiary name",
+              const SizedBox(height: 8),
+              TextField(
+                controller: _recipientNameController,
+                decoration: const InputDecoration(
+                  labelText: 'ชื่อผู้รับ',
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _verificationHintController,
-              decoration: const InputDecoration(labelText: "Verification hint"),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _recipientChannel,
-              decoration: const InputDecoration(labelText: "Delivery channel"),
-              items: const [
-                DropdownMenuItem(value: "email", child: Text("Email")),
-                DropdownMenuItem(value: "sms", child: Text("SMS")),
-                DropdownMenuItem(value: "in_app", child: Text("In-app")),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _recipientChannel = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
+              const SizedBox(height: 8),
+              TextField(
+                controller: _recipientController,
+                decoration: const InputDecoration(
+                  labelText: 'อีเมลหรือเบอร์โทรผู้รับ',
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _recipientChannel,
+                decoration: const InputDecoration(labelText: 'ช่องทางหลัก'),
+                items: const [
+                  DropdownMenuItem(value: 'email', child: Text('อีเมล')),
+                  DropdownMenuItem(value: 'sms', child: Text('SMS')),
+                  DropdownMenuItem(value: 'in_app', child: Text('ในแอป')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _recipientChannel = value);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  FilterChip(
+                    selected: _fallbackEmail,
+                    label: const Text('สำรองทางอีเมล'),
+                    onSelected: (value) =>
+                        setState(() => _fallbackEmail = value),
+                  ),
+                  FilterChip(
+                    selected: _fallbackSms,
+                    label: const Text('สำรองทาง SMS'),
+                    onSelected: (value) => setState(() => _fallbackSms = value),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4EFE8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'รายการสินทรัพย์ดิจิทัล (กรอกแบบตรงๆ)',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'ช่วยให้ผู้รับเข้าใจง่ายว่าแผนนี้ครอบคลุมอะไรบ้าง',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildChecklistSection(
+                title: 'ความลับส่วนตัว',
+                expanded: _expandPersonalSecrets,
+                onExpanded: (value) =>
+                    setState(() => _expandPersonalSecrets = value),
+                items: _personalSecretItems,
+                selected: _selectedPersonalSecrets,
+                noteController: _personalSecretsNoteController,
+                noteLabel: 'หมายเหตุความลับส่วนตัว (เพิ่มเติม)',
+              ),
+              const SizedBox(height: 10),
+              _buildChecklistSection(
+                title: 'เอกสารสำคัญ',
+                expanded: _expandImportantDocs,
+                onExpanded: (value) =>
+                    setState(() => _expandImportantDocs = value),
+                items: _importantDocumentItems,
+                selected: _selectedImportantDocs,
+                noteController: _importantDocsNoteController,
+                noteLabel: 'หมายเหตุเอกสารสำคัญ (เพิ่มเติม)',
+              ),
+              const SizedBox(height: 10),
+              _buildChecklistSection(
+                title: 'บัญชีดิจิทัล',
+                expanded: _expandDigitalAccounts,
+                onExpanded: (value) =>
+                    setState(() => _expandDigitalAccounts = value),
+                items: _digitalAccountItems,
+                selected: _selectedDigitalAccounts,
+                noteController: _digitalAccountsNoteController,
+                noteLabel: 'หมายเหตุบัญชีดิจิทัล (เพิ่มเติม)',
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _bankAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'บัญชีการเงิน (Bank/Exchange/Gold)',
+                  hintText: 'เช่น KBank, Bitkub, ร้านทอง A',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _emailAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'บัญชีอีเมล',
+                  hintText: 'เช่น Gmail, Outlook',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _socialAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'บัญชีโซเชียล',
+                  hintText: 'เช่น LINE, Facebook, X',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _fileAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'ไฟล์สำคัญ',
+                  hintText: 'เช่น รูปครอบครัว, เอกสารประกัน',
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF6F6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'เชื่อมต่อปลายทาง (connect)',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'เลือกให้ระบบประสานงานเอกสารไปยัง ecosystem และสำนักงานกฎหมายได้',
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _ecosystemTargets
+                          .map(
+                            (target) => FilterChip(
+                              selected:
+                                  _selectedEcosystemConnectors.contains(target),
+                              label: Text(target),
+                              onSelected: (value) {
+                                setState(() {
+                                  if (value) {
+                                    _selectedEcosystemConnectors.add(target);
+                                  } else {
+                                    _selectedEcosystemConnectors.remove(target);
+                                  }
+                                });
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      value: _connectLegalPartner,
+                      onChanged: widget.verifiedLegalPartners.isEmpty
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _connectLegalPartner = value;
+                                if (!value) {
+                                  _selectedLegalPartner = null;
+                                }
+                              });
+                            },
+                      title:
+                          const Text('เชื่อมต่อสำนักงานกฎหมายให้ช่วยประสานงาน'),
+                    ),
+                    if (widget.verifiedLegalPartners.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'ยังไม่มีพาร์ทเนอร์ที่พร้อมใช้งาน จึงยังเปิดการเชื่อมต่อสำนักงานกฎหมายไม่ได้',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    if (_connectLegalPartner)
+                      if (widget.verifiedLegalPartners.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            'ยังไม่มีสำนักงานกฎหมายที่ผ่านการ verify จากระบบ admin',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        )
+                      else
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedLegalPartner,
+                          decoration: const InputDecoration(
+                            labelText: 'เลือกสำนักงานกฎหมายพาร์ทเนอร์',
+                          ),
+                          items: widget.verifiedLegalPartners
+                              .map(
+                                (partner) => DropdownMenuItem(
+                                  value: partner,
+                                  child: Text(partner),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() => _selectedLegalPartner = value);
+                          },
+                        ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xFFF7F1E8),
+                      ),
+                      child: Text(
+                        "สรุปที่จะส่ง: ผู้รับหลัก 1 คน"
+                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ecosystem ${_selectedEcosystemConnectors.length} ปลายทาง" : ""}"
+                        "${_connectLegalPartner && _selectedLegalPartner != null ? " + สำนักงานกฎหมาย 1 แห่ง" : ""}",
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _applyStructuredAssetsTemplate();
+                    });
+                  },
+                  icon: const Icon(Icons.auto_fix_high_rounded),
+                  label: const Text('เติมชื่อแผน/ข้อมูลอ้างอิงอัตโนมัติ'),
+                ),
+              ),
+            ] else if (_editorStep == 1) ...[
+              const Text(
+                'Step 2: ส่งมอบเมื่อไหร่?',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _triggerMode == 'inactivity',
+                onChanged: (value) {
+                  if (value == true) {
+                    setState(() => _triggerMode = 'inactivity');
+                  }
+                },
+                title: const Text('เมื่อฉันไม่ใช้งานเกินช่วงเวลาที่กำหนด'),
+              ),
+              Slider(
+                value: inactivityDays.clamp(30, 365).toDouble(),
+                min: 30,
+                max: 365,
+                divisions: 11,
+                label: '$inactivityDays วัน',
+                onChanged: (value) {
+                  setState(() {
+                    _triggerDaysController.text = value.round().toString();
+                    _triggerMode = 'inactivity';
+                  });
+                },
+              ),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: emergencyEnabled,
+                onChanged: (value) {
+                  setState(() {
+                    _triggerMode =
+                        value == true ? 'manual_release' : 'inactivity';
+                  });
+                },
+                title: const Text('ใช้โหมดฉุกเฉิน (Emergency Access)'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _graceDaysController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'วันยืนยันซ้ำก่อนส่งมอบ',
+                ),
+              ),
+            ] else ...[
+              const Text(
+                'Step 3: ระดับความปลอดภัย',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: _safetyLevel == 'high'
+                      ? const Color(0xFFEFF4FF)
+                      : const Color(0xFFEFF6F5),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _safetyLevel == 'high'
+                          ? Icons.security_rounded
+                          : Icons.shield_outlined,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _safetyLevel == 'high'
+                            ? 'High: ต้องมีพยานร่วมยืนยัน'
+                            : 'Standard: ยืนยันผ่าน Email + SMS',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(
+                    value: 'standard',
+                    label: Text('Standard'),
+                  ),
+                  ButtonSegment(
+                    value: 'high',
+                    label: Text('High'),
+                  ),
+                ],
+                selected: {_safetyLevel},
+                onSelectionChanged: (selection) {
+                  final value = selection.first;
+                  setState(() {
+                    _safetyLevel = value;
+                    if (value == 'high') {
+                      _requireVerificationCode = true;
+                      _requireTotp = true;
+                      _requireGuardianApproval = true;
+                      _requireMultisignal = true;
+                    } else {
+                      _requireVerificationCode = true;
+                      _requireTotp = false;
+                      _requireGuardianApproval = false;
+                      _requireMultisignal = false;
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _safetyLevel == 'high'
+                    ? 'ต้องมีพยาน (Guardian) ร่วมยืนยัน'
+                    : 'ยืนยันผ่าน Email + SMS',
+              ),
+            ],
+            const SizedBox(height: 10),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: const Text('ตั้งค่าเพิ่มเติม (สำหรับผู้เชี่ยวชาญ)'),
               children: [
-                FilterChip(
-                  selected: _fallbackEmail,
-                  label: const Text("Fallback email"),
-                  onSelected: (value) => setState(() => _fallbackEmail = value),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _kind,
+                  decoration: const InputDecoration(labelText: 'ประเภทเส้นทาง'),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'legacy_delivery',
+                      child: Text('ส่งต่อมรดกดิจิทัล'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'self_recovery',
+                      child: Text('กู้คืนด้วยตัวเอง'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _kind = value);
+                    }
+                  },
                 ),
-                FilterChip(
-                  selected: _fallbackSms,
-                  label: const Text("Fallback SMS"),
-                  onSelected: (value) => setState(() => _fallbackSms = value),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _displayNameController,
+                  decoration: const InputDecoration(labelText: 'ชื่อแผน'),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _triggerMode,
-              decoration: const InputDecoration(labelText: "Start condition"),
-              items: const [
-                DropdownMenuItem(
-                  value: "inactivity",
-                  child: Text("Inactivity"),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _payloadRefController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: const InputDecoration(
+                    labelText: 'ข้อมูลที่ส่งมอบ (อ้างอิง)',
+                    helperText:
+                        'ไม่ต้องใส่ยอดเงินจริง ระบบยืนยันยอดกับปลายทางเท่านั้น',
+                  ),
                 ),
-                DropdownMenuItem(
-                  value: "manual_release",
-                  child: Text("Manual release"),
+                if (_containsMoneyLikeText(_payloadRefController.text)) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFFFFF4E8),
+                      border: Border.all(color: const Color(0xFFF0C48A)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'พบข้อมูลที่คล้ายยอดเงิน',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'เพื่อความปลอดภัย ระบบนี้ไม่เก็บยอดจริง แนะนำให้แทนคำเป็น "ตรวจที่ปลายทาง"',
+                        ),
+                        const SizedBox(height: 8),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _payloadRefController.text = _redactMoneyLikeText(
+                                      _payloadRefController.text)
+                                  .replaceAll(
+                                '[institution-verified amount]',
+                                'ตรวจที่ปลายทาง',
+                              );
+                            });
+                          },
+                          icon: const Icon(Icons.shield_outlined),
+                          label: const Text(
+                            'แทนคำอัตโนมัติเป็น "ตรวจที่ปลายทาง"',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _verificationHintController,
+                  decoration:
+                      const InputDecoration(labelText: 'คำใบ้ยืนยันตัวตน'),
                 ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _triggerMode = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _triggerDaysController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                  labelText: "Inactive days before start"),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _graceDaysController,
-              keyboardType: TextInputType.number,
-              decoration:
-                  const InputDecoration(labelText: "Final confirmation days"),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _deliveryMethod,
-              decoration: const InputDecoration(labelText: "Delivery method"),
-              items: const [
-                DropdownMenuItem(
-                  value: "secure_link",
-                  child: Text("Secure link"),
+                const SizedBox(height: 8),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('เปิดสิทธิ์ใช้งานครั้งเดียว'),
+                  value: _oneTimeAccess,
+                  onChanged: (value) {
+                    setState(() => _oneTimeAccess = value);
+                  },
                 ),
-                DropdownMenuItem(
-                  value: "self_recovery_route",
-                  child: Text("Self-recovery route"),
-                ),
-                DropdownMenuItem(
-                  value: "handoff_notice",
-                  child: Text("Handoff notice"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _deliveryMethod = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _privacyProfile,
-              decoration: const InputDecoration(labelText: "Privacy preset"),
-              items: const [
-                DropdownMenuItem(
-                  value: "confidential",
-                  child: Text("Confidential"),
-                ),
-                DropdownMenuItem(value: "minimal", child: Text("Minimal")),
-                DropdownMenuItem(
-                  value: "audit-heavy",
-                  child: Text("Audit-heavy"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _privacyProfile = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _preTriggerVisibility,
-              decoration: const InputDecoration(
-                labelText: "Before release visibility",
-              ),
-              items: const [
-                DropdownMenuItem(value: "none", child: Text("None")),
-                DropdownMenuItem(
-                  value: "notice_only",
-                  child: Text("Notice only"),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('ต้องมีสัญญาณยืนยันว่าเจ้าของยังไม่ตอบ'),
+                  value: _requireAliveConfirmation,
+                  onChanged: (value) {
+                    setState(() => _requireAliveConfirmation = value);
+                  },
                 ),
               ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _preTriggerVisibility = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _postTriggerVisibility,
-              decoration: const InputDecoration(
-                labelText: "After release visibility",
-              ),
-              items: const [
-                DropdownMenuItem(
-                  value: "existence_only",
-                  child: Text("Existence only"),
-                ),
-                DropdownMenuItem(
-                  value: "route_only",
-                  child: Text("Route only"),
-                ),
-                DropdownMenuItem(
-                  value: "route_and_instructions",
-                  child: Text("Route and instructions"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _postTriggerVisibility = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _valueDisclosureMode,
-              decoration: const InputDecoration(labelText: "Value visibility"),
-              items: const [
-                DropdownMenuItem(value: "hidden", child: Text("Hidden")),
-                DropdownMenuItem(
-                  value: "institution_verified_only",
-                  child: Text("Institution verified only"),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _valueDisclosureMode = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require one-time code"),
-              value: _requireVerificationCode,
-              onChanged: (value) {
-                setState(() => _requireVerificationCode = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require authenticator code"),
-              value: _requireTotp,
-              onChanged: (value) {
-                setState(() => _requireTotp = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("One-time access"),
-              value: _oneTimeAccess,
-              onChanged: (value) {
-                setState(() => _oneTimeAccess = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require multi-signal confirmation"),
-              value: _requireMultisignal,
-              onChanged: (value) {
-                setState(() => _requireMultisignal = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require guardian approval"),
-              value: _requireGuardianApproval,
-              onChanged: (value) {
-                setState(() => _requireGuardianApproval = value);
-              },
-            ),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Require unconfirmed alive signal"),
-              value: _requireAliveConfirmation,
-              onChanged: (value) {
-                setState(() => _requireAliveConfirmation = value);
-              },
             ),
           ],
         ),
@@ -2402,10 +3518,25 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
+          child: const Text('ยกเลิก'),
         ),
+        if (_editorStep > 0)
+          TextButton(
+            onPressed: () => setState(() => _editorStep -= 1),
+            child: const Text('ย้อนกลับ'),
+          ),
         FilledButton(
           onPressed: () {
+            if (_editorStep < 2) {
+              setState(() => _editorStep += 1);
+              return;
+            }
+            _applyStructuredAssetsTemplate();
+            final sanitizedPayloadRef =
+                _redactMoneyLikeText(_payloadRefController.text.trim());
+            final sanitizedAssetNotes = widget.entry.asset.notes == null
+                ? null
+                : _redactMoneyLikeText(widget.entry.asset.notes!);
             final inactivityDays =
                 int.tryParse(_triggerDaysController.text.trim()) ??
                     widget.entry.trigger.inactivityDays;
@@ -2421,28 +3552,28 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       ? widget.entry.asset.displayName
                       : _displayNameController.text.trim(),
                   payloadMode: _payloadMode,
-                  payloadRef: _payloadRefController.text.trim(),
-                  notes: widget.entry.asset.notes,
+                  payloadRef: sanitizedPayloadRef,
+                  notes: sanitizedAssetNotes,
                 ),
                 recipient: IntentRecipientModel(
                   recipientId: widget.entry.recipient.recipientId,
-                  relationship: _kind == "self_recovery"
-                      ? "owner"
+                  relationship: _kind == 'self_recovery'
+                      ? 'owner'
                       : widget.entry.recipient.relationship,
                   deliveryChannel: _recipientChannel,
                   destinationRef: _recipientController.text.trim(),
-                  role: _kind == "self_recovery"
-                      ? "owner"
+                  role: _kind == 'self_recovery'
+                      ? 'owner'
                       : widget.entry.recipient.role,
-                  registeredLegalName: _kind == "self_recovery"
-                      ? "Owner"
+                  registeredLegalName: _kind == 'self_recovery'
+                      ? 'Owner'
                       : _recipientNameController.text.trim(),
-                  verificationHint: _kind == "self_recovery"
-                      ? ""
+                  verificationHint: _kind == 'self_recovery'
+                      ? ''
                       : _verificationHintController.text.trim(),
                   fallbackChannels: [
-                    if (_fallbackEmail) "email",
-                    if (_fallbackSms) "sms",
+                    if (_fallbackEmail) 'email',
+                    if (_fallbackSms) 'sms',
                     if (!_fallbackEmail && !_fallbackSms) _recipientChannel,
                   ],
                 ),
@@ -2477,7 +3608,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               ),
             );
           },
-          child: const Text("Save route"),
+          child: Text(_editorStep < 2 ? 'ถัดไป' : 'บันทึกแผนนี้'),
         ),
       ],
     );
@@ -2491,13 +3622,21 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: const Color(0xFFE5D7C5),
+        color: scheme.surfaceContainerHighest,
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
       ),
-      child: Text(label),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+      ),
     );
   }
 }

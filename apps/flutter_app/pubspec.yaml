@@ -15,6 +15,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   google_fonts: ^6.2.1
   intl: ^0.20.2
+  qr_flutter: ^4.1.0
   shared_preferences: ^2.3.2
   supabase_flutter: ^2.9.1
 
@@ -25,3 +26,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/config/verified_legal_partners.json

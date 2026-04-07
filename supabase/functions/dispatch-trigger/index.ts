@@ -65,22 +65,46 @@ function actionFor(mode: "legacy" | "self_recovery"): string {
   return mode === "legacy" ? "trigger_legacy_delivery" : "trigger_self_recovery_delivery";
 }
 
+function extractPacketValue(secureLink: string, key: "access_id" | "access_key"): string {
+  try {
+    const url = new URL(secureLink);
+    return url.searchParams.get(key)?.trim() ?? "";
+  } catch (_) {
+    return "";
+  }
+}
+
 function buildProviderHandoffHtml(args: {
   secureLink: string;
   mode: "legacy" | "self_recovery";
   inactiveDays: number;
   threshold: number;
+  ownerRef: string;
 }): string {
-  const modeLabel = args.mode === "legacy" ? "legacy handoff" : "self-recovery handoff";
+  const roleLabelTh = args.mode === "legacy" ? "ผู้รับมรดกดิจิทัล" : "ผู้ช่วยกู้คืนบัญชี";
+  const roleLabelEn = args.mode === "legacy" ? "beneficiary" : "recovery contact";
+  const accessId = extractPacketValue(args.secureLink, "access_id");
+  const accessKey = extractPacketValue(args.secureLink, "access_key");
   return `
-  <p>A policy-approved ${modeLabel} is ready.</p>
-  <p>Open secure link: <a href="${args.secureLink}">${args.secureLink}</a></p>
+  <p>คุณได้รับข้อความนี้เพราะคุณถูกแต่งตั้งเป็น <strong>${roleLabelTh}</strong> (${roleLabelEn}) ของเจ้าของรหัส <strong>${args.ownerRef}</strong> ไว้ล่วงหน้า</p>
+  <p>You received this because you were pre-assigned as a <strong>${roleLabelEn}</strong> for owner reference <strong>${args.ownerRef}</strong>.</p>
+  <p><strong>ระบบจะไม่ขอให้คุณโอนเงิน ขอรหัสผ่าน หรือเรียกเก็บค่าธรรมเนียมทางข้อความนี้</strong></p>
+  <p><strong>We never ask for bank transfer, password reset, or private account fees in this message.</strong></p>
+  <p>คุณไม่จำเป็นต้องรีบดำเนินการทันที หากยังไม่มั่นใจ ให้หยุดและปรึกษาพยานหรือญาติอีกคนก่อน</p>
+  <p>You do not need to act immediately. If you are unsure, pause and confirm with another guardian or family member first.</p>
+  <p><strong>วิธีที่ปลอดภัยกว่า:</strong> เปิดแอป Digital Legacy Weaver ด้วยตัวเอง แล้วกรอกข้อมูลชุดรับมอบด้านล่าง</p>
+  <p><strong>Recommended safe path:</strong> open the Digital Legacy Weaver app yourself and enter the handoff packet below.</p>
+  <p>Handoff packet / ชุดข้อมูลรับมอบ</p>
+  <pre>access_id: ${accessId || "(missing)"}\naccess_key: ${accessKey || "(missing)"}</pre>
+  <p>ลิงก์ทางเลือก (ใช้เมื่อยืนยันแล้วเท่านั้น): <a href="${args.secureLink}">${args.secureLink}</a></p>
+  <p>Optional direct route (only if already verified): <a href="${args.secureLink}">${args.secureLink}</a></p>
+  <p>จำนวนวันที่ไม่พบกิจกรรม: ${args.inactiveDays} / ${args.threshold}</p>
   <p>Inactive days: ${args.inactiveDays} / ${args.threshold}</p>
-  <p>Provider handoff checklist:</p>
+  <p>รายการตรวจสอบก่อนดำเนินการ / Provider handoff checklist:</p>
   <ul>
-    <li>Contact the destination app/provider support directly.</li>
-    <li>Submit legal entitlement documents to the destination app/provider process.</li>
-    <li>Complete any destination KYC/AML/security steps required by the provider.</li>
+    <li>ติดต่อผู้ให้บริการปลายทางโดยตรงก่อนทำรายการสำคัญ</li>
+    <li>ส่งเอกสารสิทธิ์ตามกระบวนการของผู้ให้บริการปลายทาง (ไม่ใช่ส่งให้แพลตฟอร์มนี้)</li>
+    <li>ทำขั้นตอนยืนยันตัวตน/KYC/AML ตามที่ผู้ให้บริการปลายทางกำหนด</li>
   </ul>
   <p>Legal entitlement verification must be completed directly with the destination app/provider.</p>
   <p>Technical-layer disclaimer: this platform is a technical coordination layer only and coordinates notification and secure access workflow only. It is not the legal decision authority.</p>
@@ -787,12 +811,15 @@ async function processMode(profile: Profile, mode: "legacy" | "self_recovery", p
   const secureLink = await createSecureDeliveryLink(profile.id, mode);
   await sendEmail(
     receiver,
-    mode === "legacy" ? "Legacy Access Link" : "Self-Recovery Access Link",
+    mode === "legacy"
+      ? "แจ้งเตือนแผนรับมรดกดิจิทัลที่ตั้งไว้ล่วงหน้า | Digital Legacy Weaver"
+      : "แจ้งเตือนแผนกู้คืนบัญชีที่ตั้งไว้ล่วงหน้า | Digital Legacy Weaver",
     buildProviderHandoffHtml({
       secureLink,
       mode,
       inactiveDays,
       threshold,
+      ownerRef: profile.id,
     }),
   );
   await submitPartnerHandoffNotice({
