@@ -44,11 +44,10 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           profileAsync.when(
             data: (profile) {
-              final inactiveDays = DateTime.now()
-                  .difference(profile.lastActiveAt)
-                  .inDays;
-              final daysLeft = (profile.legacyInactivityDays - inactiveDays)
-                  .clamp(0, 9999);
+              final inactiveDays =
+                  DateTime.now().difference(profile.lastActiveAt).inDays;
+              final daysLeft =
+                  (profile.legacyInactivityDays - inactiveDays).clamp(0, 9999);
               return Column(
                 children: [
                   _HeroCard(
@@ -80,11 +79,11 @@ class DashboardScreen extends ConsumerWidget {
                     data: (settings) {
                       final setupComplete =
                           (profile.beneficiaryEmail?.trim().isNotEmpty ??
-                              false) &&
-                          profile.hasBeneficiaryIdentityKit &&
-                          settings.serverHeartbeatFallbackEnabled &&
-                          settings.iosBackgroundRiskAcknowledged &&
-                          settings.legalDisclaimerAccepted;
+                                  false) &&
+                              profile.hasBeneficiaryIdentityKit &&
+                              settings.serverHeartbeatFallbackEnabled &&
+                              settings.iosBackgroundRiskAcknowledged &&
+                              settings.legalDisclaimerAccepted;
                       if (setupComplete) {
                         return const SizedBox.shrink();
                       }
@@ -98,15 +97,15 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () async {
-                            final changed = await Navigator.of(context)
-                                .push<bool>(
-                                  MaterialPageRoute(
-                                    builder: (_) => OnboardingSetupScreen(
-                                      initialProfile: profile,
-                                      initialSettings: settings,
-                                    ),
-                                  ),
-                                );
+                            final changed =
+                                await Navigator.of(context).push<bool>(
+                              MaterialPageRoute(
+                                builder: (_) => OnboardingSetupScreen(
+                                  initialProfile: profile,
+                                  initialSettings: settings,
+                                ),
+                              ),
+                            );
                             if (changed == true) {
                               ref.invalidate(profileProvider);
                               ref.invalidate(safetySettingsProvider);
@@ -154,10 +153,10 @@ class DashboardScreen extends ConsumerWidget {
                 );
                 final setupComplete =
                     (profile.beneficiaryEmail?.trim().isNotEmpty ?? false) &&
-                    profile.hasBeneficiaryIdentityKit &&
-                    settings.serverHeartbeatFallbackEnabled &&
-                    settings.iosBackgroundRiskAcknowledged &&
-                    settings.legalDisclaimerAccepted;
+                        profile.hasBeneficiaryIdentityKit &&
+                        settings.serverHeartbeatFallbackEnabled &&
+                        settings.iosBackgroundRiskAcknowledged &&
+                        settings.legalDisclaimerAccepted;
                 return Column(
                   children: [
                     readinessAsync.when(
@@ -184,15 +183,15 @@ class DashboardScreen extends ConsumerWidget {
                         }
 
                         Future<void> openSetup() async {
-                          final changed = await Navigator.of(context)
-                              .push<bool>(
-                                MaterialPageRoute(
-                                  builder: (_) => OnboardingSetupScreen(
-                                    initialProfile: profile,
-                                    initialSettings: settings,
-                                  ),
-                                ),
-                              );
+                          final changed =
+                              await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                              builder: (_) => OnboardingSetupScreen(
+                                initialProfile: profile,
+                                initialSettings: settings,
+                              ),
+                            ),
+                          );
                           if (changed == true) {
                             ref.invalidate(profileProvider);
                             ref.invalidate(safetySettingsProvider);
@@ -293,7 +292,9 @@ class DashboardScreen extends ConsumerWidget {
                               readiness: readiness,
                               onAddPlan: openBuilder,
                               onHeartbeatCheck: () async {
-                                await ref.read(profileRepositoryProvider).markAlive();
+                                await ref
+                                    .read(profileRepositoryProvider)
+                                    .markAlive();
                                 ref.invalidate(profileProvider);
                               },
                             ),
@@ -355,24 +356,21 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     if (readinessAsync.hasValue) const SizedBox(height: 12),
-                    Card(
-                      child: ListTile(
-                        title: const Text("Intent Builder"),
-                        subtitle: const Text(
+                    _DashboardActionCard(
+                      title: "Intent Builder",
+                      subtitle:
                           "Shape recovery and handoff routes in plain language before export",
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => IntentBuilderScreen(
-                                profile: profile,
-                                settings: settings,
-                              ),
+                      icon: Icons.route_outlined,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => IntentBuilderScreen(
+                              profile: profile,
+                              settings: settings,
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     readinessAsync.when(
@@ -409,9 +407,8 @@ class DashboardScreen extends ConsumerWidget {
                     artifactAsync.when(
                       data: (artifact) => artifactHistoryAsync.when(
                         data: (history) => Card(
-                          color: artifact == null
-                              ? const Color(0xFFFFF7ED)
-                              : null,
+                          color:
+                              artifact == null ? const Color(0xFFFFF7ED) : null,
                           child: Column(
                             children: [
                               ListTile(
@@ -439,8 +436,8 @@ class DashboardScreen extends ConsumerWidget {
                                     MaterialPageRoute(
                                       builder: (_) =>
                                           IntentArtifactReviewScreen(
-                                            artifact: artifact,
-                                          ),
+                                        artifact: artifact,
+                                      ),
                                     ),
                                   );
                                 },
@@ -461,9 +458,9 @@ class DashboardScreen extends ConsumerWidget {
                                           MaterialPageRoute(
                                             builder: (_) =>
                                                 IntentArtifactCompareScreen(
-                                                  currentArtifact: artifact,
-                                                  compareArtifact: history[1],
-                                                ),
+                                              currentArtifact: artifact,
+                                              compareArtifact: history[1],
+                                            ),
                                           ),
                                         );
                                       },
@@ -540,68 +537,55 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              title: const Text("Partner-ready Paths"),
-              subtitle: const Text(
+          _DashboardActionCard(
+            title: "Partner-ready Paths",
+            subtitle:
                 "Prepare destination references and optional handoff routes",
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ConnectorsScreen()),
-                );
-              },
-            ),
+            icon: Icons.hub_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ConnectorsScreen()),
+              );
+            },
           ),
           const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              title: const Text("Risk Controls"),
-              subtitle: const Text(
+          _DashboardActionCard(
+            title: "Risk Controls",
+            subtitle:
                 "Legal consent, reminders, grace period, private-first mode, emergency pause",
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const SafetySettingsScreen(),
-                  ),
-                );
-              },
-            ),
+            icon: Icons.shield_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SafetySettingsScreen(),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              title: const Text("Beneficiary Receipt"),
-              subtitle: const Text(
+          _DashboardActionCard(
+            title: "Beneficiary Receipt",
+            subtitle:
                 "Secure link, receipt code, and pre-registered identity flow",
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const UnlockDeliveryScreen(),
-                  ),
-                );
-              },
-            ),
+            icon: Icons.mark_email_unread_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const UnlockDeliveryScreen(),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              title: const Text("Beta Feedback"),
-              subtitle: const Text(
-                "Report bug, reliability issue, or UX feedback",
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BetaFeedbackScreen()),
-                );
-              },
-            ),
+          _DashboardActionCard(
+            title: "Beta Feedback",
+            subtitle: "Report bug, reliability issue, or UX feedback",
+            icon: Icons.rate_review_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const BetaFeedbackScreen()),
+              );
+            },
           ),
           const SizedBox(height: 16),
           const _DeliveryModeCard(),
@@ -671,8 +655,13 @@ class _OwnerJourneyStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Card(
-      color: const Color(0xFFF7F1E8),
+      color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -759,7 +748,13 @@ class _UserOutcomeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canDeliver = readiness.readyForRuntime && setupComplete;
+    final scheme = Theme.of(context).colorScheme;
     return Card(
+      color: scheme.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -833,12 +828,16 @@ class _ProductConcretenessCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final artifact = readiness.currentArtifact;
     final hasActiveRoute = (artifact?.activeEntryCount ?? 0) > 0;
-    final secureLinkReceiptReady =
-        settings.serverHeartbeatFallbackEnabled &&
+    final secureLinkReceiptReady = settings.serverHeartbeatFallbackEnabled &&
         profile.hasBeneficiaryIdentityKit;
+    final scheme = Theme.of(context).colorScheme;
 
     return Card(
-      color: const Color(0xFFEFE4D6),
+      color: scheme.primaryContainer.withValues(alpha: 0.35),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -959,9 +958,11 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final entries = readiness.currentArtifact?.sealedReleaseCandidate.entries ??
         const <SealedReleaseEntryModel>[];
-    final heartbeatOk = DateTime.now().difference(profile.lastActiveAt).inDays <= 1;
+    final heartbeatOk =
+        DateTime.now().difference(profile.lastActiveAt).inDays <= 1;
     final statusText = heartbeatOk ? "ปลอดภัย" : "ต้องตรวจสอบ";
-    final statusColor = heartbeatOk ? const Color(0xFFE9F6EF) : const Color(0xFFFFF7ED);
+    final statusColor =
+        heartbeatOk ? const Color(0xFFE9F6EF) : const Color(0xFFFFF7ED);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -987,7 +988,8 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
                           color: statusColor,
@@ -1020,7 +1022,8 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                 children: [
                   const Text(
                     "สัญญาณชีพดิจิทัล (Heartbeat)",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
@@ -1028,7 +1031,9 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                     minHeight: 8,
                     borderRadius: BorderRadius.circular(999),
                     backgroundColor: Colors.white24,
-                    color: heartbeatOk ? const Color(0xFF6FD6B0) : const Color(0xFFF5C07A),
+                    color: heartbeatOk
+                        ? const Color(0xFF6FD6B0)
+                        : const Color(0xFFF5C07A),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -1068,9 +1073,10 @@ class _LegacyLedgerDashboardCard extends StatelessWidget {
                 (entry) {
                   final index = entry.key;
                   final item = entry.value;
-                  final fallbackName = profile.beneficiaryName?.trim().isNotEmpty == true
-                      ? profile.beneficiaryName!.trim()
-                      : "ผู้รับมรดก";
+                  final fallbackName =
+                      profile.beneficiaryName?.trim().isNotEmpty == true
+                          ? profile.beneficiaryName!.trim()
+                          : "ผู้รับมรดก";
                   final displayName = item.kind == "self_recovery"
                       ? "เจ้าของบัญชี (คุณ)"
                       : (index == 0 ? fallbackName : "ผู้รับมรดก ${index + 1}");
@@ -1185,9 +1191,14 @@ class _ControlRoomCard extends StatelessWidget {
     final currentState = artifact?.artifactState.name ?? "draft";
     final modeLabel = setupComplete ? "Connected mode" : "Finish setup mode";
     final helperCards = _buildHelperCards();
+    final scheme = Theme.of(context).colorScheme;
 
     return Card(
-      color: const Color(0xFFF7F1E8),
+      color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1224,9 +1235,8 @@ class _ControlRoomCard extends StatelessWidget {
                   label: "Promoted ${readiness.promotedArtifactCount}",
                 ),
                 _MetricChip(
-                  label: readiness.draftInSync
-                      ? "Draft in sync"
-                      : "Draft changed",
+                  label:
+                      readiness.draftInSync ? "Draft in sync" : "Draft changed",
                 ),
               ],
             ),
@@ -1238,8 +1248,11 @@ class _ControlRoomCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFE4D6),
+                  color: scheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: 0.45),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1448,14 +1461,19 @@ class _RuntimeReadinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final statusColor = readiness.readyForRuntime
-        ? const Color(0xFFE9F6EF)
+        ? scheme.tertiaryContainer.withValues(alpha: 0.45)
         : readiness.hasArtifact
-        ? const Color(0xFFFFF7ED)
-        : const Color(0xFFF7F1E8);
+            ? scheme.primaryContainer.withValues(alpha: 0.35)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.5);
 
     return Card(
       color: statusColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1537,8 +1555,15 @@ class _InlineStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Card(
-      color: isError ? const Color(0xFFFFF1F1) : const Color(0xFFF7F1E8),
+      color: isError
+          ? scheme.errorContainer.withValues(alpha: 0.35)
+          : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -1570,11 +1595,12 @@ class _ReadinessBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: const Color(0xFFE5D7C5),
+        color: scheme.primaryContainer.withValues(alpha: 0.7),
       ),
       child: Text(label),
     );
@@ -1588,11 +1614,12 @@ class _MetricChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: const Color(0xFFE9DDCC),
+        color: scheme.surfaceContainerHighest,
       ),
       child: Text(label),
     );
@@ -1616,13 +1643,16 @@ class _StateHelperCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFE4D6),
+        color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(14),
+        border:
+            Border.all(color: scheme.outlineVariant.withValues(alpha: 0.45)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1638,6 +1668,39 @@ class _StateHelperCard extends StatelessWidget {
             child: OutlinedButton(onPressed: onTap, child: Text(actionLabel)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DashboardActionCard extends StatelessWidget {
+  const _DashboardActionCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      color: scheme.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.45)),
+      ),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
     );
   }
