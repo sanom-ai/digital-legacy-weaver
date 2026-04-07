@@ -142,11 +142,14 @@ class AppTheme {
       sliderTheme: SliderThemeData(
         activeTrackColor: bronze,
         inactiveTrackColor: softTrack,
+        secondaryActiveTrackColor: const Color(0xFFE5C7A5),
         thumbColor: const Color(0xFFF6C18B),
         overlayColor: bronze.withValues(alpha: 0.14),
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
         trackHeight: 6,
         valueIndicatorColor: const Color(0xFF3D2A1B),
+        showValueIndicator: ShowValueIndicator.onlyForDiscrete,
         valueIndicatorTextStyle: GoogleFonts.notoSerifThai(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -249,6 +252,27 @@ class AppTheme {
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: Colors.white.withValues(alpha: 0.98),
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: warmOutline, width: 1),
+        ),
+        textStyle: GoogleFonts.notoSerifThai(
+          color: onyx,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: Colors.white.withValues(alpha: 0.98),
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          side: BorderSide(color: Color(0x33C8B69F), width: 1),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_compiler_report_model.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_review_card.dart';
+import 'package:digital_legacy_weaver/features/dashboard/dashboard_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
@@ -460,6 +461,35 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     }
   }
 
+  Future<void> _skipToDashboard() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("ข้ามการตั้งค่าตอนนี้?"),
+          content: const Text(
+            "คุณสามารถเริ่มใช้งานต่อในหน้าแดชบอร์ดก่อน แล้วค่อยกลับมาตั้งค่าให้ครบทีหลังได้",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("อยู่หน้านี้ต่อ"),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("ไปหน้าแดชบอร์ด"),
+            ),
+          ],
+        );
+      },
+    );
+    if (!mounted || confirmed != true) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedPreset = presetById(_selectedPresetId);
@@ -496,7 +526,17 @@ class _OnboardingSetupScreenState extends ConsumerState<OnboardingSetupScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Finish Setup")),
+      appBar: AppBar(
+        title: const Text("ตั้งค่าเริ่มต้น"),
+        actions: [
+          TextButton.icon(
+            onPressed: _saving ? null : _skipToDashboard,
+            icon: const Icon(Icons.dashboard_customize_outlined),
+            label: const Text("ข้ามไปแดชบอร์ด"),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Form(
         key: _formKey,
         child: Column(
