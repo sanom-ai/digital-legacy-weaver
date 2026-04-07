@@ -35,7 +35,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
     if (lower.contains("no authenticated user") ||
         lower.contains("unauthorized") ||
         lower.contains("forbidden")) {
-      return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่แล้วลอง$actionอีกครั้ง";
+      return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่ แล้วลอง$actionอีกครั้ง";
     }
     return "ยัง$actionไม่สำเร็จในขณะนี้ กรุณาลองใหม่อีกครั้ง";
   }
@@ -76,8 +76,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
           );
       _setMessage("บันทึกปลายทางสำเร็จ");
     } catch (error) {
-      _setMessage(_friendlyActionError("บันทึกปลายทาง", error),
-          isError: true);
+      _setMessage(_friendlyActionError("บันทึกปลายทาง", error), isError: true);
     } finally {
       if (mounted) {
         setState(() => _addingPath = false);
@@ -127,10 +126,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
           );
       _setMessage("บันทึกรายการสินทรัพย์สำเร็จ");
     } catch (error) {
-      _setMessage(
-        _friendlyActionError("บันทึกรายการสินทรัพย์", error),
-        isError: true,
-      );
+      _setMessage(_friendlyActionError("บันทึกรายการสินทรัพย์", error),
+          isError: true);
     } finally {
       if (mounted) {
         setState(() => _addingAssetRef = false);
@@ -177,9 +174,8 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                   ],
                   const SizedBox(height: 10),
                   FilledButton.tonal(
-                    onPressed: _addingPath
-                        ? null
-                        : () => _handleAddPath(connectorsAsync),
+                    onPressed:
+                        _addingPath ? null : () => _handleAddPath(connectorsAsync),
                     child: Text(_addingPath ? "กำลังบันทึก..." : "เพิ่มปลายทาง"),
                   ),
                   const SizedBox(height: 10),
@@ -199,7 +195,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                                 contentPadding: EdgeInsets.zero,
                                 title: Text(c.name),
                                 subtitle: Text(
-                                  "${c.connectorId} | ${c.status}\nassets: ${c.supportedAssetTypes.join(", ")}",
+                                  "${c.connectorId} | ${c.status}\nประเภทสินทรัพย์: ${c.supportedAssetTypes.join(", ")}",
                                 ),
                               ),
                             )
@@ -211,7 +207,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       showSpinner: true,
                     ),
                     error: (error, __) => _StatePanel(
-                      message: _friendlyLoadError("destination paths", error),
+                      message: _friendlyLoadError("รายการปลายทาง", error),
                       isError: true,
                       actionLabel: "ลองใหม่",
                       onAction: () => ref.invalidate(connectorsProvider),
@@ -246,9 +242,9 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                     onPressed: _addingAssetRef
                         ? null
                         : () => _handleAddAssetRef(connectorsAsync),
-                    child: Text(_addingAssetRef
-                        ? "กำลังบันทึกรายการ..."
-                        : "เพิ่มรายการสินทรัพย์"),
+                    child: Text(
+                      _addingAssetRef ? "กำลังบันทึกรายการ..." : "เพิ่มรายการสินทรัพย์",
+                    ),
                   ),
                   const SizedBox(height: 10),
                   assetsAsync.when(
@@ -279,7 +275,7 @@ class _ConnectorsScreenState extends ConsumerState<ConnectorsScreen> {
                       showSpinner: true,
                     ),
                     error: (error, __) => _StatePanel(
-                      message: _friendlyLoadError("asset references", error),
+                      message: _friendlyLoadError("รายการสินทรัพย์", error),
                       isError: true,
                       actionLabel: "ลองใหม่",
                       onAction: () =>
@@ -411,34 +407,34 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Add Path"),
+      title: const Text("เพิ่มปลายทาง"),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _connectorId,
-              decoration: _dialogInputDecoration("Path ID"),
+              decoration: _dialogInputDecoration("รหัสปลายทาง"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _name,
-              decoration: _dialogInputDecoration("Name"),
+              decoration: _dialogInputDecoration("ชื่อปลายทาง"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _assetTypes,
-              decoration: _dialogInputDecoration("Asset Types (csv)"),
+              decoration: _dialogInputDecoration("ประเภทสินทรัพย์ (csv)"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _secondFactors,
-              decoration: _dialogInputDecoration("Second Factors (csv)"),
+              decoration: _dialogInputDecoration("วิธียืนยันตัวตน (csv)"),
             ),
             CheckboxListTile(
               value: _supportsWebhooks,
               onChanged: (v) => setState(() => _supportsWebhooks = v ?? false),
-              title: const Text("Supports webhooks"),
+              title: const Text("รองรับ webhook"),
               contentPadding: EdgeInsets.zero,
             ),
           ],
@@ -447,7 +443,7 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
+          child: const Text("ยกเลิก"),
         ),
         FilledButton(
           onPressed: () {
@@ -472,7 +468,7 @@ class _ConnectorFormDialogState extends State<_ConnectorFormDialog> {
               ),
             );
           },
-          child: const Text("Save"),
+          child: const Text("บันทึก"),
         ),
       ],
     );
@@ -575,7 +571,7 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Add Asset Ref"),
+      title: const Text("เพิ่มรายการสินทรัพย์"),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -593,28 +589,28 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
               onChanged: (v) {
                 if (v != null) setState(() => _connectorRefId = v);
               },
-              decoration: _dialogInputDecoration("Destination Path"),
+              decoration: _dialogInputDecoration("ปลายทางที่เชื่อมต่อ"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _assetId,
-              decoration: _dialogInputDecoration("Asset ID"),
+              decoration: _dialogInputDecoration("รหัสสินทรัพย์"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _assetType,
-              decoration: _dialogInputDecoration("Asset Type"),
+              decoration: _dialogInputDecoration("ประเภทสินทรัพย์"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _displayName,
-              decoration: _dialogInputDecoration("Display Name"),
+              decoration: _dialogInputDecoration("ชื่อที่จะแสดง"),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _payloadRef,
               onChanged: (_) => setState(() {}),
-              decoration: _dialogInputDecoration("Encrypted Payload Ref"),
+              decoration: _dialogInputDecoration("ข้อมูลเข้ารหัสอ้างอิง"),
             ),
             if (_containsMoneyLikeText(_payloadRef.text)) ...[
               const SizedBox(height: 8),
@@ -630,12 +626,12 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "พบข้อมูลที่คล้ายยอดเงิน",
+                      "พบข้อความที่คล้ายยอดเงิน",
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'เพื่อความปลอดภัย อย่าเก็บยอดเงินจริงในฟิลด์นี้ แนะนำให้แทนเป็น "ตรวจที่ปลายทาง"',
+                      'เพื่อความปลอดภัย ควรเก็บเป็นข้อมูลอ้างอิง ไม่ใส่ยอดเงินจริงในช่องนี้',
                     ),
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
@@ -655,7 +651,7 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _integrityHash,
-              decoration: _dialogInputDecoration("Integrity Hash"),
+              decoration: _dialogInputDecoration("ค่าแฮชตรวจความถูกต้อง"),
             ),
           ],
         ),
@@ -663,7 +659,7 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
+          child: const Text("ยกเลิก"),
         ),
         FilledButton(
           onPressed: () {
@@ -688,7 +684,7 @@ class _AssetRefFormDialogState extends State<_AssetRefFormDialog> {
               ),
             );
           },
-          child: const Text("Save"),
+          child: const Text("บันทึก"),
         ),
       ],
     );
