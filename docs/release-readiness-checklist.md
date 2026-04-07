@@ -92,3 +92,9 @@ Run this command before tag/release workflow:
 ```powershell
 python tools/release_gate_preflight.py --max-age-days 30
 ```
+
+## 10) Store Package Readiness
+
+1. `app-release.aab` generated (Play Console package)
+2. `app-release.apk` generated (direct distribution / QA package)
+3. Store metadata and privacy disclosures reviewed in [Store Readiness Pack](./store-readiness.md)

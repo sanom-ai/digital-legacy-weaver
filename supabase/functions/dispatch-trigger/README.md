@@ -1,6 +1,6 @@
 # dispatch-trigger
 
-Edge Function to run daily dead-man-switch checks for both modes:
+Edge Function to run dead-man-switch checks for both modes:
 
 - `self_recovery`
 - `legacy`
@@ -10,16 +10,17 @@ Edge Function to run daily dead-man-switch checks for both modes:
 1. Load latest active PTN from `policy_documents`
 2. Compile PTN and evaluate action permissions for `system_scheduler`
 3. Write scheduler heartbeat into `system_heartbeats`
-4. Apply user safety controls (`user_safety_settings`):
+4. Load runtime trigger schedule from `delivery_trigger_schedules` (supports `inactivity`, `exact_date`, and `manual_release`)
+5. Apply user safety controls (`user_safety_settings`):
 - legal consent gate
 - emergency pause
 - reminder stages (14/7/1 default)
 - final grace period before release
-5. Enforce idempotent dispatch via `trigger_dispatch_events` unique key
-6. Generate one-time secure delivery link (`delivery_access_keys`)
-7. Send via provider fallback (Resend -> SendGrid)
-8. Submit provider handoff notice via `handoff-notice`
-9. Append result in `trigger_logs`
+6. Enforce idempotent dispatch via `trigger_dispatch_events` unique key
+7. Generate one-time secure delivery link (`delivery_access_keys`)
+8. Send via provider fallback (Resend -> SendGrid)
+9. Submit provider handoff notice via `handoff-notice`
+10. Append result in `trigger_logs`
 
 Companion endpoint:
 
