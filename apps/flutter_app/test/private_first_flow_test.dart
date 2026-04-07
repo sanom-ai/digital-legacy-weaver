@@ -1,4 +1,4 @@
-import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
+﻿import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/dashboard/dashboard_screen.dart';
 import 'package:digital_legacy_weaver/features/unlock/unlock_delivery_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
@@ -192,21 +192,12 @@ void main() {
         ),
       );
 
-      await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-      );
-      await tester.tap(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-        warnIfMissed: false,
-      );
+      final nextButtonFinder = find.widgetWithText(FilledButton, 'ถัดไป');
+      await tester.ensureVisible(nextButtonFinder.first);
+      await tester.tap(nextButtonFinder.first, warnIfMissed: false);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-      );
-      await tester.tap(
-        find.widgetWithText(FilledButton, 'ถัดไป').first,
-        warnIfMissed: false,
-      );
+      await tester.ensureVisible(nextButtonFinder.first);
+      await tester.tap(nextButtonFinder.first, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       expect(find.text('ฉันเข้าใจขอบเขตทางกฎหมายของแอป'), findsOneWidget);
@@ -284,19 +275,21 @@ void main() {
 
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.textContaining('Security Notice'),
+      find.textContaining('ข้อควรรู้ก่อนทำต่อ'),
       250,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Security Notice'), findsOneWidget);
+    expect(find.textContaining('ข้อควรรู้ก่อนทำต่อ'), findsOneWidget);
     expect(find.textContaining('ไม่ขอรหัสผ่าน'), findsWidgets);
     expect(find.textContaining('อย่ากดลิงก์จากข้อความ'), findsOneWidget);
     expect(
       find.textContaining('เปิดแอป Digital Legacy Weaver เอง แล้วกรอกรหัส'),
       findsOneWidget,
     );
-    expect(find.text('Paste handoff packet (no link click)'), findsOneWidget);
+    expect(find.text('วางชุดข้อมูลรับมอบ (ไม่ต้องกดลิงก์)'), findsOneWidget);
   });
 }
+
+
