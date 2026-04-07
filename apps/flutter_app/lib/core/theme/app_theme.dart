@@ -7,13 +7,49 @@ class AppTheme {
   static const Color sand = Color(0xFFE5D7C5);
   static const Color bronze = Color(0xFF8B6A46);
   static const Color forest = Color(0xFF2E4A3F);
+  static const Color warmOutline = Color(0xFFD9C5AA);
+  static const Color warmOutlineFocused = Color(0xFF9C7347);
+  static const Color softTrack = Color(0xFFEDE2D2);
 
   static ThemeData light() {
     final base = ThemeData.light(useMaterial3: true);
-    final textTheme = GoogleFonts.cormorantGaramondTextTheme(base.textTheme).copyWith(
-      bodyLarge: GoogleFonts.manrope(fontSize: 16, color: onyx),
-      bodyMedium: GoogleFonts.manrope(fontSize: 14, color: onyx),
-      labelLarge: GoogleFonts.manrope(fontWeight: FontWeight.w600),
+    final textTheme =
+        GoogleFonts.cormorantGaramondTextTheme(base.textTheme).copyWith(
+      displayLarge: GoogleFonts.cormorantGaramond(
+        color: onyx,
+        fontWeight: FontWeight.w700,
+      ),
+      displayMedium: GoogleFonts.cormorantGaramond(
+        color: onyx,
+        fontWeight: FontWeight.w700,
+      ),
+      headlineLarge: GoogleFonts.cormorantGaramond(
+        color: onyx,
+        fontWeight: FontWeight.w700,
+      ),
+      headlineMedium: GoogleFonts.cormorantGaramond(
+        color: onyx,
+        fontWeight: FontWeight.w700,
+      ),
+      titleLarge: GoogleFonts.notoSerifThai(
+        color: onyx,
+        fontWeight: FontWeight.w600,
+      ),
+      titleMedium: GoogleFonts.notoSerifThai(
+        color: onyx,
+        fontWeight: FontWeight.w600,
+      ),
+      bodyLarge: GoogleFonts.notoSerifThai(fontSize: 16, color: onyx),
+      bodyMedium: GoogleFonts.notoSerifThai(fontSize: 14, color: onyx),
+      bodySmall: GoogleFonts.notoSerifThai(fontSize: 12, color: onyx),
+      labelLarge: GoogleFonts.notoSerifThai(
+        color: onyx,
+        fontWeight: FontWeight.w600,
+      ),
+      labelMedium: GoogleFonts.notoSerifThai(
+        color: onyx,
+        fontWeight: FontWeight.w600,
+      ),
     );
 
     return base.copyWith(
@@ -40,9 +76,54 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.8),
-        border: OutlineInputBorder(
-          borderSide: BorderSide.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        floatingLabelStyle: const TextStyle(
+          color: warmOutlineFocused,
+          fontWeight: FontWeight.w600,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: warmOutline, width: 1.1),
           borderRadius: BorderRadius.circular(14),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: warmOutlineFocused, width: 1.6),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red.shade300, width: 1.2),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red.shade500, width: 1.6),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        border: OutlineInputBorder(
+          borderSide: const BorderSide(color: warmOutline, width: 1.1),
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: bronze,
+        inactiveTrackColor: softTrack,
+        thumbColor: const Color(0xFFF6C18B),
+        overlayColor: bronze.withValues(alpha: 0.14),
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+        trackHeight: 6,
+        valueIndicatorColor: const Color(0xFF3D2A1B),
+        valueIndicatorTextStyle: GoogleFonts.notoSerifThai(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        side: const BorderSide(color: warmOutline, width: 1),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: GoogleFonts.notoSerifThai(
+          color: onyx,
+          fontSize: 14,
         ),
       ),
     );
