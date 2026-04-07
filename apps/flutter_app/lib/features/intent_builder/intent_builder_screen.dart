@@ -443,7 +443,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     await _persistDocument(
       document,
       message:
-          "${scenario.title} preset applied and saved locally with device encryption.",
+          "ใช้ตัวอย่าง ${scenario.title} แล้ว และบันทึกในเครื่องแบบเข้ารหัสเรียบร้อย",
     );
     await _restoreArtifact();
   }
@@ -460,8 +460,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         ],
       ),
       message: nextStatus == 'active'
-          ? "Entry activated and saved locally with device encryption."
-          : "Entry moved back to draft and saved locally with device encryption.",
+          ? "เปิดใช้งานรายการแล้ว และบันทึกในเครื่องแบบเข้ารหัสเรียบร้อย"
+          : "ย้ายรายการกลับเป็นฉบับร่างแล้ว และบันทึกในเครื่องแบบเข้ารหัสเรียบร้อย",
     );
   }
 
@@ -469,18 +469,18 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Remove draft entry"),
+        title: const Text("ลบรายการฉบับร่าง"),
         content: Text(
-          "Remove '${entry.asset.displayName}' from this local draft? This only updates this device draft and does not release anything.",
+          "ต้องการลบ '${entry.asset.displayName}' ออกจากฉบับร่างในเครื่องใช่ไหม? การลบนี้กระทบเฉพาะเครื่องนี้ และยังไม่ส่งมอบข้อมูล",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
+            child: const Text("ยกเลิก"),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Remove"),
+            child: const Text("ลบ"),
           ),
         ],
       ),
@@ -494,7 +494,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     ];
     await _persistDocument(
       _document.copyWith(entries: nextEntries),
-      message: "Draft entry removed from this device.",
+      message: "ลบรายการฉบับร่างจากเครื่องนี้แล้ว",
     );
   }
 
@@ -684,7 +684,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           if (item.artifactId != updated.artifactId) item,
       ]..sort((left, right) => right.generatedAt.compareTo(left.generatedAt));
       _artifact = updated;
-      _saveMessage = "Version status updated to ${nextState.name}.";
+      _saveMessage = "อัปเดตสถานะสแนปช็อตเป็น ${nextState.name} แล้ว";
     });
   }
 
@@ -758,10 +758,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         .map((destination) => destination.name)
         .toList();
     final partnerLine = partner == null
-        ? "None selected"
+        ? "ยังไม่ได้เลือก"
         : "${partner.officeName} (${partner.province})";
     final destinationLine = selectedDestinations.isEmpty
-        ? "None selected"
+        ? "ยังไม่ได้เลือก"
         : selectedDestinations.join(", " );
 
     return '''
@@ -809,7 +809,7 @@ Notes
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Final Policy Paper"),
+        title: const Text("????????????? (Policy Paper)"),
         content: SizedBox(
           width: 560,
           child: SingleChildScrollView(
@@ -827,7 +827,7 @@ Notes
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  "QR à¸ªà¸³à¸«à¸£à¸±à¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹à¸œà¸™",
+                  "QR ????????????????",
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
@@ -837,7 +837,8 @@ Notes
                     size: 140,
                     eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square),
                     dataModuleStyle: const QrDataModuleStyle(
-                        dataModuleShape: QrDataModuleShape.square),
+                      dataModuleShape: QrDataModuleShape.square,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -849,18 +850,16 @@ Notes
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text("à¸›à¸´à¸”"),
+            child: const Text("???"),
           ),
           FilledButton.tonal(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: paper));
               messenger.showSnackBar(
-                const SnackBar(
-                    content:
-                        Text("à¸„à¸±à¸”à¸¥à¸­à¸ Policy Paper à¹à¸¥à¹‰à¸§")),
+                const SnackBar(content: Text("?????? Policy Paper ????")),
               );
             },
-            child: const Text("à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸­à¸à¸ªà¸²à¸£"),
+            child: const Text("????????????"),
           ),
         ],
       ),
@@ -870,19 +869,19 @@ Notes
   List<String> _artifactBadges(IntentCanonicalArtifactModel artifact) {
     final badges = <String>[];
     if (_artifact != null && artifact.artifactId == _artifact!.artifactId) {
-      badges.add("Latest");
+      badges.add("ล่าสุด");
     }
     if (artifact.promotedFromArtifactId != null &&
         artifact.promotedFromArtifactId!.isNotEmpty) {
-      badges.add("Copied");
+      badges.add("คัดลอกมา");
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      badges.add("Ready");
+      badges.add("พร้อมใช้งาน");
     } else if (artifact.artifactState == IntentArtifactState.reviewed) {
-      badges.add("Reviewed");
+      badges.add("ตรวจทานแล้ว");
     }
     if (artifact.report.errorCount > 0) {
-      badges.add("Has issues");
+      badges.add("มีปัญหา");
     }
     return badges;
   }
@@ -2314,20 +2313,20 @@ Notes
                     ),
                     if (_showAdvanced) ...[
                       const SizedBox(height: 8),
-                      Text("Contract version: ${_artifact!.contractVersion}"),
+                      Text("สัญญาเวอร์ชัน: ${_artifact!.contractVersion}"),
                       const SizedBox(height: 4),
-                      Text("Version status: ${_artifact!.artifactState.name}"),
+                      Text("สถานะสแนปช็อต: ${_artifact!.artifactState.name}"),
                       const SizedBox(height: 4),
                       Text(
-                        "Version active routes: ${_artifact!.activeEntryCount}",
+                        "รายการที่เปิดใช้งานในสแนปช็อต: ${_artifact!.activeEntryCount}",
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Trace entries: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}",
+                        "รายการ trace: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}",
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Issue status: ${_artifact!.report.errorCount} blocking / ${_artifact!.report.warningCount} cautions",
+                        "สถานะปัญหา: บล็อก ${_artifact!.report.errorCount} / คำเตือน ${_artifact!.report.warningCount}",
                       ),
                     ] else ...[
                       const SizedBox(height: 8),
@@ -2405,7 +2404,7 @@ Notes
                     const SizedBox(height: 16),
                     if (_showAdvanced) ...[
                       const Text(
-                        "Export history",
+                        "ประวัติสแนปช็อต",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -2413,7 +2412,7 @@ Notes
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        "Each export is kept as a separate local version for this owner.",
+                        "ทุกการสร้างสแนปช็อตจะถูกเก็บแยกเป็นประวัติในเครื่อง",
                       ),
                       const SizedBox(height: 12),
                       Align(
@@ -2431,7 +2430,7 @@ Notes
                               ),
                             );
                           },
-                          child: const Text("View full history"),
+                          child: const Text("ดูประวัติทั้งหมด"),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -2448,7 +2447,7 @@ Notes
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         ChoiceChip(
-                          label: const Text("All"),
+                          label: const Text("ทั้งหมด"),
                           selected: _historyFilter == 'all',
                           onSelected: (_) {
                             setState(() {
@@ -2457,7 +2456,7 @@ Notes
                           },
                         ),
                         ChoiceChip(
-                          label: const Text("Ready"),
+                          label: const Text("พร้อมใช้งาน"),
                           selected: _historyFilter == 'ready',
                           onSelected: (_) {
                             setState(() {
@@ -2466,7 +2465,7 @@ Notes
                           },
                         ),
                         ChoiceChip(
-                          label: const Text("Copied"),
+                          label: const Text("คัดลอกมา"),
                           selected: _historyFilter == 'promoted',
                           onSelected: (_) {
                             setState(() {
@@ -2475,7 +2474,7 @@ Notes
                           },
                         ),
                         ChoiceChip(
-                          label: const Text("Has issues"),
+                          label: const Text("มีปัญหา"),
                           selected: _historyFilter == 'issues',
                           onSelected: (_) {
                             setState(() {
@@ -2488,15 +2487,15 @@ Notes
                           items: const [
                             DropdownMenuItem(
                               value: 'newest',
-                              child: Text("Newest first"),
+                              child: Text("ใหม่สุดก่อน"),
                             ),
                             DropdownMenuItem(
                               value: 'oldest',
-                              child: Text("Oldest first"),
+                              child: Text("เก่าสุดก่อน"),
                             ),
                             DropdownMenuItem(
                               value: 'state',
-                              child: Text("Sort by state"),
+                              child: Text("เรียงตามสถานะ"),
                             ),
                           ],
                           onChanged: (value) {
@@ -2513,7 +2512,7 @@ Notes
                     const SizedBox(height: 12),
                     if (_showAdvanced && visibleArtifactHistory.isEmpty)
                       const Text(
-                        "No versions match the current history filter.",
+                        "ไม่มีรายการที่ตรงกับตัวกรองประวัติ",
                       ),
                     ...visibleArtifactHistory.take(_showAdvanced ? 5 : 1).map(
                           (item) => Padding(
@@ -2524,7 +2523,7 @@ Notes
                                 "${item.generatedAt.toLocal()} | ${item.artifactState.name}",
                               ),
                               subtitle: Text(
-                                "Version ${item.artifactId} | ${item.activeEntryCount} active routes",
+                                "รหัส ${item.artifactId} | รายการที่เปิดใช้งาน ${item.activeEntryCount}",
                               ),
                               isThreeLine: _artifactBadges(item).isNotEmpty,
                               dense: false,
@@ -2562,7 +2561,7 @@ Notes
                                         ),
                                       );
                                     },
-                                    child: const Text("Review"),
+                                    child: const Text("ตรวจทาน"),
                                   ),
                                   TextButton(
                                     onPressed: _artifact != null &&
@@ -2580,7 +2579,7 @@ Notes
                                             );
                                           }
                                         : null,
-                                    child: const Text("Compare"),
+                                    child: const Text("เปรียบเทียบ"),
                                   ),
                                   TextButton(
                                     onPressed: _artifact != null &&
@@ -2590,13 +2589,13 @@ Notes
                                             _promoteArtifactVersion(item);
                                           }
                                         : null,
-                                    child: const Text("Copy"),
+                                    child: const Text("คัดลอก"),
                                   ),
                                   TextButton(
                                     onPressed: () {
                                       _clearArtifactVersion(item.artifactId);
                                     },
-                                    child: const Text("Remove"),
+                                    child: const Text("ลบ"),
                                   ),
                                 ],
                               ),
@@ -2621,7 +2620,7 @@ Notes
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Read this simple summary first. Technical detail is hidden unless Advanced view is on.",
+                    "อ่านสรุปแบบเข้าใจง่ายก่อน รายละเอียดเชิงเทคนิคจะแสดงเมื่อเปิดโหมดขั้นสูงเท่านั้น",
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -2650,9 +2649,9 @@ Notes
                     const SizedBox(height: 10),
                     ExpansionTile(
                       tilePadding: EdgeInsets.zero,
-                      title: const Text("Technical details (PTN)"),
+                      title: const Text("รายละเอียดเชิงเทคนิค (PTN)"),
                       subtitle: const Text(
-                        "For system owners and auditors.",
+                        "สำหรับผู้ดูแลระบบและผู้ตรวจสอบ",
                       ),
                       children: [
                         const SizedBox(height: 8),
