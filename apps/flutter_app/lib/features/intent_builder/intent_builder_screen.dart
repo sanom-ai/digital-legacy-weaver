@@ -732,16 +732,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final beneficiaryName =
         widget.profile.beneficiaryName?.trim().isNotEmpty == true
             ? widget.profile.beneficiaryName!.trim()
-            : "à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸à¸«à¸¥à¸±à¸";
+            : "ผู้รับมรดกหลัก";
     final beneficiaryEmail =
         widget.profile.beneficiaryEmail?.trim().isNotEmpty == true
             ? widget.profile.beneficiaryEmail!.trim()
             : "beneficiary@example.com";
     final inactivity = widget.profile.legacyInactivityDays;
     final grace = _document.globalSafeguards.defaultGraceDays;
-    final verifyLevel = primary?.partnerVerificationRequired == true
-        ? "à¸ªà¸¹à¸‡"
-        : "à¸¡à¸²à¸•à¸£à¸à¸²à¸™";
+    final verifyLevel =
+        primary?.partnerVerificationRequired == true ? "สูง" : "มาตรฐาน";
     final partner = _selectedPartner;
     final selectedDestinations = _verifiedDestinations
         .where(
@@ -756,37 +755,37 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         : selectedDestinations.join(", ");
 
     return '''
-à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸£à¸¸à¸›à¸™à¹‚à¸¢à¸šà¸²à¸¢à¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (Final Policy Paper)
+เอกสารสรุปนโยบายมรดกดิจิทัล (Final Policy Paper)
 
-à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 1: à¸ªà¸£à¸¸à¸›à¹€à¸ˆà¸•à¸™à¸²à¸£à¸¡à¸“à¹Œ
-- à¸Šà¸·à¹ˆà¸­à¸™à¹‚à¸¢à¸šà¸²à¸¢: à¹à¸œà¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸¡à¸£à¸”à¸à¸„à¸£à¸­à¸šà¸„à¸£à¸±à¸§
-- à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µ: ${widget.profile.id}
-- à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸: $beneficiaryName ($beneficiaryEmail)
-- à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¹€à¸›à¹‡à¸™à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§: ${widget.settings.tracePrivacyProfile}
+ส่วนที่ 1: สรุปเจตนารมณ์
+- ชื่อนโยบาย: แผนส่งมอบมรดกครอบครัว
+- เจ้าของบัญชี: ${widget.profile.id}
+- ผู้รับมรดก: $beneficiaryName ($beneficiaryEmail)
+- ระดับความเป็นส่วนตัว: ${widget.settings.tracePrivacyProfile}
 - Artifact ID: ${artifact.artifactId}
-- à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸¡à¸·à¹ˆà¸­: ${artifact.generatedAt.toLocal()}
+- สร้างเมื่อ: ${artifact.generatedAt.toLocal()}
 
-à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 2: à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸à¸²à¸£à¸›à¸¥à¸”à¸¥à¹‡à¸­à¸
-- à¸«à¸²à¸à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¹€à¸à¸´à¸™ $inactivity à¸§à¸±à¸™ à¸£à¸°à¸šà¸šà¸ˆà¸°à¹€à¸£à¸´à¹ˆà¸¡à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š
-- à¸£à¸°à¸šà¸šà¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸Šà¹ˆà¸§à¸‡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢ $grace à¸§à¸±à¸™à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸š
-- à¸£à¸°à¸”à¸±à¸šà¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™: $verifyLevel
-- Cooldown à¸à¹ˆà¸­à¸™à¹€à¸›à¸´à¸”à¹€à¸œà¸¢à¸ˆà¸£à¸´à¸‡: 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡
+ส่วนที่ 2: เงื่อนไขการปลดล็อก
+- หากขาดการติดต่อเกิน $inactivity วัน ระบบจะเริ่มขั้นตอนตรวจสอบ
+- ระบบยืนยันซ้ำช่วงปลอดภัย $grace วันก่อนส่งมอบ
+- ระดับการยืนยันตัวตน: $verifyLevel
+- Cooldown ก่อนเปิดเผยจริง: 24 ชั่วโมง
 
-à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 3: à¸ªà¸´à¸—à¸˜à¸´à¹à¸¥à¸°à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡
-- à¸ªà¸´à¸—à¸˜à¸´à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸: à¸­à¹ˆà¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸•à¸²à¸¡à¹à¸œà¸™
-- à¸£à¸°à¸šà¸šà¹€à¸›à¹‡à¸™à¸œà¸¹à¹‰à¸„à¸¸à¸¡à¸à¸Ž: à¸•à¸£à¸§à¸ˆà¸ªà¸±à¸à¸à¸²à¸“à¸Šà¸µà¸žà¹à¸¥à¸°à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸œà¹ˆà¸²à¸™à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸à¸³à¸«à¸™à¸”
-- à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸«à¸¥à¸±à¸: ${primary?.releaseChannel ?? "secure_link"}
+ส่วนที่ 3: สิทธิและการเข้าถึง
+- สิทธิผู้รับมรดก: อ่านข้อมูลที่ส่งมอบตามแผน
+- ระบบเป็นผู้คุมกฎ: ตรวจสัญญาณชีพและส่งมอบผ่านช่องทางที่กำหนด
+- ช่องทางส่งมอบหลัก: ${primary?.releaseChannel ?? "secure_link"}
 
-Section 4: Partner delivery scope
-- Legal partner: $partnerLine
-- Ecosystem destinations: $destinationLine
-- Terms accepted before send: ${_partnerTermsAccepted ? "Yes" : "No"}
+ส่วนที่ 4: ขอบเขตพาร์ทเนอร์และปลายทาง
+- พาร์ทเนอร์กฎหมาย: $partnerLine
+- ปลายทาง ecosystem: $destinationLine
+- สถานะยอมรับเงื่อนไขก่อนส่ง: ${_partnerTermsAccepted ? "ยอมรับแล้ว" : "ยังไม่ยอมรับ"}
 
-à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸:
-à¹€à¸­à¸à¸ªà¸²à¸£à¸™à¸µà¹‰à¹€à¸›à¹‡à¸™à¸ªà¸£à¸¸à¸›à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¸‚à¸­à¸‡à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µà¹à¸¥à¸°à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¡à¸£à¸”à¸
-à¹à¸¥à¸°à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸²à¸ artifact à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™à¸‚à¸­à¸‡à¸£à¸°à¸šà¸šà¹‚à¸”à¸¢à¸•à¸£à¸‡
-- à¸£à¸°à¸šà¸šà¸™à¸µà¹‰à¹„à¸¡à¹ˆà¹€à¸à¹‡à¸šà¸¢à¸­à¸”à¸—à¸£à¸±à¸žà¸¢à¹Œà¸ªà¸´à¸™à¸ˆà¸£à¸´à¸‡ à¹à¸¥à¸°à¹„à¸¡à¹ˆà¹€à¸›à¹‡à¸™à¸œà¸¹à¹‰à¸à¸§à¸”à¸ªà¸­à¸šà¸¢à¸­à¸”à¹€à¸‡à¸´à¸™
-- à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸ˆà¸£à¸´à¸‡à¸•à¹‰à¸­à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸à¸±à¸šà¸ªà¸–à¸²à¸šà¸±à¸™à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡ (bank/exchange/legal partner) à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™
+หมายเหตุ:
+เอกสารนี้เป็นสรุปเพื่อความเข้าใจร่วมกันของเจ้าของบัญชีและผู้รับมรดก
+และอ้างอิงข้อมูลจาก artifact ปัจจุบันของระบบโดยตรง
+- ระบบนี้ไม่เก็บยอดทรัพย์สินจริง และไม่เป็นผู้ตรวจสอบยอดเงิน
+- มูลค่าจริงต้องยืนยันกับสถาบันปลายทาง (bank/exchange/legal partner) เท่านั้น
 ''';
   }
 
@@ -819,7 +818,7 @@ Section 4: Partner delivery scope
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  "QR à¸ªà¸³à¸«à¸£à¸±à¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹à¸œà¸™",
+                  "QR สำหรับตรวจสอบแผน",
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
@@ -841,7 +840,7 @@ Section 4: Partner delivery scope
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text("à¸›à¸´à¸”"),
+            child: const Text("ปิด"),
           ),
           FilledButton.tonal(
             onPressed: () {
@@ -849,10 +848,10 @@ Section 4: Partner delivery scope
               messenger.showSnackBar(
                 const SnackBar(
                     content:
-                        Text("à¸„à¸±à¸”à¸¥à¸­à¸ Policy Paper à¹à¸¥à¹‰à¸§")),
+                        Text("คัดลอก Policy Paper แล้ว")),
               );
             },
-            child: const Text("à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸­à¸à¸ªà¸²à¸£"),
+            child: const Text("คัดลอกเอกสาร"),
           ),
         ],
       ),
@@ -2323,7 +2322,7 @@ Section 4: Partner delivery scope
                           onPressed: () {
                             _openPolicyPaper(_artifact!);
                           },
-                          child: const Text("à¸ªà¸£à¹‰à¸²à¸‡ Policy Paper"),
+                          child: const Text("สร้าง Policy Paper"),
                         ),
                         OutlinedButton(
                           onPressed: canMarkReviewed
@@ -2562,12 +2561,12 @@ Section 4: Partner delivery scope
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "à¸ à¸²à¸žà¸£à¸§à¸¡à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™",
+                    "ภาพรวมการทำงาน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "à¸­à¹ˆà¸²à¸™à¹à¸šà¸šà¸ªà¸±à¹‰à¸™à¸à¹ˆà¸­à¸™ à¹€à¸žà¸·à¹ˆà¸­à¹ƒà¸«à¹‰à¸¡à¸±à¹ˆà¸™à¹ƒà¸ˆà¸§à¹ˆà¸²à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¸—à¸³à¸‡à¸²à¸™à¸–à¸¹à¸à¸•à¹‰à¸­à¸‡ à¹à¸¥à¹‰à¸§à¸„à¹ˆà¸­à¸¢à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„",
+                    "อ่านแบบสั้นก่อน เพื่อให้มั่นใจว่าเส้นทางทำงานถูกต้อง แล้วค่อยดูรายละเอียดเชิงเทคนิค",
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -2581,18 +2580,18 @@ Section 4: Partner delivery scope
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "à¸¥à¸³à¸”à¸±à¸šà¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸‡à¹ˆà¸²à¸¢",
+                          "ลำดับแบบเข้าใจง่าย",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 8),
                         Text(
-                            "1) à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¸„à¸£à¸šà¸•à¸²à¸¡à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰"),
+                            "1) ขาดการติดต่อครบตามที่ตั้งไว้"),
                         Text(
-                            "2) à¸£à¸°à¸šà¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¸à¹ˆà¸­à¸™"),
+                            "2) ระบบตรวจสอบความปลอดภัยก่อน"),
                         Text(
-                            "3) à¸ªà¹ˆà¸‡à¸¥à¸´à¸‡à¸à¹Œà¸«à¸£à¸·à¸­à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸šà¸•à¸²à¸¡à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡"),
+                            "3) ส่งขั้นตอนให้ผู้รับตามเส้นทาง"),
                         Text(
-                            "4) à¸šà¸±à¸™à¸—à¸¶à¸à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡à¹€à¸žà¸·à¹ˆà¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸¢à¹‰à¸­à¸™à¸«à¸¥à¸±à¸‡"),
+                            "4) บันทึกประวัติการเข้าถึงเพื่อยืนยันย้อนหลัง"),
                       ],
                     ),
                   ),
@@ -2600,9 +2599,9 @@ Section 4: Partner delivery scope
                   ExpansionTile(
                     tilePadding: EdgeInsets.zero,
                     title: const Text(
-                        "à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„ (PTN)"),
+                        "ดูรายละเอียดเชิงเทคนิค (PTN)"),
                     subtitle: const Text(
-                        "à¹€à¸«à¸¡à¸²à¸°à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥à¸£à¸°à¸šà¸šà¸«à¸£à¸·à¸­à¸—à¸µà¸¡à¹€à¸—à¸„à¸™à¸´à¸„"),
+                        "เหมาะสำหรับผู้ดูแลระบบหรือทีมเทคนิค"),
                     children: [
                       const SizedBox(height: 8),
                       Container(
