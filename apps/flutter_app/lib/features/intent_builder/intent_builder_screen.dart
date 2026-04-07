@@ -63,6 +63,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String? _selectedPartnerId;
   bool _partnerTermsAccepted = false;
   bool _partnerCatalogLoading = true;
+  String _partnerCatalogSourceLabel = 'admin_config';
   final Set<String> _selectedDestinationIds = <String>{};
   final TextEditingController _assetValueController =
       TextEditingController(text: '1000000');
@@ -1012,14 +1013,15 @@ Section 4: Partner delivery scope
   Future<void> _loadVerifiedPartnersFromAdminSource() async {
     try {
       final source = VerifiedPartnerCatalogSource();
-      final partners = await source.loadVerifiedPartners();
+      final result = await source.loadVerifiedPartners();
       if (!mounted) {
         return;
       }
       setState(() {
         _partnerCatalog
           ..clear()
-          ..addAll(partners);
+          ..addAll(result.partners);
+        _partnerCatalogSourceLabel = result.source;
         _partnerCatalogLoading = false;
       });
     } catch (_) {
@@ -1028,6 +1030,7 @@ Section 4: Partner delivery scope
       }
       setState(() {
         _partnerCatalog.clear();
+        _partnerCatalogSourceLabel = 'unavailable';
         _partnerCatalogLoading = false;
       });
     }
@@ -1043,13 +1046,34 @@ Section 4: Partner delivery scope
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Legal Partner Network",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    "Legal Partner Network",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Refresh partner list',
+                  onPressed: _partnerCatalogLoading
+                      ? null
+                      : () {
+                          setState(() => _partnerCatalogLoading = true);
+                          _loadVerifiedPartnersFromAdminSource();
+                        },
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             const Text(
               "Let beneficiaries choose a verified law partner with transparent fee tiers before case handoff.",
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "Source: $_partnerCatalogSourceLabel",
+              style: const TextStyle(fontSize: 12),
             ),
             const SizedBox(height: 12),
             TextField(
