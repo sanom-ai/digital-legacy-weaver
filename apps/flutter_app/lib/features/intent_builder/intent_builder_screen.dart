@@ -81,11 +81,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _scenarioTitleHuman(DemoScenario scenario) {
     switch (scenario.id) {
       case 'family_handoff':
-        return 'à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¸¡à¸­à¸šà¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥à¹ƒà¸«à¹‰à¸„à¸™à¸—à¸µà¹ˆà¸„à¸¸à¸“à¸£à¸±à¸';
+        return 'เส้นทางมอบมรดกดิจิทัลให้คนที่คุณรัก';
       case 'self_recovery':
-        return 'à¸à¸¹à¹‰à¸„à¸·à¸™à¸šà¸±à¸à¸Šà¸µà¸‚à¸­à¸‡à¸‰à¸±à¸™';
+        return 'กู้คืนบัญชีของฉัน';
       case 'private_archive':
-        return 'à¸„à¸¥à¸±à¸‡à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§à¹€à¸‚à¹‰à¸¡à¸‡à¸§à¸”';
+        return 'คลังส่วนตัวเข้มงวด';
       default:
         return scenario.title;
     }
@@ -94,11 +94,11 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _scenarioSummaryHuman(DemoScenario scenario) {
     switch (scenario.id) {
       case 'family_handoff':
-        return 'à¹€à¸”à¹‚à¸¡à¹à¸™à¸°à¸™à¸³à¸—à¸µà¹ˆà¹€à¸«à¹‡à¸™à¸ à¸²à¸žà¸„à¸£à¸šà¸•à¸±à¹‰à¸‡à¹à¸•à¹ˆà¹€à¸£à¸´à¹ˆà¸¡à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹„à¸›à¸ˆà¸™à¸–à¸¶à¸‡à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­';
+        return 'เดโมแนะนำที่เห็นภาพครบตั้งแต่เริ่มตั้งค่าไปจนถึงการส่งต่อ';
       case 'self_recovery':
-        return 'à¹€à¸£à¸´à¹ˆà¸¡à¸ˆà¸²à¸à¸›à¹‰à¸­à¸‡à¸à¸±à¸™à¹à¸¥à¸°à¸à¸¹à¹‰à¸„à¸·à¸™à¸šà¸±à¸à¸Šà¸µà¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸à¹ˆà¸­à¸™ à¸¥à¸”à¸„à¸§à¸²à¸¡à¹€à¸ªà¸µà¹ˆà¸¢à¸‡à¸ªà¹ˆà¸‡à¸œà¸´à¸”à¸„à¸™';
+        return 'เริ่มจากป้องกันและกู้คืนบัญชีเจ้าของก่อน ลดความเสี่ยงส่งผิดคน';
       case 'private_archive':
-        return 'à¹€à¸«à¸¡à¸²à¸°à¸à¸±à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¹ˆà¸­à¸™à¹„à¸«à¸§à¸ªà¸¹à¸‡ à¹€à¸™à¹‰à¸™à¸„à¸§à¸²à¸¡à¹€à¸›à¹‡à¸™à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§à¸¡à¸²à¸à¸—à¸µà¹ˆà¸ªà¸¸à¸”';
+        return 'เหมาะกับข้อมูลอ่อนไหวสูง เน้นความเป็นส่วนตัวมากที่สุด';
       default:
         return scenario.summary;
     }
@@ -138,7 +138,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   void _completeSetupFlow() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text("à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹€à¸ªà¸£à¹‡à¸ˆà¹à¸¥à¹‰à¸§ à¹à¸œà¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸‚à¸­à¸‡à¸„à¸¸à¸“à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™"),
+        content: Text("ตั้งค่าเสร็จแล้ว แผนส่งมอบของคุณพร้อมใช้งาน"),
       ),
     );
     Navigator.of(context).maybePop();
@@ -181,7 +181,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         _isLoading = false;
         _loadError = null;
         _saveMessage = stored != null
-            ? "à¸à¸¹à¹‰à¸„à¸·à¸™à¸£à¹ˆà¸²à¸‡à¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¸ˆà¸²à¸à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸™à¸µà¹‰à¹à¸¥à¹‰à¸§"
+            ? "กู้คืนร่างเข้ารหัสจากเครื่องนี้แล้ว"
             : null;
       });
     } catch (error) {
@@ -192,7 +192,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         _document = widget.initialDocument ?? _seedDocument();
         _isLoading = false;
         _loadError =
-            "à¸¢à¸±à¸‡à¸à¸¹à¹‰à¸„à¸·à¸™à¸£à¹ˆà¸²à¸‡à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸•à¸­à¸™à¸™à¸µà¹‰ à¸à¸£à¸¸à¸“à¸²à¸¥à¸­à¸‡à¹ƒà¸«à¸¡à¹ˆà¸­à¸µà¸à¸„à¸£à¸±à¹‰à¸‡";
+            "ยังกู้คืนร่างในเครื่องไม่ได้ตอนนี้ กรุณาลองใหม่อีกครั้ง";
       });
     }
   }
@@ -205,10 +205,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         asset: const IntentAssetModel(
           assetId: "legacy_asset_primary",
           assetType: "vault_item",
-          displayName: "à¸Šà¸¸à¸”à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸«à¸¥à¸±à¸",
+          displayName: "ชุดส่งมอบหลัก",
           payloadMode: "secure_link",
           payloadRef: "",
-          notes: "à¸Šà¸¸à¸”à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸«à¸¥à¸±à¸à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¸£à¸±à¸š",
+          notes: "ชุดส่งมอบหลักสำหรับผู้รับ",
         ),
         recipient: IntentRecipientModel(
           recipientId: "beneficiary_primary",
@@ -255,10 +255,10 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         asset: IntentAssetModel(
           assetId: "self_recovery_backup",
           assetType: "backup_email_route",
-          displayName: "à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¸à¸¹à¹‰à¸„à¸·à¸™à¸ªà¸³à¸£à¸­à¸‡",
+          displayName: "เส้นทางกู้คืนสำรอง",
           payloadMode: "self_recovery_route",
           payloadRef: widget.profile.backupEmail,
-          notes: "à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¸à¸¹à¹‰à¸„à¸·à¸™à¸‚à¸­à¸‡à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µ",
+          notes: "เส้นทางกู้คืนของเจ้าของบัญชี",
         ),
         recipient: IntentRecipientModel(
           recipientId: "owner_primary",
@@ -266,7 +266,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           deliveryChannel: "email",
           destinationRef: widget.profile.backupEmail,
           role: "owner",
-          registeredLegalName: "à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µ",
+          registeredLegalName: "เจ้าของบัญชี",
           verificationHint: "",
           fallbackChannels: const ["email"],
         ),
@@ -376,7 +376,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _document = seed;
       _hasLocalDraft = false;
-      _saveMessage = "à¸£à¸µà¹€à¸‹à¹‡à¸•à¸£à¹ˆà¸²à¸‡à¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸›à¹‡à¸™à¸‰à¸šà¸±à¸šà¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§";
+      _saveMessage = "รีเซ็ตร่างเข้ารหัสในเครื่องเป็นฉบับใหม่แล้ว";
     });
   }
 
@@ -389,16 +389,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.family_restroom_outlined),
-              title: const Text("à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸š"),
+              title: const Text("ส่งต่อให้ผู้รับ"),
               subtitle: const Text(
-                "à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸šà¸šà¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸š à¹€à¸¡à¸·à¹ˆà¸­à¸–à¸¶à¸‡à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰",
+                "ส่งต่อข้อมูลแบบปลอดภัยให้ผู้รับ เมื่อถึงเงื่อนไขที่ตั้งไว้",
               ),
               onTap: () => Navigator.of(context).pop("legacy_delivery"),
             ),
             ListTile(
               leading: const Icon(Icons.shield_outlined),
-              title: const Text("à¸à¸¹à¹‰à¸„à¸·à¸™à¸”à¹‰à¸§à¸¢à¸•à¸±à¸§à¹€à¸­à¸‡"),
-              subtitle: const Text("à¹€à¸•à¸£à¸µà¸¢à¸¡à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¸à¸¹à¹‰à¸„à¸·à¸™à¸ªà¸³à¸«à¸£à¸±à¸šà¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µ"),
+              title: const Text("กู้คืนด้วยตัวเอง"),
+              subtitle: const Text("เตรียมเส้นทางกู้คืนสำหรับเจ้าของบัญชี"),
               onTap: () => Navigator.of(context).pop("self_recovery"),
             ),
           ],
@@ -433,8 +433,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     await _persistDocument(
       _document.copyWith(entries: [..._document.entries, next]),
       message: nextKind == "self_recovery"
-          ? "à¹€à¸žà¸´à¹ˆà¸¡à¸£à¹ˆà¸²à¸‡à¸à¸¹à¹‰à¸„à¸·à¸™à¸”à¹‰à¸§à¸¢à¸•à¸±à¸§à¹€à¸­à¸‡à¹à¸¥à¸°à¸šà¸±à¸™à¸—à¸¶à¸à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹à¸¥à¹‰à¸§"
-          : "à¹€à¸žà¸´à¹ˆà¸¡à¸£à¹ˆà¸²à¸‡à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸šà¹à¸¥à¸°à¸šà¸±à¸™à¸—à¸¶à¸à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹à¸¥à¹‰à¸§",
+          ? "เพิ่มร่างกู้คืนด้วยตัวเองและบันทึกในเครื่องแบบเข้ารหัสแล้ว"
+          : "เพิ่มร่างส่งต่อให้ผู้รับและบันทึกในเครื่องแบบเข้ารหัสแล้ว",
     );
   }
 
@@ -485,8 +485,8 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         ],
       ),
       message: nextStatus == 'active'
-          ? "à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸£à¸²à¸¢à¸à¸²à¸£à¹à¸¥à¹‰à¸§ à¹à¸¥à¸°à¸šà¸±à¸™à¸—à¸¶à¸à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢"
-          : "à¸¢à¹‰à¸²à¸¢à¸£à¸²à¸¢à¸à¸²à¸£à¸à¸¥à¸±à¸šà¹€à¸›à¹‡à¸™à¸‰à¸šà¸±à¸šà¸£à¹ˆà¸²à¸‡à¹à¸¥à¹‰à¸§ à¹à¸¥à¸°à¸šà¸±à¸™à¸—à¸¶à¸à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢",
+          ? "เปิดใช้งานรายการแล้ว และบันทึกในเครื่องแบบเข้ารหัสเรียบร้อย"
+          : "ย้ายรายการกลับเป็นฉบับร่างแล้ว และบันทึกในเครื่องแบบเข้ารหัสเรียบร้อย",
     );
   }
 
@@ -494,18 +494,18 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("à¸¥à¸šà¸£à¸²à¸¢à¸à¸²à¸£à¸‰à¸šà¸±à¸šà¸£à¹ˆà¸²à¸‡"),
+        title: const Text("ลบรายการฉบับร่าง"),
         content: Text(
-          "à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸¥à¸š '${entry.asset.displayName}' à¸­à¸­à¸à¸ˆà¸²à¸à¸‰à¸šà¸±à¸šà¸£à¹ˆà¸²à¸‡à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹ˆà¹„à¸«à¸¡? à¸à¸²à¸£à¸¥à¸šà¸™à¸µà¹‰à¸à¸£à¸°à¸—à¸šà¹€à¸‰à¸žà¸²à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸™à¸µà¹‰ à¹à¸¥à¸°à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥",
+          "ต้องการลบ '${entry.asset.displayName}' ออกจากฉบับร่างในเครื่องใช่ไหม? การลบนี้กระทบเฉพาะเครื่องนี้ และยังไม่ส่งมอบข้อมูล",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("à¸¢à¸à¹€à¸¥à¸´à¸"),
+            child: const Text("ยกเลิก"),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("à¸¥à¸š"),
+            child: const Text("ลบ"),
           ),
         ],
       ),
@@ -519,7 +519,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     ];
     await _persistDocument(
       _document.copyWith(entries: nextEntries),
-      message: "à¸¥à¸šà¸£à¸²à¸¢à¸à¸²à¸£à¸‰à¸šà¸±à¸šà¸£à¹ˆà¸²à¸‡à¸ˆà¸²à¸à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸™à¸µà¹‰à¹à¸¥à¹‰à¸§",
+      message: "ลบรายการฉบับร่างจากเครื่องนี้แล้ว",
     );
   }
 
@@ -529,7 +529,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   ) async {
     if (!report.ok) {
       setState(() {
-        _saveMessage = "à¸à¸£à¸¸à¸“à¸²à¹à¸à¹‰à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¸¢à¸±à¸‡à¸šà¸¥à¹‡à¸­à¸à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸­à¸­à¸à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™";
+        _saveMessage = "กรุณาแก้รายการที่ยังบล็อกก่อนส่งออกเวอร์ชัน";
       });
       return;
     }
@@ -540,7 +540,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     if (activeEntries.isEmpty) {
       setState(() {
         _saveMessage =
-            "à¸•à¹‰à¸­à¸‡à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸­à¸­à¸à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™";
+            "ต้องเปิดใช้งานอย่างน้อย 1 เส้นทางก่อนส่งออกเวอร์ชัน";
       });
       return;
     }
@@ -582,7 +582,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = [artifact, ..._artifactHistory];
       _artifact = artifact;
       _isExporting = false;
-      _saveMessage = "à¸ªà¸£à¹‰à¸²à¸‡à¹à¸¥à¸°à¸œà¸™à¸¶à¸à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸­à¸­à¸à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸™à¸µà¹‰à¹à¸¥à¹‰à¸§";
+      _saveMessage = "สร้างและผนึกเวอร์ชันที่ส่งออกในเครื่องนี้แล้ว";
     });
   }
 
@@ -631,7 +631,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifact = null;
       _artifactHistory = const [];
-      _saveMessage = "à¸¥à¸šà¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸­à¸­à¸à¹à¸¥à¸°à¸œà¸™à¸¶à¸à¹„à¸§à¹‰ à¸­à¸­à¸à¸ˆà¸²à¸à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸™à¸µà¹‰à¹à¸¥à¹‰à¸§";
+      _saveMessage = "ลบเวอร์ชันที่ส่งออกและผนึกไว้ ออกจากเครื่องนี้แล้ว";
     });
   }
 
@@ -654,7 +654,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     setState(() {
       _artifactHistory = nextHistory;
       _artifact = nextHistory.isEmpty ? null : nextHistory.first;
-      _saveMessage = "à¸¥à¸šà¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸­à¸­à¸ à¸­à¸­à¸à¸ˆà¸²à¸à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸¥à¹‰à¸§ 1 à¸£à¸²à¸¢à¸à¸²à¸£";
+      _saveMessage = "ลบเวอร์ชันที่ส่งออก ออกจากประวัติในเครื่องแล้ว 1 รายการ";
     });
   }
 
@@ -684,7 +684,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
       _artifactHistory = nextHistory;
       _artifact = promoted;
       _saveMessage =
-          "à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¹€à¸à¹ˆà¸²à¸¡à¸²à¸ªà¸£à¹‰à¸²à¸‡à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸­à¸­à¸à¹ƒà¸«à¸¡à¹ˆà¹à¸¥à¹‰à¸§ à¹€à¸žà¸·à¹ˆà¸­à¸—à¸šà¸—à¸§à¸™à¸‹à¹‰à¸³à¹‚à¸”à¸¢à¹„à¸¡à¹ˆà¹€à¸ªà¸µà¸¢à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¹€à¸”à¸´à¸¡";
+          "คัดลอกเวอร์ชันเก่ามาสร้างการส่งออกใหม่แล้ว เพื่อทบทวนซ้ำโดยไม่เสียประวัติเดิม";
     });
   }
 
@@ -709,7 +709,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           if (item.artifactId != updated.artifactId) item,
       ]..sort((left, right) => right.generatedAt.compareTo(left.generatedAt));
       _artifact = updated;
-      _saveMessage = "à¸­à¸±à¸›à¹€à¸”à¸•à¸ªà¸–à¸²à¸™à¸°à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¹€à¸›à¹‡à¸™ ${nextState.name} à¹à¸¥à¹‰à¸§";
+      _saveMessage = "อัปเดตสถานะสแนปช็อตเป็น ${nextState.name} แล้ว";
     });
   }
 
@@ -739,26 +739,26 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     required int activeEntryCount,
   }) {
     if (activeEntryCount == 0) {
-      return "à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸ªà¸–à¸²à¸™à¸°: à¸•à¹‰à¸­à¸‡à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£à¸à¹ˆà¸­à¸™à¸•à¸±à¹‰à¸‡à¹€à¸›à¹‡à¸™à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™";
+      return "เงื่อนไขสถานะ: ต้องเปิดใช้งานอย่างน้อย 1 รายการก่อนตั้งเป็นพร้อมใช้งาน";
     }
     if (artifact.report.errorCount > 0) {
-      return "à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸ªà¸–à¸²à¸™à¸°: à¸•à¹‰à¸­à¸‡à¹à¸à¹‰à¸›à¸±à¸à¸«à¸²à¹à¸šà¸šà¸šà¸¥à¹‡à¸­à¸à¸à¹ˆà¸­à¸™ à¸ˆà¸¶à¸‡à¸ˆà¸°à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™à¸«à¸£à¸·à¸­à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹„à¸”à¹‰";
+      return "เงื่อนไขสถานะ: ต้องแก้ปัญหาแบบบล็อกก่อน จึงจะตรวจทานหรือพร้อมใช้งานได้";
     }
     if (artifact.artifactState == IntentArtifactState.exported) {
-      return "à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸ªà¸–à¸²à¸™à¸°: à¸«à¸¥à¸±à¸‡à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¹à¸¥à¹‰à¸§ à¹ƒà¸«à¹‰à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™à¹„à¸”à¹‰à¹€à¸¡à¸·à¹ˆà¸­à¹„à¸¡à¹ˆà¸¡à¸µà¸›à¸±à¸à¸«à¸²à¹à¸šà¸šà¸šà¸¥à¹‡à¸­à¸à¹à¸¥à¸°à¸¢à¸±à¸‡à¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™";
+      return "เงื่อนไขสถานะ: หลังสร้างสแนปช็อตแล้ว ให้ตรวจทานได้เมื่อไม่มีปัญหาแบบบล็อกและยังมีรายการที่เปิดใช้งาน";
     }
     if (artifact.artifactState == IntentArtifactState.reviewed &&
         !artifactInSync) {
-      return "à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸ªà¸–à¸²à¸™à¸°: à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸—à¸µà¹ˆà¸•à¸£à¸§à¸ˆà¸—à¸²à¸™à¹à¸¥à¹‰à¸§à¸ˆà¸°à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹„à¸”à¹‰ à¹€à¸¡à¸·à¹ˆà¸­à¸£à¹ˆà¸²à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¸¢à¸±à¸‡à¸•à¸£à¸‡à¸à¸±à¸šà¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•";
+      return "เงื่อนไขสถานะ: สแนปช็อตที่ตรวจทานแล้วจะพร้อมใช้งานได้ เมื่อร่างล่าสุดยังตรงกับสแนปช็อต";
     }
     if (artifact.artifactState == IntentArtifactState.reviewed &&
         artifactInSync) {
-      return "à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸ªà¸–à¸²à¸™à¸°: à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸™à¸µà¹‰à¸žà¸£à¹‰à¸­à¸¡à¹€à¸¥à¸·à¹ˆà¸­à¸™à¹„à¸›à¸ªà¸–à¸²à¸™à¸°à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ à¹€à¸žà¸£à¸²à¸°à¸£à¹ˆà¸²à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¸¢à¸±à¸‡à¸•à¸£à¸‡à¸à¸±à¸™";
+      return "เงื่อนไขสถานะ: สแนปช็อตนี้พร้อมเลื่อนไปสถานะพร้อมใช้งาน เพราะร่างล่าสุดยังตรงกัน";
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      return "à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸ªà¸–à¸²à¸™à¸°: à¸ªà¸–à¸²à¸™à¸°à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸ˆà¸°à¹€à¸Šà¸·à¹ˆà¸­à¸–à¸·à¸­à¹„à¸”à¹‰ à¸•à¸£à¸²à¸šà¹ƒà¸”à¸—à¸µà¹ˆà¸£à¹ˆà¸²à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¸¢à¸±à¸‡à¸•à¸£à¸‡à¸à¸±à¸šà¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•";
+      return "เงื่อนไขสถานะ: สถานะพร้อมใช้งานจะเชื่อถือได้ ตราบใดที่ร่างล่าสุดยังตรงกับสแนปช็อต";
     }
-    return "à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸ªà¸–à¸²à¸™à¸°: à¹ƒà¸«à¹‰à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸à¹ˆà¸­à¸™ à¸ˆà¸²à¸à¸™à¸±à¹‰à¸™à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™ à¹à¸¥à¹‰à¸§à¸„à¹ˆà¸­à¸¢à¸•à¸±à¹‰à¸‡à¹€à¸›à¹‡à¸™à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™";
+    return "เงื่อนไขสถานะ: ให้สร้างสแนปช็อตก่อน จากนั้นตรวจทาน แล้วค่อยตั้งเป็นพร้อมใช้งาน";
   }
 
   String _buildPolicyPaper(IntentCanonicalArtifactModel artifact) {
@@ -767,7 +767,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final beneficiaryName =
         widget.profile.beneficiaryName?.trim().isNotEmpty == true
             ? widget.profile.beneficiaryName!.trim()
-            : "à¸œà¸¹à¹‰à¸£à¸±à¸šà¸«à¸¥à¸±à¸";
+            : "ผู้รับหลัก";
     final beneficiaryEmail =
         widget.profile.beneficiaryEmail?.trim().isNotEmpty == true
             ? widget.profile.beneficiaryEmail!.trim()
@@ -783,43 +783,43 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         .map((destination) => destination.name)
         .toList();
     final partnerLine = partner == null
-        ? "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¹€à¸¥à¸·à¸­à¸"
+        ? "ยังไม่ได้เลือก"
         : "${partner.officeName} (${partner.province})";
     final destinationLine = selectedDestinations.isEmpty
-        ? "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¹€à¸¥à¸·à¸­à¸"
+        ? "ยังไม่ได้เลือก"
         : selectedDestinations.join(", " );
 
     return '''
-à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸£à¸¸à¸›à¸™à¹‚à¸¢à¸šà¸²à¸¢à¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (à¸‰à¸šà¸±à¸šà¸ªà¸¸à¸”à¸—à¹‰à¸²à¸¢)
+เอกสารสรุปนโยบายมรดกดิจิทัล (ฉบับสุดท้าย)
 
-à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 1: à¸ªà¸£à¸¸à¸›à¹€à¸ˆà¸•à¸ˆà¸³à¸™à¸‡
-- à¸Šà¸·à¹ˆà¸­à¹à¸œà¸™: à¹à¸œà¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥à¹ƒà¸«à¹‰à¸„à¸£à¸­à¸šà¸„à¸£à¸±à¸§
-- à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¹à¸œà¸™: ${widget.profile.id}
-- à¸œà¸¹à¹‰à¸£à¸±à¸š: $beneficiaryName ($beneficiaryEmail)
-- à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¹€à¸›à¹‡à¸™à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§: ${widget.settings.tracePrivacyProfile}
-- à¸£à¸«à¸±à¸ªà¹€à¸­à¸à¸ªà¸²à¸£: ${artifact.artifactId}
-- à¹€à¸§à¸¥à¸²à¸ªà¸£à¹‰à¸²à¸‡à¹€à¸­à¸à¸ªà¸²à¸£: ${artifact.generatedAt.toLocal()}
+ส่วนที่ 1: สรุปเจตจำนง
+- ชื่อแผน: แผนส่งมอบมรดกดิจิทัลให้ครอบครัว
+- เจ้าของแผน: ${widget.profile.id}
+- ผู้รับ: $beneficiaryName ($beneficiaryEmail)
+- ระดับความเป็นส่วนตัว: ${widget.settings.tracePrivacyProfile}
+- รหัสเอกสาร: ${artifact.artifactId}
+- เวลาสร้างเอกสาร: ${artifact.generatedAt.toLocal()}
 
-à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 2: à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸¡à¸­à¸š
-- à¹€à¸£à¸´à¹ˆà¸¡à¸•à¸£à¸§à¸ˆà¸à¸²à¸£à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¹€à¸¡à¸·à¹ˆà¸­à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¸„à¸£à¸š $inactivity à¸§à¸±à¸™
-- à¸£à¸­à¸Šà¹ˆà¸§à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡à¸­à¸µà¸ $grace à¸§à¸±à¸™à¸à¹ˆà¸­à¸™à¸›à¸¥à¹ˆà¸­à¸¢à¸‚à¹‰à¸­à¸¡à¸¹à¸¥
-- à¸£à¸°à¸”à¸±à¸šà¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™: $verifyLevel
-- à¹€à¸§à¸¥à¸²à¸«à¸™à¹ˆà¸§à¸‡à¸à¹ˆà¸­à¸™à¹€à¸›à¸´à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸£à¸´à¸‡: 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡
+ส่วนที่ 2: เงื่อนไขการส่งมอบ
+- เริ่มตรวจการส่งมอบเมื่อขาดการติดต่อครบ $inactivity วัน
+- รอช่วงยืนยันความปลอดภัยเพิ่มเติมอีก $grace วันก่อนปล่อยข้อมูล
+- ระดับการยืนยันตัวตน: $verifyLevel
+- เวลาหน่วงก่อนเปิดข้อมูลจริง: 24 ชั่วโมง
 
-à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 3: à¸ªà¸´à¸—à¸˜à¸´à¹Œà¹à¸¥à¸°à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡
-- à¸ªà¸´à¸—à¸˜à¸´à¹Œà¸œà¸¹à¹‰à¸£à¸±à¸š: à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡à¹à¸žà¹‡à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸šà¸šà¸­à¹ˆà¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¹€à¸”à¸µà¸¢à¸§
-- à¸šà¸—à¸šà¸²à¸—à¸£à¸°à¸šà¸š: à¸•à¸£à¸§à¸ˆà¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¹à¸¥à¸°à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸œà¹ˆà¸²à¸™à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹„à¸§à¹‰
-- à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸«à¸¥à¸±à¸: ${primary?.releaseChannel ?? "secure_link"}
+ส่วนที่ 3: สิทธิ์และการเข้าถึง
+- สิทธิ์ผู้รับ: เข้าถึงแพ็กข้อมูลแบบอ่านอย่างเดียว
+- บทบาทระบบ: ตรวจเงื่อนไขและส่งมอบผ่านช่องทางที่อนุมัติไว้
+- ช่องทางส่งมอบหลัก: ${primary?.releaseChannel ?? "secure_link"}
 
-à¸ªà¹ˆà¸§à¸™à¸—à¸µà¹ˆ 4: à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¹à¸¥à¸°à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡
-- à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢: $partnerLine
-- à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¹ƒà¸™ ecosystem: $destinationLine
-- à¸ªà¸–à¸²à¸™à¸°à¸à¸²à¸£à¸¢à¸­à¸¡à¸£à¸±à¸šà¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œ: ${_partnerTermsAccepted ? "à¸¢à¸­à¸¡à¸£à¸±à¸šà¹à¸¥à¹‰à¸§" : "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¢à¸­à¸¡à¸£à¸±à¸š"}
+ส่วนที่ 4: พาร์ทเนอร์และปลายทาง
+- สำนักงานกฎหมาย: $partnerLine
+- ปลายทางใน ecosystem: $destinationLine
+- สถานะการยอมรับค่าธรรมเนียมพาร์ทเนอร์: ${_partnerTermsAccepted ? "ยอมรับแล้ว" : "ยังไม่ยอมรับ"}
 
-à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸
-- à¸ªà¸£à¸¸à¸›à¸™à¸µà¹‰à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸ˆà¸²à¸à¹€à¸­à¸à¸ªà¸²à¸£à¸—à¸µà¹ˆ export à¸¥à¹ˆà¸²à¸ªà¸¸à¸”
-- à¹à¸­à¸›à¹„à¸¡à¹ˆà¹€à¸à¹‡à¸šà¸¢à¸­à¸”à¹€à¸‡à¸´à¸™à¸ˆà¸£à¸´à¸‡ à¹à¸¥à¸°à¹„à¸¡à¹ˆà¸–à¸·à¸­à¸„à¸£à¸­à¸‡à¹€à¸‡à¸´à¸™à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰
-- à¸¢à¸­à¸”à¹€à¸‡à¸´à¸™à¸ˆà¸£à¸´à¸‡à¸•à¹‰à¸­à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸à¸±à¸šà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¹‚à¸”à¸¢à¸•à¸£à¸‡ (à¸˜à¸™à¸²à¸„à¸²à¸£/Exchange/à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸à¸Žà¸«à¸¡à¸²à¸¢)
+หมายเหตุ
+- สรุปนี้อ้างอิงจากเอกสารที่ export ล่าสุด
+- แอปไม่เก็บยอดเงินจริง และไม่ถือครองเงินผู้ใช้
+- ยอดเงินจริงต้องตรวจสอบกับปลายทางโดยตรง (ธนาคาร/Exchange/พาร์ทเนอร์กฎหมาย)
 ''';
   }
 
@@ -834,7 +834,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸£à¸¸à¸›à¸™à¹‚à¸¢à¸šà¸²à¸¢"),
+        title: const Text("เอกสารสรุปนโยบาย"),
         content: SizedBox(
           width: 560,
           child: SingleChildScrollView(
@@ -852,7 +852,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  "QR à¸ªà¸³à¸«à¸£à¸±à¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹€à¸­à¸à¸ªà¸²à¸£",
+                  "QR สำหรับตรวจสอบเอกสาร",
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
@@ -875,16 +875,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text("à¸›à¸´à¸”"),
+            child: const Text("ปิด"),
           ),
           FilledButton.tonal(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: paper));
               messenger.showSnackBar(
-                const SnackBar(content: Text("à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸£à¸¸à¸›à¸™à¹‚à¸¢à¸šà¸²à¸¢à¹à¸¥à¹‰à¸§")),
+                const SnackBar(content: Text("คัดลอกเอกสารสรุปนโยบายแล้ว")),
               );
             },
-            child: const Text("à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸­à¸à¸ªà¸²à¸£"),
+            child: const Text("คัดลอกเอกสาร"),
           ),
         ],
       ),
@@ -894,19 +894,19 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   List<String> _artifactBadges(IntentCanonicalArtifactModel artifact) {
     final badges = <String>[];
     if (_artifact != null && artifact.artifactId == _artifact!.artifactId) {
-      badges.add("à¸¥à¹ˆà¸²à¸ªà¸¸à¸”");
+      badges.add("ล่าสุด");
     }
     if (artifact.promotedFromArtifactId != null &&
         artifact.promotedFromArtifactId!.isNotEmpty) {
-      badges.add("à¸„à¸±à¸”à¸¥à¸­à¸à¸¡à¸²");
+      badges.add("คัดลอกมา");
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      badges.add("à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™");
+      badges.add("พร้อมใช้งาน");
     } else if (artifact.artifactState == IntentArtifactState.reviewed) {
-      badges.add("à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™à¹à¸¥à¹‰à¸§");
+      badges.add("ตรวจทานแล้ว");
     }
     if (artifact.report.errorCount > 0) {
-      badges.add("à¸¡à¸µà¸›à¸±à¸à¸«à¸²");
+      badges.add("มีปัญหา");
     }
     return badges;
   }
@@ -965,7 +965,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           const SizedBox(width: 8),
           Expanded(child: Text(message)),
           if (isError && onRetry != null)
-            TextButton(onPressed: onRetry, child: const Text("à¸¥à¸­à¸‡à¹ƒà¸«à¸¡à¹ˆ")),
+            TextButton(onPressed: onRetry, child: const Text("ลองใหม่")),
         ],
       ),
     );
@@ -998,7 +998,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     var output = input;
     output = output.replaceAllMapped(
       RegExp(
-        r'\b(thb|baht|usd|eur|à¸šà¸²à¸—)\s*[\d,]+(?:\.\d{1,2})?\b',
+        r'\\b(thb|baht|usd|eur|บาท)\\s*[\\d,]+(?:\\.\\d{1,2})?\\b',
         caseSensitive: false,
       ),
       (_) => '[institution-verified amount]',
@@ -1009,7 +1009,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     );
     output = output.replaceAllMapped(
       RegExp(
-        r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?\s*(thb|baht|à¸šà¸²à¸—)?(?!\w)',
+        r'(?<!\\w)[\\d]{5,}(?:\\.\\d{1,2})?\\s*(thb|baht|บาท)?(?!\\w)',
         caseSensitive: false,
       ),
       (_) => '[institution-verified amount]',
@@ -1092,9 +1092,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _partnerCatalogSourceText() {
     switch (_partnerCatalogSourceLabel) {
       case 'admin_api':
-        return 'à¹à¸«à¸¥à¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥: Admin API';
+        return 'แหล่งข้อมูล: Admin API';
       case 'admin_config':
-        return 'à¹à¸«à¸¥à¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥: Admin Config';
+        return 'แหล่งข้อมูล: Admin Config';
       case 'unavailable':
         return 'Source unavailable';
       default:
@@ -1105,9 +1105,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   String _ecosystemCatalogSourceText() {
     switch (_ecosystemCatalogSourceLabel) {
       case 'admin_api':
-        return 'à¹à¸«à¸¥à¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥: Admin API';
+        return 'แหล่งข้อมูล: Admin API';
       case 'admin_config':
-        return 'à¹à¸«à¸¥à¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥: Admin Config';
+        return 'แหล่งข้อมูล: Admin Config';
       case 'unavailable':
         return 'Source unavailable';
       default:
@@ -1134,12 +1134,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               children: [
                 const Expanded(
                   child: Text(
-                    "à¹€à¸„à¸£à¸·à¸­à¸‚à¹ˆà¸²à¸¢à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢",
+                    "เครือข่ายสำนักงานกฎหมาย",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'à¸£à¸µà¹€à¸Ÿà¸£à¸Šà¸£à¸²à¸¢à¸Šà¸·à¹ˆà¸­à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œ',
+                  tooltip: 'รีเฟรชรายชื่อพาร์ทเนอร์',
                   onPressed: _partnerCatalogLoading
                       ? null
                       : () {
@@ -1152,7 +1152,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              "à¹€à¸¥à¸·à¸­à¸à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¹à¸¥à¹‰à¸§ à¸žà¸£à¹‰à¸­à¸¡à¸•à¸²à¸£à¸²à¸‡à¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸—à¸µà¹ˆà¹‚à¸›à¸£à¹ˆà¸‡à¹ƒà¸ªà¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸‡à¸²à¸™à¸ˆà¸£à¸´à¸‡",
+              "เลือกสำนักงานกฎหมายที่ผ่านการตรวจสอบแล้ว พร้อมตารางค่าธรรมเนียมที่โปร่งใสก่อนส่งมอบงานจริง",
             ),
             const SizedBox(height: 4),
             Container(
@@ -1177,7 +1177,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               controller: _assetValueController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: "à¸¡à¸¹à¸¥à¸„à¹ˆà¸²à¸›à¸£à¸°à¸¡à¸²à¸“à¸à¸²à¸£ (THB)",
+                labelText: "มูลค่าประมาณการ (THB)",
                 prefixText: "THB ",
                 filled: true,
                 fillColor:
@@ -1193,12 +1193,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               const LinearProgressIndicator(minHeight: 4),
               const SizedBox(height: 8),
               const Text(
-                "à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹€à¸”à¸•à¸£à¸²à¸¢à¸Šà¸·à¹ˆà¸­à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š...",
+                "กำลังอัปเดตรายชื่อพาร์ทเนอร์ที่ผ่านการตรวจสอบ...",
               ),
               const SizedBox(height: 12),
             ],
             const Text(
-              "à¹à¸ªà¸”à¸‡à¹€à¸‰à¸žà¸²à¸°à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¹à¸¥à¹‰à¸§à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™",
+              "แสดงเฉพาะพาร์ทเนอร์ที่ผ่านการยืนยันแล้วเท่านั้น",
             ),
             const SizedBox(height: 12),
             if (_verifiedLegalPartners.isEmpty)
@@ -1213,7 +1213,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸ˆà¸²à¸à¸£à¸°à¸šà¸šà¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™ à¹€à¸¡à¸·à¹ˆà¸­ Admin à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸¥à¹‰à¸§à¸ˆà¸°à¸‚à¸¶à¹‰à¸™à¸—à¸µà¹ˆà¸™à¸µà¹ˆà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´",
+                  "ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบหลังบ้าน เมื่อ Admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
                 ),
               ),
             ..._verifiedLegalPartners.map((partner) {
@@ -1248,16 +1248,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             ),
                           ),
                           if (partner.isVerified)
-                            const _Pill(label: "à¸¢à¸·à¸™à¸¢à¸±à¸™à¹à¸¥à¹‰à¸§"),
+                            const _Pill(label: "ยืนยันแล้ว"),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "${partner.province} â€¢ SLA ${partner.slaHours} à¸Šà¸¡. â€¢ à¸„à¸°à¹à¸™à¸™à¸£à¸µà¸§à¸´à¸§ ${partner.rating.toStringAsFixed(1)}",
+                        "${partner.province} • SLA ${partner.slaHours} ชม. • คะแนนรีวิว ${partner.rating.toStringAsFixed(1)}",
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "à¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸£à¸§à¸¡à¹‚à¸”à¸¢à¸›à¸£à¸°à¸¡à¸²à¸“: THB ${_money(fee.totalFee)} (à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™ ${fee.officePercent.toStringAsFixed(2)}% + à¸—à¸™à¸²à¸¢ ${fee.lawyerPercent.toStringAsFixed(2)}% + à¹à¸žà¸¥à¸•à¸Ÿà¸­à¸£à¹Œà¸¡ ${fee.platformPercent.toStringAsFixed(2)}%)",
+                        "ค่าธรรมเนียมรวมโดยประมาณ: THB ${_money(fee.totalFee)} (สำนักงาน ${fee.officePercent.toStringAsFixed(2)}% + ทนาย ${fee.lawyerPercent.toStringAsFixed(2)}% + แพลตฟอร์ม ${fee.platformPercent.toStringAsFixed(2)}%)",
                       ),
                       const SizedBox(height: 6),
                       Wrap(
@@ -1267,14 +1267,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             .map(
                               (tier) => _Pill(
                                 label:
-                                    "à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™ ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
+                                    "สำนักงาน ${tier.rangeLabel()} = ${tier.percent.toStringAsFixed(2)}%",
                               ),
                             )
                             .toList(),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸: ${partner.otherFeeNote}",
+                        "หมายเหตุ: ${partner.otherFeeNote}",
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 8),
@@ -1286,7 +1286,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           });
                         },
                         child: Text(
-                          isSelected ? "à¹€à¸¥à¸·à¸­à¸à¹à¸¥à¹‰à¸§" : "à¹€à¸¥à¸·à¸­à¸à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸™à¸µà¹‰",
+                          isSelected ? "เลือกแล้ว" : "เลือกสำนักงานนี้",
                         ),
                       ),
                     ],
@@ -1303,7 +1303,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   setState(() => _partnerTermsAccepted = value ?? false);
                 },
                 title: Text(
-                  "à¸¢à¸­à¸¡à¸£à¸±à¸šà¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸‚à¸­à¸‡ ${selected.officeName} (à¸›à¸£à¸°à¸¡à¸²à¸“ THB ${_money(estimate.totalFee)}) à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸‡à¸²à¸™",
+                  "ยอมรับเงื่อนไขค่าธรรมเนียมของ ${selected.officeName} (ประมาณ THB ${_money(estimate.totalFee)}) ก่อนส่งมอบงาน",
                 ),
               ),
             ],
@@ -1326,12 +1326,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¹ƒà¸™ Ecosystem",
+              "ปลายทางใน Ecosystem",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             const Text(
-              "à¹€à¸¥à¸·à¸­à¸à¸«à¸™à¹ˆà¸§à¸¢à¸‡à¸²à¸™à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸ˆà¸°à¸£à¸±à¸š policy packet à¹à¸¥à¸°à¸„à¸³à¸‚à¸­à¹€à¸­à¸à¸ªà¸²à¸£ à¹‚à¸”à¸¢à¹à¸­à¸›à¸ˆà¸°à¹„à¸¡à¹ˆà¸—à¸³à¸à¸²à¸£à¹‚à¸­à¸™à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´",
+              "เลือกหน่วยงานปลายทางที่จะรับ policy packet และคำขอเอกสาร โดยแอปจะไม่ทำการโอนอัตโนมัติ",
             ),
             const SizedBox(height: 4),
             Container(
@@ -1356,14 +1356,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               const LinearProgressIndicator(minHeight: 4),
               const SizedBox(height: 8),
               const Text(
-                "à¸à¸³à¸¥à¸±à¸‡à¸­à¸±à¸›à¹€à¸”à¸•à¸£à¸²à¸¢à¸Šà¸·à¹ˆà¸­à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š...",
+                "กำลังอัปเดตรายชื่อปลายทางที่ผ่านการตรวจสอบ...",
               ),
               const SizedBox(height: 12),
             ],
             Row(
               children: [
                 const Expanded(
-                  child: Text("à¹à¸ªà¸”à¸‡à¹€à¸‰à¸žà¸²à¸°à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¹à¸¥à¹‰à¸§"),
+                  child: Text("แสดงเฉพาะปลายทางที่ผ่านการยืนยันแล้ว"),
                 ),
                 IconButton(
                   tooltip: 'Refresh ecosystem list',
@@ -1389,7 +1389,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   ),
                 ),
                 child: const Text(
-                  "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡ Ecosystem à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸ˆà¸²à¸à¸£à¸°à¸šà¸šà¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™ à¹€à¸¡à¸·à¹ˆà¸­ Admin à¸­à¸™à¸¸à¸¡à¸±à¸•à¸´à¹à¸¥à¹‰à¸§à¸ˆà¸°à¸‚à¸¶à¹‰à¸™à¸—à¸µà¹ˆà¸™à¸µà¹ˆà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´",
+                  "ยังไม่มีปลายทาง Ecosystem ที่ผ่านการยืนยันจากระบบหลังบ้าน เมื่อ Admin อนุมัติแล้วจะขึ้นที่นี่อัตโนมัติ",
                 ),
               ),
             ..._verifiedDestinations.map((destination) {
@@ -1415,7 +1415,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
             if (_selectedDestinationIds.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                "à¸ˆà¸³à¸™à¸§à¸™à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸: ${_selectedDestinationIds.length}",
+                "จำนวนปลายทางที่เลือก: ${_selectedDestinationIds.length}",
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ],
@@ -1428,7 +1428,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final screenTitle = widget.screenTitle ?? "à¹à¸œà¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸‚à¸­à¸‡à¸„à¸¸à¸“";
+    final screenTitle = widget.screenTitle ?? "แผนส่งมอบของคุณ";
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: Text(screenTitle)),
@@ -1441,7 +1441,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 CircularProgressIndicator(),
                 SizedBox(height: 12),
                 Text(
-                  "à¸à¸³à¸¥à¸±à¸‡à¹‚à¸«à¸¥à¸”à¸£à¹ˆà¸²à¸‡à¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸¥à¸°à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™à¸¥à¹ˆà¸²à¸ªà¸¸à¸”...",
+                  "กำลังโหลดร่างเข้ารหัสในเครื่องและประวัติเวอร์ชันล่าสุด...",
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -1465,7 +1465,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     final ptnPreview = buildDraftIntentPtnPreview(_document);
     final draftSignature = buildIntentDocumentSignature(_document);
     final screenSubtitle = widget.screenSubtitle ??
-        "à¸‚à¸±à¹‰à¸™à¸—à¸µà¹ˆ 2 à¸ˆà¸²à¸ 3: à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹à¸œà¸™à¸”à¹‰à¸§à¸¢à¸ à¸²à¸©à¸²à¸‡à¹ˆà¸²à¸¢à¹† à¹à¸¥à¹‰à¸§à¸à¸”à¸¢à¸·à¸™à¸¢à¸±à¸™";
+        "ขั้นที่ 2 จาก 3: ตั้งค่าแผนด้วยภาษาง่ายๆ แล้วกดยืนยัน";
     final demoScenarioTitle = _activeScenario != null
         ? _scenarioTitleHuman(_activeScenario!)
         : _document.metadata["demo_title"] as String?;
@@ -1507,7 +1507,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         actions: [
           Row(
             children: [
-              const Text("à¹‚à¸«à¸¡à¸”à¸‚à¸±à¹‰à¸™à¸ªà¸¹à¸‡"),
+              const Text("โหมดขั้นสูง"),
               Switch.adaptive(
                 value: _showAdvanced,
                 onChanged: (value) {
@@ -1520,7 +1520,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
           ),
           TextButton(
             onPressed: _hasLocalDraft ? _resetDraft : null,
-            child: const Text("à¹€à¸£à¸´à¹ˆà¸¡à¹ƒà¸«à¸¡à¹ˆ"),
+            child: const Text("เริ่มใหม่"),
           ),
         ],
       ),
@@ -1542,7 +1542,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "à¸‚à¸±à¹‰à¸™à¸—à¸µà¹ˆ 2 à¸ˆà¸²à¸ 3: à¸ˆà¸±à¸”à¹à¸œà¸™à¹ƒà¸«à¹‰à¸žà¸£à¹‰à¸­à¸¡",
+                    "ขั้นที่ 2 จาก 3: จัดแผนให้พร้อม",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -1562,15 +1562,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "à¸—à¸³à¸•à¸²à¸¡à¸™à¸µà¹‰à¹„à¸”à¹‰à¹€à¸¥à¸¢",
+                          "ทำตามนี้ได้เลย",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 6),
-                        Text("1. à¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¸—à¸µà¹ˆà¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£"),
+                        Text("1. มีรายการส่งต่อที่เปิดใช้งานอย่างน้อย 1 รายการ"),
                         SizedBox(height: 4),
-                        Text("2. à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¹à¸œà¸™ à¹à¸¥à¹‰à¸§à¸”à¸¹à¸„à¸³à¹€à¸•à¸·à¸­à¸™"),
+                        Text("2. สร้างสแนปช็อตแผน แล้วดูคำเตือน"),
                         SizedBox(height: 4),
-                        Text("3. à¸à¸”à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ à¹€à¸¡à¸·à¹ˆà¸­à¸£à¹ˆà¸²à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¸•à¸£à¸‡à¸à¸±à¸šà¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•"),
+                        Text("3. กดพร้อมใช้งาน เมื่อร่างล่าสุดตรงกับสแนปช็อต"),
                       ],
                     ),
                   ),
@@ -1591,7 +1591,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "à¸ˆà¸²à¸à¸«à¸™à¹‰à¸²à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™: $demoScenarioTitle",
+                            "จากหน้าเริ่มต้น: $demoScenarioTitle",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           if (demoScenarioSummary != null) ...[
@@ -1606,12 +1606,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   FilledButton.icon(
                     onPressed: canMarkReady ? _completeSetupFlow : null,
                     icon: const Icon(Icons.check_circle_outline),
-                    label: const Text("à¹€à¸ªà¸£à¹‡à¸ˆà¸ªà¸´à¹‰à¸™à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²"),
+                    label: const Text("เสร็จสิ้นการตั้งค่า"),
                   ),
                   if (!canMarkReady) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£ à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸• à¹à¸¥à¸°à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™à¸à¹ˆà¸­à¸™",
+                      "ต้องมีรายการที่เปิดใช้งานอย่างน้อย 1 รายการ สร้างสแนปช็อต และตรวจทานก่อน",
                       style: TextStyle(
                         color: scheme.onSurfaceVariant,
                         fontSize: 12,
@@ -1625,16 +1625,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     children: [
                       _Pill(
                         label: _hasLocalDraft
-                            ? "à¸šà¸±à¸™à¸—à¸¶à¸à¸£à¹ˆà¸²à¸‡à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡: à¹€à¸›à¸´à¸”à¸­à¸¢à¸¹à¹ˆ"
-                            : "à¹ƒà¸Šà¹‰à¸„à¹ˆà¸²à¸•à¸±à¹‰à¸‡à¸•à¹‰à¸™à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™",
+                            ? "บันทึกร่างในเครื่อง: เปิดอยู่"
+                            : "ใช้ค่าตั้งต้นเริ่มต้น",
                       ),
                       _Pill(
-                        label: "à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¹€à¸›à¹‡à¸™à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§: ${_document.defaultPrivacyProfile}",
+                        label: "ระดับความเป็นส่วนตัว: ${_document.defaultPrivacyProfile}",
                       ),
-                      _Pill(label: "à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”: ${_document.entries.length}"),
-                      _Pill(label: "à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™: $activeEntryCount"),
+                      _Pill(label: "รายการทั้งหมด: ${_document.entries.length}"),
+                      _Pill(label: "เปิดใช้งาน: $activeEntryCount"),
                       _Pill(
-                        label: "à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•: ${_artifactHistory.length}",
+                        label: "สแนปช็อต: ${_artifactHistory.length}",
                       ),
                     ],
                   ),
@@ -1668,12 +1668,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "à¹€à¸£à¸´à¹ˆà¸¡à¹€à¸£à¹‡à¸§à¸”à¹‰à¸§à¸¢à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡",
+                    "เริ่มเร็วด้วยตัวอย่าง",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "à¹€à¸¥à¸·à¸­à¸à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡ 1 à¹à¸šà¸šà¹€à¸žà¸·à¹ˆà¸­à¹€à¸•à¸´à¸¡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´ à¹à¸¥à¹‰à¸§à¸„à¹ˆà¸­à¸¢à¹à¸à¹‰à¹ƒà¸«à¹‰à¸•à¸£à¸‡à¸à¸±à¸šà¹€à¸„à¸ªà¸ˆà¸£à¸´à¸‡à¸‚à¸­à¸‡à¸„à¸¸à¸“",
+                    "เลือกตัวอย่าง 1 แบบเพื่อเติมข้อมูลอัตโนมัติ แล้วค่อยแก้ให้ตรงกับเคสจริงของคุณ",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -1708,7 +1708,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸: ${_scenarioTitleHuman(_activeScenario!)}",
+                            "ตัวอย่างที่เลือก: ${_scenarioTitleHuman(_activeScenario!)}",
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 6),
@@ -1716,7 +1716,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           if (demoScenarioNextStep != null) ...[
                             const SizedBox(height: 8),
                             Text(
-                              "à¸‚à¸±à¹‰à¸™à¸–à¸±à¸”à¹„à¸›: $demoScenarioNextStep",
+                              "ขั้นถัดไป: $demoScenarioNextStep",
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1749,12 +1749,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "à¸£à¹ˆà¸²à¸‡à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡",
+                    "ร่างส่วนตัวในเครื่อง",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "à¹à¸œà¸™à¸‚à¸­à¸‡à¸„à¸¸à¸“à¸–à¸¹à¸à¹€à¸‚à¹‰à¸²à¸£à¸«à¸±à¸ªà¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸™à¸µà¹‰ à¹à¸¥à¸°à¸ˆà¸°à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹€à¸œà¸¢à¹à¸žà¸£à¹ˆà¸ˆà¸™à¸à¸§à¹ˆà¸²à¸ˆà¸° Export à¹à¸¥à¸°à¸¢à¸·à¸™à¸¢à¸±à¸™à¸„à¸§à¸²à¸¡à¸žà¸£à¹‰à¸­à¸¡",
+                    "แผนของคุณถูกเข้ารหัสในเครื่องนี้ และจะยังไม่เผยแพร่จนกว่าจะ Export และยืนยันความพร้อม",
                   ),
                 ],
               ),
@@ -1774,19 +1774,19 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¹à¸¥à¸°à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™",
+                    "การยืนยันร่วมกันและโหมดฉุกเฉิน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "à¹ƒà¸Šà¹‰à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¸à¸±à¸šà¸à¸²à¸£à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸—à¸µà¹ˆà¸ªà¸³à¸„à¸±à¸ à¹à¸¥à¸°à¹à¸¢à¸à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™à¹„à¸§à¹‰à¸ªà¸³à¸«à¸£à¸±à¸šà¸à¸£à¸“à¸µà¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸•à¸­à¸šà¸ªà¸™à¸­à¸‡à¹„à¸”à¹‰",
+                    "ใช้การยืนยันร่วมกันกับการส่งมอบที่สำคัญ และแยกโหมดฉุกเฉินไว้สำหรับกรณีเจ้าของไม่สามารถตอบสนองได้",
                   ),
                   const SizedBox(height: 12),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text("à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¹ˆà¸§à¸¡à¸à¸±à¸™"),
+                    title: const Text("เปิดใช้การยืนยันร่วมกัน"),
                     subtitle: const Text(
-                      "à¹à¸™à¸°à¸™à¸³à¹ƒà¸«à¹‰à¹ƒà¸Šà¹‰ 2 à¸ˆà¸²à¸ 3 à¸„à¸™ à¸ªà¸³à¸«à¸£à¸±à¸šà¸à¸²à¸£à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸—à¸µà¹ˆà¸ªà¸³à¸„à¸±à¸",
+                      "แนะนำให้ใช้ 2 จาก 3 คน สำหรับการส่งมอบที่สำคัญ",
                     ),
                     value: _document.globalSafeguards.guardianQuorumEnabled,
                     onChanged: (value) {
@@ -1830,14 +1830,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           iosBackgroundRiskAcknowledged: _document
                               .globalSafeguards.iosBackgroundRiskAcknowledged,
                         ),
-                        message: "à¸­à¸±à¸›à¹€à¸”à¸•à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¹à¸¥à¹‰à¸§",
+                        message: "อัปเดตการตั้งค่าการยืนยันร่วมกันแล้ว",
                       );
                     },
                   ),
                   if (_document.globalSafeguards.guardianQuorumEnabled) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "à¹€à¸à¸“à¸‘à¹Œà¸¢à¸·à¸™à¸¢à¸±à¸™à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™: ${_document.globalSafeguards.guardianQuorumRequired} à¸ˆà¸²à¸ ${_document.globalSafeguards.guardianQuorumPoolSize} à¸„à¸™",
+                      "เกณฑ์ยืนยันปัจจุบัน: ${_document.globalSafeguards.guardianQuorumRequired} จาก ${_document.globalSafeguards.guardianQuorumPoolSize} คน",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
@@ -1845,13 +1845,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       initialValue:
                           _document.globalSafeguards.guardianQuorumPoolSize,
                       decoration: const InputDecoration(
-                        labelText: "à¸ˆà¸³à¸™à¸§à¸™à¸œà¸¹à¹‰à¸¢à¸·à¸™à¸¢à¸±à¸™à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”",
+                        labelText: "จำนวนผู้ยืนยันทั้งหมด",
                       ),
                       items: const [
-                        DropdownMenuItem(value: 2, child: Text("2 à¸„à¸™")),
-                        DropdownMenuItem(value: 3, child: Text("3 à¸„à¸™")),
-                        DropdownMenuItem(value: 4, child: Text("4 à¸„à¸™")),
-                        DropdownMenuItem(value: 5, child: Text("5 à¸„à¸™")),
+                        DropdownMenuItem(value: 2, child: Text("2 คน")),
+                        DropdownMenuItem(value: 3, child: Text("3 คน")),
+                        DropdownMenuItem(value: 4, child: Text("4 คน")),
+                        DropdownMenuItem(value: 5, child: Text("5 คน")),
                       ],
                       onChanged: (value) {
                         if (value == null) {
@@ -1897,7 +1897,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "à¸­à¸±à¸›à¹€à¸”à¸•à¸ˆà¸³à¸™à¸§à¸™à¸œà¸¹à¹‰à¸¢à¸·à¸™à¸¢à¸±à¸™à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”à¹à¸¥à¹‰à¸§",
+                          message: "อัปเดตจำนวนผู้ยืนยันทั้งหมดแล้ว",
                         );
                       },
                     ),
@@ -1906,13 +1906,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       initialValue:
                           _document.globalSafeguards.guardianQuorumRequired,
                       decoration: const InputDecoration(
-                        labelText: "à¸ˆà¸³à¸™à¸§à¸™à¸œà¸¹à¹‰à¸¢à¸·à¸™à¸¢à¸±à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸„à¸£à¸š",
+                        labelText: "จำนวนผู้ยืนยันที่ต้องครบ",
                       ),
                       items: List.generate(
                         _document.globalSafeguards.guardianQuorumPoolSize,
                         (index) => DropdownMenuItem(
                           value: index + 1,
-                          child: Text("${index + 1} à¸„à¸™"),
+                          child: Text("${index + 1} คน"),
                         ),
                       ),
                       onChanged: (value) {
@@ -1958,7 +1958,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "à¸­à¸±à¸›à¹€à¸”à¸•à¸ˆà¸³à¸™à¸§à¸™à¸œà¸¹à¹‰à¸¢à¸·à¸™à¸¢à¸±à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸„à¸£à¸šà¹à¸¥à¹‰à¸§",
+                          message: "อัปเดตจำนวนผู้ยืนยันที่ต้องครบแล้ว",
                         );
                       },
                     ),
@@ -1966,9 +1966,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   const SizedBox(height: 12),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text("à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™"),
+                    title: const Text("เปิดใช้โหมดฉุกเฉิน"),
                     subtitle: const Text(
-                      "à¹ƒà¸Šà¹‰à¹€à¸¡à¸·à¹ˆà¸­à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸•à¸­à¸šà¸ªà¸™à¸­à¸‡à¹„à¸”à¹‰à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™ (à¹€à¸Šà¹ˆà¸™ ICU) à¹à¸¢à¸à¸ˆà¸²à¸à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¸•à¸²à¸¡à¸à¸²à¸£à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­",
+                      "ใช้เมื่อเจ้าของไม่สามารถตอบสนองได้เท่านั้น (เช่น ICU) แยกจากการส่งมอบตามการขาดการติดต่อ",
                     ),
                     value: _document.globalSafeguards.emergencyAccessEnabled,
                     onChanged: (value) {
@@ -2009,16 +2009,16 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           iosBackgroundRiskAcknowledged: _document
                               .globalSafeguards.iosBackgroundRiskAcknowledged,
                         ),
-                        message: "à¸­à¸±à¸›à¹€à¸”à¸•à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™à¹à¸¥à¹‰à¸§",
+                        message: "อัปเดตการตั้งค่าโหมดฉุกเฉินแล้ว",
                       );
                     },
                   ),
                   if (_document.globalSafeguards.emergencyAccessEnabled) ...[
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text("à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸„à¸³à¸‚à¸­à¸ˆà¸²à¸à¸œà¸¹à¹‰à¸£à¸±à¸šà¸à¹ˆà¸­à¸™"),
+                      title: const Text("ต้องมีคำขอจากผู้รับก่อน"),
                       subtitle: const Text(
-                        "à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™à¸ˆà¸°à¹€à¸£à¸´à¹ˆà¸¡à¹€à¸¡à¸·à¹ˆà¸­à¸œà¸¹à¹‰à¸£à¸±à¸šà¸¢à¸·à¹ˆà¸™à¸„à¸³à¸‚à¸­à¸­à¸¢à¹ˆà¸²à¸‡à¸Šà¸±à¸”à¹€à¸ˆà¸™",
+                        "โหมดฉุกเฉินจะเริ่มเมื่อผู้รับยื่นคำขออย่างชัดเจน",
                       ),
                       value: _document.globalSafeguards
                           .emergencyAccessRequiresBeneficiaryRequest,
@@ -2062,15 +2062,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "à¸­à¸±à¸›à¹€à¸”à¸•à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸„à¸³à¸‚à¸­à¸ˆà¸²à¸à¸œà¸¹à¹‰à¸£à¸±à¸šà¹à¸¥à¹‰à¸§",
+                          message: "อัปเดตเงื่อนไขคำขอจากผู้รับแล้ว",
                         );
                       },
                     ),
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text("à¸•à¹‰à¸­à¸‡à¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¹ˆà¸§à¸¡à¸à¸±à¸™"),
+                      title: const Text("ต้องผ่านการยืนยันร่วมกัน"),
                       subtitle: const Text(
-                        "à¹à¸™à¸°à¸™à¸³à¹ƒà¸«à¹‰à¹€à¸›à¸´à¸”à¹„à¸§à¹‰ à¹€à¸žà¸·à¹ˆà¸­à¹ƒà¸«à¹‰à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™à¹‚à¸›à¸£à¹ˆà¸‡à¹ƒà¸ªà¹à¸¥à¸°à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸¢à¹‰à¸­à¸™à¸«à¸¥à¸±à¸‡à¹„à¸”à¹‰",
+                        "แนะนำให้เปิดไว้ เพื่อให้โหมดฉุกเฉินโปร่งใสและตรวจสอบย้อนหลังได้",
                       ),
                       value: _document.globalSafeguards
                           .emergencyAccessRequiresGuardianQuorum,
@@ -2115,13 +2115,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
                           message:
-                              "à¸­à¸±à¸›à¹€à¸”à¸•à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸£à¹ˆà¸§à¸¡à¸à¸±à¸™à¹ƒà¸™à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™à¹à¸¥à¹‰à¸§",
+                              "อัปเดตเงื่อนไขการยืนยันร่วมกันในโหมดฉุกเฉินแล้ว",
                         );
                       },
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "à¸£à¸°à¸¢à¸°à¹€à¸§à¸¥à¸²à¸£à¸­à¸à¹ˆà¸­à¸™à¸›à¸¥à¸”à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™: ${_document.globalSafeguards.emergencyAccessGraceHours} à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡",
+                      "ระยะเวลารอก่อนปลดโหมดฉุกเฉิน: ${_document.globalSafeguards.emergencyAccessGraceHours} ชั่วโมง",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Slider(
@@ -2173,7 +2173,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "à¸­à¸±à¸›à¹€à¸”à¸•à¸£à¸°à¸¢à¸°à¹€à¸§à¸¥à¸²à¸£à¸­à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™à¹à¸¥à¹‰à¸§",
+                          message: "อัปเดตระยะเวลารอโหมดฉุกเฉินแล้ว",
                         );
                       },
                     ),
@@ -2188,7 +2188,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¸—à¸µà¹ˆà¸„à¸¸à¸“à¸”à¸¹à¹à¸¥",
+                  "รายการส่งต่อที่คุณดูแล",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
@@ -2196,7 +2196,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   onPressed: () {
                     _addDraftEntry();
                   },
-                  child: const Text("à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­"),
+                  child: const Text("เพิ่มรายการส่งต่อ"),
                 ),
               ],
             )
@@ -2205,7 +2205,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
               children: [
                 const Expanded(
                   child: Text(
-                    "à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¸—à¸µà¹ˆà¸„à¸¸à¸“à¸”à¸¹à¹à¸¥",
+                    "รายการส่งต่อที่คุณดูแล",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -2213,7 +2213,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                   onPressed: () {
                     _addDraftEntry();
                   },
-                  child: const Text("à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­"),
+                  child: const Text("เพิ่มรายการส่งต่อ"),
                 ),
               ],
             ),
@@ -2232,17 +2232,17 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­",
+                      "ยังไม่มีรายการส่งต่อ",
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "à¹€à¸£à¸´à¹ˆà¸¡à¸”à¹‰à¸§à¸¢à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£ à¹€à¸Šà¹ˆà¸™ à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¹ƒà¸«à¹‰à¸„à¸£à¸­à¸šà¸„à¸£à¸±à¸§ à¸«à¸£à¸·à¸­à¸à¸¹à¹‰à¸„à¸·à¸™à¸”à¹‰à¸§à¸¢à¸•à¸±à¸§à¹€à¸­à¸‡",
+                      "เริ่มด้วยอย่างน้อย 1 รายการ เช่น ส่งต่อให้ครอบครัว หรือกู้คืนด้วยตัวเอง",
                     ),
                     const SizedBox(height: 10),
                     FilledButton.tonal(
                       onPressed: _addDraftEntry,
-                      child: const Text("à¹€à¸žà¸´à¹ˆà¸¡à¸£à¸²à¸¢à¸à¸²à¸£à¹à¸£à¸"),
+                      child: const Text("เพิ่มรายการแรก"),
                     ),
                   ],
                 ),
@@ -2277,12 +2277,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "à¸¢à¸·à¸™à¸¢à¸±à¸™à¹à¸œà¸™à¸‰à¸šà¸±à¸šà¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™",
+                    "ยืนยันแผนฉบับพร้อมใช้งาน",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸‚à¸­à¸‡à¹à¸œà¸™ à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™ à¹à¸¥à¹‰à¸§à¸•à¸±à¹‰à¸‡à¹€à¸›à¹‡à¸™à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™",
+                    "สร้างสแนปช็อตของแผน ตรวจทาน แล้วตั้งเป็นพร้อมใช้งาน",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -2298,15 +2298,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                         icon: const Icon(Icons.publish_rounded),
                         label: Text(
                           _isExporting
-                              ? "à¸à¸³à¸¥à¸±à¸‡à¸ªà¸£à¹‰à¸²à¸‡..."
-                              : "à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¹à¸œà¸™",
+                              ? "กำลังสร้าง..."
+                              : "สร้างสแนปช็อตแผน",
                         ),
                       ),
                       if (!partnerTermsGateSatisfied)
                         const Padding(
                           padding: EdgeInsets.only(top: 6),
                           child: Text(
-                            "à¹‚à¸›à¸£à¸”à¸¢à¸­à¸¡à¸£à¸±à¸šà¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸„à¹ˆà¸²à¸˜à¸£à¸£à¸¡à¹€à¸™à¸µà¸¢à¸¡à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸à¹ˆà¸­à¸™à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•",
+                            "โปรดยอมรับเงื่อนไขค่าธรรมเนียมพาร์ทเนอร์ก่อนสร้างสแนปช็อต",
                             style: TextStyle(
                               color: Color(0xFF8A5A00),
                               fontWeight: FontWeight.w600,
@@ -2316,7 +2316,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       OutlinedButton(
                         onPressed:
                             _artifact == null ? null : _clearCanonicalArtifact,
-                        child: const Text("à¸¥à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸™à¸µà¹‰"),
+                        child: const Text("ล้างสแนปช็อตนี้"),
                       ),
                       OutlinedButton(
                         onPressed: _artifact == null
@@ -2330,7 +2330,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                   ),
                                 );
                               },
-                        child: const Text("à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•"),
+                        child: const Text("ตรวจทานสแนปช็อต"),
                       ),
                     ],
                   ),
@@ -2338,36 +2338,36 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 12),
                     _Pill(
                       label:
-                          "à¸ªà¸£à¹‰à¸²à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”: ${_artifact!.generatedAt.toLocal().toString()}",
+                          "สร้างล่าสุด: ${_artifact!.generatedAt.toLocal().toString()}",
                     ),
                     if (_showAdvanced) ...[
                       const SizedBox(height: 8),
-                      Text("à¸ªà¸±à¸à¸à¸²à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™: ${_artifact!.contractVersion}"),
+                      Text("สัญญาเวอร์ชัน: ${_artifact!.contractVersion}"),
                       const SizedBox(height: 4),
-                      Text("à¸ªà¸–à¸²à¸™à¸°à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•: ${_artifact!.artifactState.name}"),
+                      Text("สถานะสแนปช็อต: ${_artifact!.artifactState.name}"),
                       const SizedBox(height: 4),
                       Text(
-                        "à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹ƒà¸™à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•: ${_artifact!.activeEntryCount}",
+                        "รายการที่เปิดใช้งานในสแนปช็อต: ${_artifact!.activeEntryCount}",
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "à¸£à¸²à¸¢à¸à¸²à¸£ trace: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}",
+                        "รายการ trace: ${(_artifact!.trace["entries"] as Map?)?.length ?? 0}",
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "à¸ªà¸–à¸²à¸™à¸°à¸›à¸±à¸à¸«à¸²: à¸šà¸¥à¹‡à¸­à¸ ${_artifact!.report.errorCount} / à¸„à¸³à¹€à¸•à¸·à¸­à¸™ ${_artifact!.report.warningCount}",
+                        "สถานะปัญหา: บล็อก ${_artifact!.report.errorCount} / คำเตือน ${_artifact!.report.warningCount}",
                       ),
                     ] else ...[
                       const SizedBox(height: 8),
                       Text(
-                        "à¸›à¸±à¸à¸«à¸²: à¸šà¸¥à¹‡à¸­à¸ ${_artifact!.report.errorCount} / à¸„à¸³à¹€à¸•à¸·à¸­à¸™ ${_artifact!.report.warningCount}",
+                        "ปัญหา: บล็อก ${_artifact!.report.errorCount} / คำเตือน ${_artifact!.report.warningCount}",
                       ),
                     ],
                     const SizedBox(height: 8),
                     Text(
                       artifactInSync
-                          ? "à¸ªà¸–à¸²à¸™à¸°: à¸£à¹ˆà¸²à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”à¸•à¸£à¸‡à¸à¸±à¸šà¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•"
-                          : "à¸ªà¸–à¸²à¸™à¸°: à¸¡à¸µà¸à¸²à¸£à¹à¸à¹‰à¸£à¹ˆà¸²à¸‡à¸«à¸¥à¸±à¸‡à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸¥à¹ˆà¸²à¸ªà¸¸à¸”",
+                          ? "สถานะ: ร่างล่าสุดตรงกับสแนปช็อต"
+                          : "สถานะ: มีการแก้ร่างหลังสร้างสแนปช็อตล่าสุด",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: artifactInSync
@@ -2397,7 +2397,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           onPressed: () {
                             _openPolicyPaper(_artifact!);
                           },
-                          child: const Text("à¸”à¸¹à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸£à¸¸à¸›à¸™à¹‚à¸¢à¸šà¸²à¸¢"),
+                          child: const Text("ดูเอกสารสรุปนโยบาย"),
                         ),
                         OutlinedButton(
                           onPressed: canMarkReviewed
@@ -2407,7 +2407,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                   );
                                 }
                               : null,
-                          child: const Text("à¸—à¸³à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸«à¸¡à¸²à¸¢à¸§à¹ˆà¸²à¸•à¸£à¸§à¸ˆà¹à¸¥à¹‰à¸§"),
+                          child: const Text("ทำเครื่องหมายว่าตรวจแล้ว"),
                         ),
                         OutlinedButton(
                           onPressed: canMarkReady
@@ -2417,7 +2417,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                   );
                                 }
                               : null,
-                          child: const Text("à¸•à¸±à¹‰à¸‡à¹€à¸›à¹‡à¸™à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™"),
+                          child: const Text("ตั้งเป็นพร้อมใช้งาน"),
                         ),
                       ],
                     ),
@@ -2425,15 +2425,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 12),
                     Text(
                       activeEntryCount > 0
-                          ? "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸ªà¸³à¸«à¸£à¸±à¸šà¸£à¹ˆà¸²à¸‡à¸—à¸µà¹ˆà¸à¸³à¸¥à¸±à¸‡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™"
-                          : "à¹‚à¸›à¸£à¸”à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£à¸à¹ˆà¸­à¸™à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•",
+                          ? "ยังไม่มีสแนปช็อตสำหรับร่างที่กำลังใช้งาน"
+                          : "โปรดเปิดใช้งานอย่างน้อย 1 รายการก่อนสร้างสแนปช็อต",
                     ),
                   ],
                   if (_artifactHistory.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     if (_showAdvanced) ...[
                       const Text(
-                        "à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•",
+                        "ประวัติสแนปช็อต",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -2441,7 +2441,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        "à¸—à¸¸à¸à¸à¸²à¸£à¸ªà¸£à¹‰à¸²à¸‡à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸ˆà¸°à¸–à¸¹à¸à¹€à¸à¹‡à¸šà¹à¸¢à¸à¹€à¸›à¹‡à¸™à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡",
+                        "ทุกการสร้างสแนปช็อตจะถูกเก็บแยกเป็นประวัติในเครื่อง",
                       ),
                       const SizedBox(height: 12),
                       Align(
@@ -2459,13 +2459,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                               ),
                             );
                           },
-                          child: const Text("à¸”à¸¹à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”"),
+                          child: const Text("ดูประวัติทั้งหมด"),
                         ),
                       ),
                       const SizedBox(height: 12),
                     ] else ...[
                       Text(
-                        "à¸ªà¹à¸™à¸›à¸Šà¹‡à¸­à¸•à¸—à¸µà¹ˆà¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸§à¹‰: ${_artifactHistory.length} (à¹€à¸›à¸´à¸”à¹‚à¸«à¸¡à¸”à¸‚à¸±à¹‰à¸™à¸ªà¸¹à¸‡à¹€à¸žà¸·à¹ˆà¸­à¸ˆà¸±à¸”à¸à¸²à¸£à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”)",
+                        "สแนปช็อตที่บันทึกไว้: ${_artifactHistory.length} (เปิดโหมดขั้นสูงเพื่อจัดการประวัติทั้งหมด)",
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -2476,7 +2476,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         ChoiceChip(
-                          label: const Text("à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”"),
+                          label: const Text("ทั้งหมด"),
                           selected: _historyFilter == 'all',
                           onSelected: (_) {
                             setState(() {
@@ -2485,7 +2485,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           },
                         ),
                         ChoiceChip(
-                          label: const Text("à¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™"),
+                          label: const Text("พร้อมใช้งาน"),
                           selected: _historyFilter == 'ready',
                           onSelected: (_) {
                             setState(() {
@@ -2494,7 +2494,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           },
                         ),
                         ChoiceChip(
-                          label: const Text("à¸„à¸±à¸”à¸¥à¸­à¸à¸¡à¸²"),
+                          label: const Text("คัดลอกมา"),
                           selected: _historyFilter == 'promoted',
                           onSelected: (_) {
                             setState(() {
@@ -2503,7 +2503,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           },
                         ),
                         ChoiceChip(
-                          label: const Text("à¸¡à¸µà¸›à¸±à¸à¸«à¸²"),
+                          label: const Text("มีปัญหา"),
                           selected: _historyFilter == 'issues',
                           onSelected: (_) {
                             setState(() {
@@ -2516,15 +2516,15 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                           items: const [
                             DropdownMenuItem(
                               value: 'newest',
-                              child: Text("à¹ƒà¸«à¸¡à¹ˆà¸ªà¸¸à¸”à¸à¹ˆà¸­à¸™"),
+                              child: Text("ใหม่สุดก่อน"),
                             ),
                             DropdownMenuItem(
                               value: 'oldest',
-                              child: Text("à¹€à¸à¹ˆà¸²à¸ªà¸¸à¸”à¸à¹ˆà¸­à¸™"),
+                              child: Text("เก่าสุดก่อน"),
                             ),
                             DropdownMenuItem(
                               value: 'state',
-                              child: Text("à¹€à¸£à¸µà¸¢à¸‡à¸•à¸²à¸¡à¸ªà¸–à¸²à¸™à¸°"),
+                              child: Text("เรียงตามสถานะ"),
                             ),
                           ],
                           onChanged: (value) {
@@ -2541,7 +2541,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 12),
                     if (_showAdvanced && visibleArtifactHistory.isEmpty)
                       const Text(
-                        "à¹„à¸¡à¹ˆà¸¡à¸µà¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¸•à¸£à¸‡à¸à¸±à¸šà¸•à¸±à¸§à¸à¸£à¸­à¸‡à¸›à¸£à¸°à¸§à¸±à¸•à¸´",
+                        "ไม่มีรายการที่ตรงกับตัวกรองประวัติ",
                       ),
                     ...visibleArtifactHistory.take(_showAdvanced ? 5 : 1).map(
                           (item) => Padding(
@@ -2552,7 +2552,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                 "${item.generatedAt.toLocal()} | ${item.artifactState.name}",
                               ),
                               subtitle: Text(
-                                "à¸£à¸«à¸±à¸ª ${item.artifactId} | à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ ${item.activeEntryCount}",
+                                "รหัส ${item.artifactId} | รายการที่เปิดใช้งาน ${item.activeEntryCount}",
                               ),
                               isThreeLine: _artifactBadges(item).isNotEmpty,
                               dense: false,
@@ -2590,7 +2590,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                         ),
                                       );
                                     },
-                                    child: const Text("à¸•à¸£à¸§à¸ˆà¸—à¸²à¸™"),
+                                    child: const Text("ตรวจทาน"),
                                   ),
                                   TextButton(
                                     onPressed: _artifact != null &&
@@ -2608,7 +2608,7 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                             );
                                           }
                                         : null,
-                                    child: const Text("à¹€à¸›à¸£à¸µà¸¢à¸šà¹€à¸—à¸µà¸¢à¸š"),
+                                    child: const Text("เปรียบเทียบ"),
                                   ),
                                   TextButton(
                                     onPressed: _artifact != null &&
@@ -2618,13 +2618,13 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                                             _promoteArtifactVersion(item);
                                           }
                                         : null,
-                                    child: const Text("à¸„à¸±à¸”à¸¥à¸­à¸"),
+                                    child: const Text("คัดลอก"),
                                   ),
                                   TextButton(
                                     onPressed: () {
                                       _clearArtifactVersion(item.artifactId);
                                     },
-                                    child: const Text("à¸¥à¸š"),
+                                    child: const Text("ลบ"),
                                   ),
                                 ],
                               ),
@@ -2644,12 +2644,12 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "à¹à¸œà¸™à¸™à¸µà¹‰à¸—à¸³à¸‡à¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¹„à¸£",
+                    "แผนนี้ทำงานอย่างไร",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "à¸­à¹ˆà¸²à¸™à¸ªà¸£à¸¸à¸›à¹à¸šà¸šà¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸‡à¹ˆà¸²à¸¢à¸à¹ˆà¸­à¸™ à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„à¸ˆà¸°à¹à¸ªà¸”à¸‡à¹€à¸¡à¸·à¹ˆà¸­à¹€à¸›à¸´à¸”à¹‚à¸«à¸¡à¸”à¸‚à¸±à¹‰à¸™à¸ªà¸¹à¸‡à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™",
+                    "อ่านสรุปแบบเข้าใจง่ายก่อน รายละเอียดเชิงเทคนิคจะแสดงเมื่อเปิดโหมดขั้นสูงเท่านั้น",
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -2663,14 +2663,14 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "à¸¥à¸³à¸”à¸±à¸šà¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™à¹à¸šà¸šà¸¢à¹ˆà¸­",
+                          "ลำดับการทำงานแบบย่อ",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 8),
-                        Text("1) à¸–à¸¶à¸‡à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¸§à¸±à¸™à¹€à¸§à¸¥à¸² à¸«à¸£à¸·à¸­à¸‚à¸²à¸”à¸à¸²à¸£à¸•à¸´à¸”à¸•à¹ˆà¸­à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰"),
-                        Text("2) à¸£à¸°à¸šà¸šà¸•à¸£à¸§à¸ˆà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¸à¹ˆà¸­à¸™à¸—à¸¸à¸à¸„à¸£à¸±à¹‰à¸‡"),
-                        Text("3) à¸œà¸¹à¹‰à¸£à¸±à¸šà¹€à¸«à¹‡à¸™à¸‚à¸±à¹‰à¸™à¸•à¸­à¸™à¸—à¸µà¹ˆà¸Šà¸±à¸”à¹€à¸ˆà¸™à¹à¸¥à¸°à¸—à¸³à¸•à¸²à¸¡à¹„à¸”à¹‰à¸—à¸±à¸™à¸—à¸µ"),
-                        Text("4) à¸—à¸¸à¸à¹€à¸«à¸•à¸¸à¸à¸²à¸£à¸“à¹Œà¸–à¸¹à¸à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸§à¹‰à¹€à¸žà¸·à¹ˆà¸­à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸¢à¹‰à¸­à¸™à¸«à¸¥à¸±à¸‡"),
+                        Text("1) ถึงเงื่อนไขวันเวลา หรือขาดการติดต่อที่ตั้งไว้"),
+                        Text("2) ระบบตรวจความปลอดภัยก่อนทุกครั้ง"),
+                        Text("3) ผู้รับเห็นขั้นตอนที่ชัดเจนและทำตามได้ทันที"),
+                        Text("4) ทุกเหตุการณ์ถูกบันทึกไว้เพื่อตรวจสอบย้อนหลัง"),
                       ],
                     ),
                   ),
@@ -2678,9 +2678,9 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
                     const SizedBox(height: 10),
                     ExpansionTile(
                       tilePadding: EdgeInsets.zero,
-                      title: const Text("à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸Šà¸´à¸‡à¹€à¸—à¸„à¸™à¸´à¸„ (PTN)"),
+                      title: const Text("รายละเอียดเชิงเทคนิค (PTN)"),
                       subtitle: const Text(
-                        "à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥à¸£à¸°à¸šà¸šà¹à¸¥à¸°à¸œà¸¹à¹‰à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š",
+                        "สำหรับผู้ดูแลระบบและผู้ตรวจสอบ",
                       ),
                       children: [
                         const SizedBox(height: 8),
@@ -2730,22 +2730,22 @@ class _IntentEntryCard extends StatelessWidget {
     final receiver = entry.recipient.registeredLegalName.trim().isNotEmpty
         ? entry.recipient.registeredLegalName
         : (entry.recipient.destinationRef.isEmpty
-            ? 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸£à¸°à¸šà¸¸à¸œà¸¹à¹‰à¸£à¸±à¸š'
+            ? 'ยังไม่ได้ระบุผู้รับ'
             : entry.recipient.destinationRef);
     final startCondition = switch (entry.trigger.mode) {
       'exact_date' when entry.trigger.scheduledAtUtc != null =>
-        'à¹€à¸£à¸´à¹ˆà¸¡à¸•à¸²à¸¡à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰ ${entry.trigger.scheduledAtUtc!.toLocal()} à¹à¸¥à¸°à¸£à¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸­à¸µà¸ ${entry.trigger.graceDays} à¸§à¸±à¸™',
+        'เริ่มตามวันเวลาที่ตั้งไว้ ${entry.trigger.scheduledAtUtc!.toLocal()} และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
       'exact_date' =>
-        'à¹€à¸£à¸´à¹ˆà¸¡à¸•à¸²à¸¡à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸—à¸µà¹ˆà¸à¸³à¸«à¸™à¸” (à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¹€à¸§à¸¥à¸²) à¹à¸¥à¸°à¸£à¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸­à¸µà¸ ${entry.trigger.graceDays} à¸§à¸±à¸™',
+        'เริ่มตามวันเวลาที่กำหนด (ยังไม่ได้เลือกวันเวลา) และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
       'manual_release' =>
-        'à¹€à¸£à¸´à¹ˆà¸¡à¸ˆà¸²à¸à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™à¹à¸šà¸šà¸›à¸¥à¸”à¸¥à¹‡à¸­à¸à¸”à¹‰à¸§à¸¢à¸¡à¸·à¸­ à¹à¸¥à¸°à¸£à¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸­à¸µà¸ ${entry.trigger.graceDays} à¸§à¸±à¸™',
+        'เริ่มจากโหมดฉุกเฉินแบบปลดล็อกด้วยมือ และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
       _ =>
-        'à¹€à¸£à¸´à¹ˆà¸¡à¹€à¸¡à¸·à¹ˆà¸­à¹„à¸¡à¹ˆà¸žà¸šà¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ ${entry.trigger.inactivityDays} à¸§à¸±à¸™ à¹à¸¥à¸°à¸£à¸­à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸­à¸µà¸ ${entry.trigger.graceDays} à¸§à¸±à¸™',
+        'เริ่มเมื่อไม่พบการใช้งาน ${entry.trigger.inactivityDays} วัน และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
     };
-    final statusLabel = entry.status == 'active' ? 'à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™' : 'à¸žà¸±à¸à¹„à¸§à¹‰';
+    final statusLabel = entry.status == 'active' ? 'เปิดใช้งาน' : 'พักไว้';
     final kindLabel = entry.kind == 'legacy_delivery'
-        ? 'à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸š'
-        : 'à¸à¸¹à¹‰à¸„à¸·à¸™à¸”à¹‰à¸§à¸¢à¸•à¸±à¸§à¹€à¸­à¸‡';
+        ? 'ส่งต่อให้ผู้รับ'
+        : 'กู้คืนด้วยตัวเอง';
 
     final scheme = Theme.of(context).colorScheme;
     return Card(
@@ -2782,7 +2782,7 @@ class _IntentEntryCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'à¸ªà¸£à¸¸à¸›: à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¹ƒà¸«à¹‰ $receiver',
+              'สรุป: ส่งต่อให้ $receiver',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
@@ -2790,48 +2790,48 @@ class _IntentEntryCard extends StatelessWidget {
             const SizedBox(height: 4),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              title: const Text('à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡'),
+              title: const Text('ดูรายละเอียดเพิ่มเติม'),
               subtitle: const Text(
-                'à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸ªà¹ˆà¸‡ à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™ à¹à¸¥à¸°à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¸„à¸§à¸²à¸¡à¹€à¸›à¹‡à¸™à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§',
+                'ช่องทางส่ง การยืนยันตัวตน และการตั้งค่าความเป็นส่วนตัว',
               ),
               children: [
                 const SizedBox(height: 6),
                 Text(
-                  'à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸«à¸¥à¸±à¸à¸‚à¸­à¸‡à¸œà¸¹à¹‰à¸£à¸±à¸š: ${entry.recipient.deliveryChannel}',
+                  'ช่องทางหลักของผู้รับ: ${entry.recipient.deliveryChannel}',
                 ),
                 const SizedBox(height: 4),
                 if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
                   Text(
-                    'à¸„à¸³à¹ƒà¸šà¹‰à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™: ${entry.recipient.verificationHint}',
+                    'คำใบ้ยืนยันตัวตน: ${entry.recipient.verificationHint}',
                   ),
                   const SizedBox(height: 4),
                 ],
                 Text(
-                  'à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸ªà¸³à¸£à¸­à¸‡: ${entry.recipient.fallbackChannels.join(', ')}',
+                  'ช่องทางสำรอง: ${entry.recipient.fallbackChannels.join(', ')}',
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'à¸£à¸¹à¸›à¹à¸šà¸šà¸à¸²à¸£à¸ªà¹ˆà¸‡: ${entry.delivery.method}'
-                  '${entry.delivery.requireVerificationCode ? ' + à¸£à¸«à¸±à¸ªà¸¢à¸·à¸™à¸¢à¸±à¸™' : ''}'
-                  '${entry.delivery.requireTotp ? ' + à¹à¸­à¸›à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™' : ''}',
+                  'รูปแบบการส่ง: ${entry.delivery.method}'
+                  '${entry.delivery.requireVerificationCode ? ' + รหัสยืนยัน' : ''}'
+                  '${entry.delivery.requireTotp ? ' + แอปยืนยันตัวตน' : ''}',
                 ),
                 const SizedBox(height: 4),
-                Text('à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¹€à¸›à¹‡à¸™à¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§: ${entry.privacy.profile}'),
+                Text('ระดับความเป็นส่วนตัว: ${entry.privacy.profile}'),
                 const SizedBox(height: 4),
                 Text(
-                  'à¸à¹ˆà¸­à¸™à¸–à¸¶à¸‡à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¹ƒà¸«à¹‰à¹€à¸«à¹‡à¸™: ${entry.privacy.preTriggerVisibility}',
+                  'ก่อนถึงเงื่อนไขให้เห็น: ${entry.privacy.preTriggerVisibility}',
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'à¸«à¸¥à¸±à¸‡à¸–à¸¶à¸‡à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚à¹ƒà¸«à¹‰à¹€à¸«à¹‡à¸™: ${entry.privacy.postTriggerVisibility}',
+                  'หลังถึงเงื่อนไขให้เห็น: ${entry.privacy.postTriggerVisibility}',
                 ),
                 const SizedBox(height: 4),
-                Text('à¸à¸²à¸£à¹€à¸›à¸´à¸”à¹€à¸œà¸¢à¸¡à¸¹à¸¥à¸„à¹ˆà¸²: ${entry.privacy.valueDisclosureMode}'),
+                Text('การเปิดเผยมูลค่า: ${entry.privacy.valueDisclosureMode}'),
                 const SizedBox(height: 4),
                 Text(
-                  'à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢: '
-                  '${entry.safeguards.requireMultisignal ? 'à¸•à¹‰à¸­à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸«à¸¥à¸²à¸¢à¸ªà¸±à¸à¸à¸²à¸“' : 'à¸¢à¸·à¸™à¸¢à¸±à¸™à¸ªà¸±à¸à¸à¸²à¸“à¹€à¸”à¸µà¸¢à¸§'}'
-                  '${entry.safeguards.requireGuardianApproval ? ', à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸žà¸¢à¸²à¸™à¸£à¹ˆà¸§à¸¡à¸¢à¸·à¸™à¸¢à¸±à¸™' : ''}',
+                  'ระดับความปลอดภัย: '
+                  '${entry.safeguards.requireMultisignal ? 'ต้องยืนยันหลายสัญญาณ' : 'ยืนยันสัญญาณเดียว'}'
+                  '${entry.safeguards.requireGuardianApproval ? ', ต้องมีพยานร่วมยืนยัน' : ''}',
                 ),
               ],
             ),
@@ -2840,14 +2840,14 @@ class _IntentEntryCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                OutlinedButton(onPressed: onEdit, child: const Text('à¹à¸à¹‰à¹„à¸‚')),
+                OutlinedButton(onPressed: onEdit, child: const Text('แก้ไข')),
                 FilledButton.tonal(
                   onPressed: onToggleStatus,
                   child: Text(
-                    entry.status == 'active' ? 'à¸žà¸±à¸à¸£à¸²à¸¢à¸à¸²à¸£' : 'à¹€à¸›à¸´à¸”à¹ƒà¸Šà¹‰à¸‡à¸²à¸™',
+                    entry.status == 'active' ? 'พักรายการ' : 'เปิดใช้งาน',
                   ),
                 ),
-                TextButton(onPressed: onRemove, child: const Text('à¸¥à¸š')),
+                TextButton(onPressed: onRemove, child: const Text('ลบ')),
               ],
             ),
           ],
@@ -2925,11 +2925,11 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     'PIN / passphrase',
   ];
   static const List<String> _importantDocumentItems = [
-    'à¸žà¸´à¸™à¸±à¸¢à¸à¸£à¸£à¸¡ (reference)',
-    'à¸›à¸£à¸°à¸à¸±à¸™à¸Šà¸µà¸§à¸´à¸•',
-    'à¸ªà¸±à¸à¸à¸² / à¹‚à¸‰à¸™à¸”',
-    'à¸£à¸«à¸±à¸ªà¸šà¸±à¸à¸Šà¸µà¸˜à¸™à¸²à¸„à¸²à¸£',
-    'à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸´à¸”à¸•à¹ˆà¸­à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™',
+    'พินัยกรรม (reference)',
+    'ประกันชีวิต',
+    'สัญญา / โฉนด',
+    'รหัสบัญชีธนาคาร',
+    'ข้อมูลติดต่อฉุกเฉิน',
   ];
   static const List<String> _digitalAccountItems = [
     'email / social accounts',
@@ -3022,44 +3022,44 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   List<String> _structuredAssetLines() {
     final lines = <String>[];
     if (_selectedPersonalSecrets.isNotEmpty) {
-      lines.add('à¸„à¸§à¸²à¸¡à¸¥à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§: ${_selectedPersonalSecrets.join(', ')}');
+      lines.add('ความลับส่วนตัว: ${_selectedPersonalSecrets.join(', ')}');
     }
     if (_selectedImportantDocs.isNotEmpty) {
-      lines.add('à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸³à¸„à¸±à¸: ${_selectedImportantDocs.join(', ')}');
+      lines.add('เอกสารสำคัญ: ${_selectedImportantDocs.join(', ')}');
     }
     if (_selectedDigitalAccounts.isNotEmpty) {
-      lines.add('à¸šà¸±à¸à¸Šà¸µà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥: ${_selectedDigitalAccounts.join(', ')}');
+      lines.add('บัญชีดิจิทัล: ${_selectedDigitalAccounts.join(', ')}');
     }
     if (_bankAssetsController.text.trim().isNotEmpty) {
-      lines.add('à¸šà¸±à¸à¸Šà¸µà¸à¸²à¸£à¹€à¸‡à¸´à¸™: ${_bankAssetsController.text.trim()}');
+      lines.add('บัญชีการเงิน: ${_bankAssetsController.text.trim()}');
     }
     if (_emailAssetsController.text.trim().isNotEmpty) {
-      lines.add('à¸šà¸±à¸à¸Šà¸µà¸­à¸µà¹€à¸¡à¸¥: ${_emailAssetsController.text.trim()}');
+      lines.add('บัญชีอีเมล: ${_emailAssetsController.text.trim()}');
     }
     if (_socialAssetsController.text.trim().isNotEmpty) {
-      lines.add('à¸šà¸±à¸à¸Šà¸µà¹‚à¸‹à¹€à¸Šà¸µà¸¢à¸¥: ${_socialAssetsController.text.trim()}');
+      lines.add('บัญชีโซเชียล: ${_socialAssetsController.text.trim()}');
     }
     if (_fileAssetsController.text.trim().isNotEmpty) {
-      lines.add('à¹„à¸Ÿà¸¥à¹Œà¸ªà¸³à¸„à¸±à¸: ${_fileAssetsController.text.trim()}');
+      lines.add('ไฟล์สำคัญ: ${_fileAssetsController.text.trim()}');
     }
     if (_personalSecretsNoteController.text.trim().isNotEmpty) {
       lines.add(
-          'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸„à¸§à¸²à¸¡à¸¥à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§: ${_personalSecretsNoteController.text.trim()}');
+          'หมายเหตุความลับส่วนตัว: ${_personalSecretsNoteController.text.trim()}');
     }
     if (_importantDocsNoteController.text.trim().isNotEmpty) {
       lines.add(
-          'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸³à¸„à¸±à¸: ${_importantDocsNoteController.text.trim()}');
+          'หมายเหตุเอกสารสำคัญ: ${_importantDocsNoteController.text.trim()}');
     }
     if (_digitalAccountsNoteController.text.trim().isNotEmpty) {
       lines.add(
-          'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸šà¸±à¸à¸Šà¸µà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥: ${_digitalAccountsNoteController.text.trim()}');
+          'หมายเหตุบัญชีดิจิทัล: ${_digitalAccountsNoteController.text.trim()}');
     }
     if (_selectedEcosystemConnectors.isNotEmpty) {
       lines.add(
-          'à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­ ecosystem: ${_selectedEcosystemConnectors.join(', ')}');
+          'เชื่อมต่อ ecosystem: ${_selectedEcosystemConnectors.join(', ')}');
     }
     if (_connectLegalPartner && _selectedLegalPartner != null) {
-      lines.add('à¸›à¸£à¸°à¸ªà¸²à¸™à¸‡à¸²à¸™à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢: $_selectedLegalPartner');
+      lines.add('ประสานงานสำนักงานกฎหมาย: $_selectedLegalPartner');
     }
     return lines;
   }
@@ -3074,7 +3074,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     }
     if (_displayNameController.text.trim().isEmpty) {
       _displayNameController.text =
-          'à¸Šà¸¸à¸”à¸ªà¸´à¸™à¸—à¸£à¸±à¸žà¸¢à¹Œà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (${lines.length} à¸«à¸¡à¸§à¸”)';
+          'ชุดสินทรัพย์ดิจิทัล (${lines.length} หมวด)';
     }
   }
 
@@ -3085,7 +3085,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     var output = input;
     output = output.replaceAllMapped(
       RegExp(
-        r'\b(thb|baht|usd|eur|à¸šà¸²à¸—)\s*[\d,]+(?:\.\d{1,2})?\b',
+        r'\\b(thb|baht|usd|eur|บาท)\\s*[\\d,]+(?:\\.\\d{1,2})?\\b',
         caseSensitive: false,
       ),
       (_) => '[institution-verified amount]',
@@ -3096,7 +3096,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     );
     output = output.replaceAllMapped(
       RegExp(
-        r'(?<!\w)[\d]{5,}(?:\.\d{1,2})?\s*(thb|baht|à¸šà¸²à¸—)?(?!\w)',
+        r'(?<!\\w)[\\d]{5,}(?:\\.\\d{1,2})?\\s*(thb|baht|บาท)?(?!\\w)',
         caseSensitive: false,
       ),
       (_) => '[institution-verified amount]',
@@ -3109,7 +3109,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       return false;
     }
     final hasCurrency = RegExp(
-      r'\b(thb|baht|usd|eur|à¸šà¸²à¸—)\s*[\d,]+(?:\.\d{1,2})?\b',
+      r'\\b(thb|baht|usd|eur|บาท)\\s*[\\d,]+(?:\\.\\d{1,2})?\\b',
       caseSensitive: false,
     ).hasMatch(input);
     final hasLargeNumber = RegExp(
@@ -3121,7 +3121,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   String _exactDateLabel() {
     final value = _exactDateUtc;
     if (value == null) {
-      return 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¹€à¸§à¸¥à¸²';
+      return 'ยังไม่ได้เลือกวันเวลา';
     }
     final local = value.toLocal();
     final hh = local.hour.toString().padLeft(2, '0');
@@ -3185,7 +3185,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         subtitle: Text(
-          "à¹€à¸¥à¸·à¸­à¸à¹à¸¥à¹‰à¸§ ${selected.length} à¸£à¸²à¸¢à¸à¸²à¸£",
+          "เลือกแล้ว ${selected.length} รายการ",
         ),
         childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         children: [
@@ -3231,37 +3231,37 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
 
     if (_editorStep == 0) {
       if (_kind != 'self_recovery' && recipientName.isEmpty) {
-        return 'à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¸£à¸±à¸šà¸à¹ˆà¸­à¸™à¸à¸”à¸–à¸±à¸”à¹„à¸›';
+        return 'กรุณาระบุชื่อผู้รับก่อนกดถัดไป';
       }
       if (recipientRef.isEmpty) {
-        return 'à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸•à¸´à¸”à¸•à¹ˆà¸­à¸œà¸¹à¹‰à¸£à¸±à¸šà¸à¹ˆà¸­à¸™à¸à¸”à¸–à¸±à¸”à¹„à¸›';
+        return 'กรุณาระบุช่องทางติดต่อผู้รับก่อนกดถัดไป';
       }
       if (_payloadRefController.text.trim().isEmpty &&
           _structuredAssetLines().isEmpty) {
-        return 'à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸—à¸£à¸±à¸žà¸¢à¹Œà¸«à¸£à¸·à¸­à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£';
+        return 'กรุณาระบุรายการสินทรัพย์หรือข้อมูลอ้างอิงอย่างน้อย 1 รายการ';
       }
       return null;
     }
 
     if (_editorStep == 1) {
       if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
-        return 'à¸„à¸¸à¸“à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¸à¸³à¸«à¸™à¸”à¹à¸¥à¹‰à¸§ à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¹à¸¥à¸°à¹€à¸§à¸¥à¸²à¸à¹ˆà¸­à¸™à¸à¸”à¸–à¸±à¸”à¹„à¸›';
+        return 'คุณเลือกวันกำหนดแล้ว กรุณาเลือกวันและเวลาก่อนกดถัดไป';
       }
       if (_triggerMode == 'inactivity' && inactivityDays < 30) {
-        return 'à¸Šà¹ˆà¸§à¸‡à¹„à¸¡à¹ˆà¸žà¸šà¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸„à¸§à¸£à¹„à¸¡à¹ˆà¸™à¹‰à¸­à¸¢à¸à¸§à¹ˆà¸² 30 à¸§à¸±à¸™';
+        return 'ช่วงไม่พบการใช้งานควรไม่น้อยกว่า 30 วัน';
       }
       if (graceDays < 1 || graceDays > 30) {
-        return 'à¸Šà¹ˆà¸§à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸„à¸§à¸£à¸­à¸¢à¸¹à¹ˆà¸£à¸°à¸«à¸§à¹ˆà¸²à¸‡ 1-30 à¸§à¸±à¸™';
+        return 'ช่วงยืนยันซ้ำควรอยู่ระหว่าง 1-30 วัน';
       }
       return null;
     }
 
     if (_editorStep == 2) {
       if (_triggerMode == 'exact_date' && _exactDateUtc == null) {
-        return 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸”à¹‰ à¹€à¸žà¸£à¸²à¸°à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸•à¸±à¹‰à¸‡à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸ªà¸³à¸«à¸£à¸±à¸šà¸§à¸±à¸™à¸à¸³à¸«à¸™à¸”';
+        return 'ยังไม่สามารถบันทึกได้ เพราะยังไม่ได้ตั้งวันเวลาสำหรับวันกำหนด';
       }
       if (graceDays < 1 || graceDays > 30) {
-        return 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸”à¹‰ à¸à¸£à¸¸à¸“à¸²à¸•à¸£à¸§à¸ˆà¸Šà¹ˆà¸§à¸‡à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³ (1-30 à¸§à¸±à¸™)';
+        return 'ยังไม่สามารถบันทึกได้ กรุณาตรวจช่วงยืนยันซ้ำ (1-30 วัน)';
       }
     }
     return null;
@@ -3273,7 +3273,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
         widget.entry.trigger.inactivityDays;
     final emergencyEnabled = _triggerMode == 'manual_release';
     return AlertDialog(
-      title: const Text('à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹à¸œà¸™à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­'),
+      title: const Text('ตั้งค่าแผนส่งต่อ'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -3287,38 +3287,38 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'à¸‚à¸±à¹‰à¸™à¸—à¸µà¹ˆ ${_editorStep + 1} à¸ˆà¸²à¸ 3',
+                'ขั้นที่ ${_editorStep + 1} จาก 3',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             const SizedBox(height: 8),
             if (_editorStep == 0) ...[
               const Text(
-                'à¸‚à¸±à¹‰à¸™à¸—à¸µà¹ˆ 1: à¹ƒà¸„à¸£à¸„à¸·à¸­à¸œà¸¹à¹‰à¸£à¸±à¸š?',
+                'ขั้นที่ 1: ใครคือผู้รับ?',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _recipientNameController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¸£à¸±à¸š',
+                  labelText: 'ชื่อผู้รับ',
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _recipientController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸­à¸µà¹€à¸¡à¸¥à¸«à¸£à¸·à¸­à¹€à¸šà¸­à¸£à¹Œà¹‚à¸—à¸£à¸œà¸¹à¹‰à¸£à¸±à¸š',
+                  labelText: 'อีเมลหรือเบอร์โทรผู้รับ',
                 ),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: _recipientChannel,
-                decoration: const InputDecoration(labelText: 'à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸«à¸¥à¸±à¸'),
+                decoration: const InputDecoration(labelText: 'ช่องทางหลัก'),
                 items: const [
-                  DropdownMenuItem(value: 'email', child: Text('à¸­à¸µà¹€à¸¡à¸¥')),
+                  DropdownMenuItem(value: 'email', child: Text('อีเมล')),
                   DropdownMenuItem(value: 'sms', child: Text('SMS')),
-                  DropdownMenuItem(value: 'in_app', child: Text('à¹ƒà¸™à¹à¸­à¸›')),
+                  DropdownMenuItem(value: 'in_app', child: Text('ในแอป')),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -3332,13 +3332,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 children: [
                   FilterChip(
                     selected: _fallbackEmail,
-                    label: const Text('à¸ªà¸³à¸£à¸­à¸‡à¸—à¸²à¸‡à¸­à¸µà¹€à¸¡à¸¥'),
+                    label: const Text('สำรองทางอีเมล'),
                     onSelected: (value) =>
                         setState(() => _fallbackEmail = value),
                   ),
                   FilterChip(
                     selected: _fallbackSms,
-                    label: const Text('à¸ªà¸³à¸£à¸­à¸‡à¸—à¸²à¸‡ SMS'),
+                    label: const Text('สำรองทาง SMS'),
                     onSelected: (value) => setState(() => _fallbackSms = value),
                   ),
                 ],
@@ -3355,79 +3355,79 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸—à¸£à¸±à¸žà¸¢à¹Œà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (à¸à¸£à¸­à¸à¹à¸šà¸šà¸•à¸£à¸‡à¹†)',
+                      'รายการสินทรัพย์ดิจิทัล (กรอกแบบตรงๆ)',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'à¸Šà¹ˆà¸§à¸¢à¹ƒà¸«à¹‰à¸œà¸¹à¹‰à¸£à¸±à¸šà¹€à¸‚à¹‰à¸²à¹ƒà¸ˆà¸‡à¹ˆà¸²à¸¢à¸§à¹ˆà¸²à¹à¸œà¸™à¸™à¸µà¹‰à¸„à¸£à¸­à¸šà¸„à¸¥à¸¸à¸¡à¸­à¸°à¹„à¸£à¸šà¹‰à¸²à¸‡',
+                      'ช่วยให้ผู้รับเข้าใจง่ายว่าแผนนี้ครอบคลุมอะไรบ้าง',
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
               _buildChecklistSection(
-                title: 'à¸„à¸§à¸²à¸¡à¸¥à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§',
+                title: 'ความลับส่วนตัว',
                 expanded: _expandPersonalSecrets,
                 onExpanded: (value) =>
                     setState(() => _expandPersonalSecrets = value),
                 items: _personalSecretItems,
                 selected: _selectedPersonalSecrets,
                 noteController: _personalSecretsNoteController,
-                noteLabel: 'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸„à¸§à¸²à¸¡à¸¥à¸±à¸šà¸ªà¹ˆà¸§à¸™à¸•à¸±à¸§ (à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡)',
+                noteLabel: 'หมายเหตุความลับส่วนตัว (เพิ่มเติม)',
               ),
               const SizedBox(height: 10),
               _buildChecklistSection(
-                title: 'à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸³à¸„à¸±à¸',
+                title: 'เอกสารสำคัญ',
                 expanded: _expandImportantDocs,
                 onExpanded: (value) =>
                     setState(() => _expandImportantDocs = value),
                 items: _importantDocumentItems,
                 selected: _selectedImportantDocs,
                 noteController: _importantDocsNoteController,
-                noteLabel: 'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¹€à¸­à¸à¸ªà¸²à¸£à¸ªà¸³à¸„à¸±à¸ (à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡)',
+                noteLabel: 'หมายเหตุเอกสารสำคัญ (เพิ่มเติม)',
               ),
               const SizedBox(height: 10),
               _buildChecklistSection(
-                title: 'à¸šà¸±à¸à¸Šà¸µà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥',
+                title: 'บัญชีดิจิทัล',
                 expanded: _expandDigitalAccounts,
                 onExpanded: (value) =>
                     setState(() => _expandDigitalAccounts = value),
                 items: _digitalAccountItems,
                 selected: _selectedDigitalAccounts,
                 noteController: _digitalAccountsNoteController,
-                noteLabel: 'à¸«à¸¡à¸²à¸¢à¹€à¸«à¸•à¸¸à¸šà¸±à¸à¸Šà¸µà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥ (à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡)',
+                noteLabel: 'หมายเหตุบัญชีดิจิทัล (เพิ่มเติม)',
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _bankAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸šà¸±à¸à¸Šà¸µà¸à¸²à¸£à¹€à¸‡à¸´à¸™ (Bank/Exchange/Gold)',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ KBank, Bitkub, à¸£à¹‰à¸²à¸™à¸—à¸­à¸‡ A',
+                  labelText: 'บัญชีการเงิน (Bank/Exchange/Gold)',
+                  hintText: 'เช่น KBank, Bitkub, ร้านทอง A',
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _emailAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸šà¸±à¸à¸Šà¸µà¸­à¸µà¹€à¸¡à¸¥',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ Gmail, Outlook',
+                  labelText: 'บัญชีอีเมล',
+                  hintText: 'เช่น Gmail, Outlook',
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _socialAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¸šà¸±à¸à¸Šà¸µà¹‚à¸‹à¹€à¸Šà¸µà¸¢à¸¥',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ LINE, Facebook, X',
+                  labelText: 'บัญชีโซเชียล',
+                  hintText: 'เช่น LINE, Facebook, X',
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _fileAssetsController,
                 decoration: const InputDecoration(
-                  labelText: 'à¹„à¸Ÿà¸¥à¹Œà¸ªà¸³à¸„à¸±à¸',
-                  hintText: 'à¹€à¸Šà¹ˆà¸™ à¸£à¸¹à¸›à¸„à¸£à¸­à¸šà¸„à¸£à¸±à¸§, à¹€à¸­à¸à¸ªà¸²à¸£à¸›à¸£à¸°à¸à¸±à¸™',
+                  labelText: 'ไฟล์สำคัญ',
+                  hintText: 'เช่น รูปครอบครัว, เอกสารประกัน',
                 ),
               ),
               const SizedBox(height: 8),
@@ -3442,12 +3442,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡ (connect)',
+                      'เชื่อมต่อปลายทาง (connect)',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'à¹€à¸¥à¸·à¸­à¸à¹ƒà¸«à¹‰à¸£à¸°à¸šà¸šà¸›à¸£à¸°à¸ªà¸²à¸™à¸‡à¸²à¸™à¹€à¸­à¸à¸ªà¸²à¸£à¹„à¸›à¸¢à¸±à¸‡ ecosystem à¹à¸¥à¸°à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¹„à¸”à¹‰',
+                      'เลือกให้ระบบประสานงานเอกสารไปยัง ecosystem และสำนักงานกฎหมายได้',
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -3487,13 +3487,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                               });
                             },
                       title:
-                          const Text('à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¹ƒà¸«à¹‰à¸Šà¹ˆà¸§à¸¢à¸›à¸£à¸°à¸ªà¸²à¸™à¸‡à¸²à¸™'),
+                          const Text('เชื่อมต่อสำนักงานกฎหมายให้ช่วยประสานงาน'),
                     ),
                     if (widget.verifiedLegalPartners.isEmpty)
                       const Padding(
                         padding: EdgeInsets.only(bottom: 8),
                         child: Text(
-                          'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œà¸—à¸µà¹ˆà¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ à¸ˆà¸¶à¸‡à¸¢à¸±à¸‡à¹€à¸›à¸´à¸”à¸à¸²à¸£à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¹„à¸¡à¹ˆà¹„à¸”à¹‰',
+                          'ยังไม่มีพาร์ทเนอร์ที่พร้อมใช้งาน จึงยังเปิดการเชื่อมต่อสำนักงานกฎหมายไม่ได้',
                           style: TextStyle(fontSize: 12),
                         ),
                       ),
@@ -3502,7 +3502,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         const Padding(
                           padding: EdgeInsets.only(bottom: 8),
                           child: Text(
-                            'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸—à¸µà¹ˆà¸œà¹ˆà¸²à¸™à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸ˆà¸²à¸à¸£à¸°à¸šà¸š Admin',
+                            'ยังไม่มีสำนักงานกฎหมายที่ผ่านการยืนยันจากระบบ Admin',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         )
@@ -3510,7 +3510,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         DropdownButtonFormField<String>(
                           initialValue: _selectedLegalPartner,
                           decoration: const InputDecoration(
-                            labelText: 'à¹€à¸¥à¸·à¸­à¸à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢à¸žà¸²à¸£à¹Œà¸—à¹€à¸™à¸­à¸£à¹Œ',
+                            labelText: 'เลือกสำนักงานกฎหมายพาร์ทเนอร์',
                           ),
                           items: widget.verifiedLegalPartners
                               .map(
@@ -3533,9 +3533,9 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         color: const Color(0xFFF7F1E8),
                       ),
                       child: Text(
-                        "à¸ªà¸£à¸¸à¸›à¸—à¸µà¹ˆà¸ˆà¸°à¸ªà¹ˆà¸‡: à¸œà¸¹à¹‰à¸£à¸±à¸šà¸«à¸¥à¸±à¸ 1 à¸„à¸™"
-                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ecosystem ${_selectedEcosystemConnectors.length} à¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡" : ""}"
-                        "${_connectLegalPartner && _selectedLegalPartner != null ? " + à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸à¸Žà¸«à¸¡à¸²à¸¢ 1 à¹à¸«à¹ˆà¸‡" : ""}",
+                        "สรุปที่จะส่ง: ผู้รับหลัก 1 คน"
+                        "${_selectedEcosystemConnectors.isNotEmpty ? " + ecosystem ${_selectedEcosystemConnectors.length} ปลายทาง" : ""}"
+                        "${_connectLegalPartner && _selectedLegalPartner != null ? " + สำนักงานกฎหมาย 1 แห่ง" : ""}",
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -3552,12 +3552,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     });
                   },
                   icon: const Icon(Icons.auto_fix_high_rounded),
-                  label: const Text('à¹€à¸•à¸´à¸¡à¸Šà¸·à¹ˆà¸­à¹à¸œà¸™/à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´'),
+                  label: const Text('เติมชื่อแผน/ข้อมูลอ้างอิงอัตโนมัติ'),
                 ),
               ),
             ] else if (_editorStep == 1) ...[
               const Text(
-                'à¸‚à¸±à¹‰à¸™à¸—à¸µà¹ˆ 2: à¸ªà¹ˆà¸‡à¸¡à¸­à¸šà¹€à¸¡à¸·à¹ˆà¸­à¹„à¸«à¸£à¹ˆ?',
+                'ขั้นที่ 2: ส่งมอบเมื่อไหร่?',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -3569,7 +3569,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     setState(() => _triggerMode = 'inactivity');
                   }
                 },
-                title: const Text('à¹€à¸¡à¸·à¹ˆà¸­à¸‰à¸±à¸™à¹„à¸¡à¹ˆà¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹€à¸à¸´à¸™à¸Šà¹ˆà¸§à¸‡à¹€à¸§à¸¥à¸²à¸—à¸µà¹ˆà¸à¸³à¸«à¸™à¸”'),
+                title: const Text('เมื่อฉันไม่ใช้งานเกินช่วงเวลาที่กำหนด'),
               ),
               if (_triggerMode == 'inactivity')
                 Slider(
@@ -3577,7 +3577,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   min: 30,
                   max: 365,
                   divisions: 11,
-                  label: '$inactivityDays à¸§à¸±à¸™',
+                  label: '$inactivityDays วัน',
                   onChanged: (value) {
                     setState(() {
                       _triggerDaysController.text = value.round().toString();
@@ -3592,7 +3592,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     setState(() => _triggerMode = 'exact_date');
                   }
                 },
-                title: const Text('à¸à¸³à¸«à¸™à¸”à¸§à¸±à¸™à¹à¸¥à¸°à¹€à¸§à¸¥à¸²à¹à¸šà¸šà¸•à¸²à¸¢à¸•à¸±à¸§ (à¸§à¸±à¸™à¸à¸³à¸«à¸™à¸”)'),
+                title: const Text('กำหนดวันและเวลาแบบตายตัว (วันกำหนด)'),
               ),
               if (_triggerMode == 'exact_date') ...[
                 const SizedBox(height: 4),
@@ -3600,14 +3600,14 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                   children: [
                     Expanded(
                       child: Text(
-                        'à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸—à¸µà¹ˆà¸•à¸±à¹‰à¸‡à¹„à¸§à¹‰: ${_exactDateLabel()}',
+                        'วันเวลาที่ตั้งไว้: ${_exactDateLabel()}',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
                     OutlinedButton.icon(
                       onPressed: _pickExactDateTime,
                       icon: const Icon(Icons.calendar_month_outlined),
-                      label: const Text('à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¹€à¸§à¸¥à¸²'),
+                      label: const Text('เลือกวันเวลา'),
                     ),
                   ],
                 ),
@@ -3621,19 +3621,19 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                         value == true ? 'manual_release' : 'inactivity';
                   });
                 },
-                title: const Text('à¹ƒà¸Šà¹‰à¹‚à¸«à¸¡à¸”à¸‰à¸¸à¸à¹€à¸‰à¸´à¸™ (Emergency Access)'),
+                title: const Text('ใช้โหมดฉุกเฉิน (Emergency Access)'),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _graceDaysController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'à¸§à¸±à¸™à¸¢à¸·à¸™à¸¢à¸±à¸™à¸‹à¹‰à¸³à¸à¹ˆà¸­à¸™à¸ªà¹ˆà¸‡à¸¡à¸­à¸š',
+                  labelText: 'วันยืนยันซ้ำก่อนส่งมอบ',
                 ),
               ),
             ] else ...[
               const Text(
-                'à¸‚à¸±à¹‰à¸™à¸—à¸µà¹ˆ 3: à¸£à¸°à¸”à¸±à¸šà¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢',
+                'ขั้นที่ 3: ระดับความปลอดภัย',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -3657,8 +3657,8 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     Expanded(
                       child: Text(
                         _safetyLevel == 'high'
-                            ? 'à¹€à¸‚à¹‰à¸¡à¸‡à¸§à¸”: à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸žà¸¢à¸²à¸™à¸£à¹ˆà¸§à¸¡à¸¢à¸·à¸™à¸¢à¸±à¸™'
-                            : 'à¸¡à¸²à¸•à¸£à¸à¸²à¸™: à¸¢à¸·à¸™à¸¢à¸±à¸™à¸œà¹ˆà¸²à¸™ Email + SMS',
+                            ? 'เข้มงวด: ต้องมีพยานร่วมยืนยัน'
+                            : 'มาตรฐาน: ยืนยันผ่าน Email + SMS',
                       ),
                     ),
                   ],
@@ -3670,11 +3670,11 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 segments: const [
                   ButtonSegment(
                     value: 'standard',
-                    label: Text('à¸¡à¸²à¸•à¸£à¸à¸²à¸™'),
+                    label: Text('มาตรฐาน'),
                   ),
                   ButtonSegment(
                     value: 'high',
-                    label: Text('à¹€à¸‚à¹‰à¸¡à¸‡à¸§à¸”'),
+                    label: Text('เข้มงวด'),
                   ),
                 ],
                 selected: {_safetyLevel},
@@ -3699,27 +3699,27 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               const SizedBox(height: 8),
               Text(
                 _safetyLevel == 'high'
-                    ? 'à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸žà¸¢à¸²à¸™ (Guardian) à¸£à¹ˆà¸§à¸¡à¸¢à¸·à¸™à¸¢à¸±à¸™'
-                    : 'à¸¢à¸·à¸™à¸¢à¸±à¸™à¸œà¹ˆà¸²à¸™ Email + SMS',
+                    ? 'ต้องมีพยาน (Guardian) ร่วมยืนยัน'
+                    : 'ยืนยันผ่าน Email + SMS',
               ),
             ],
             const SizedBox(height: 10),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              title: const Text('à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡ (à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¹€à¸Šà¸µà¹ˆà¸¢à¸§à¸Šà¸²à¸)'),
+              title: const Text('ตั้งค่าเพิ่มเติม (สำหรับผู้เชี่ยวชาญ)'),
               children: [
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: _kind,
-                  decoration: const InputDecoration(labelText: 'à¸›à¸£à¸°à¹€à¸ à¸—à¹€à¸ªà¹‰à¸™à¸—à¸²à¸‡'),
+                  decoration: const InputDecoration(labelText: 'ประเภทเส้นทาง'),
                   items: const [
                     DropdownMenuItem(
                       value: 'legacy_delivery',
-                      child: Text('à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¸¡à¸£à¸”à¸à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥'),
+                      child: Text('ส่งต่อมรดกดิจิทัล'),
                     ),
                     DropdownMenuItem(
                       value: 'self_recovery',
-                      child: Text('à¸à¸¹à¹‰à¸„à¸·à¸™à¸”à¹‰à¸§à¸¢à¸•à¸±à¸§à¹€à¸­à¸‡'),
+                      child: Text('กู้คืนด้วยตัวเอง'),
                     ),
                   ],
                   onChanged: (value) {
@@ -3731,16 +3731,16 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _displayNameController,
-                  decoration: const InputDecoration(labelText: 'à¸Šà¸·à¹ˆà¸­à¹à¸œà¸™'),
+                  decoration: const InputDecoration(labelText: 'ชื่อแผน'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _payloadRefController,
                   onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
-                    labelText: 'à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸¡à¸­à¸š (à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡)',
+                    labelText: 'ข้อมูลที่ส่งมอบ (อ้างอิง)',
                     helperText:
-                        'à¹„à¸¡à¹ˆà¸•à¹‰à¸­à¸‡à¹ƒà¸ªà¹ˆà¸¢à¸­à¸”à¹€à¸‡à¸´à¸™à¸ˆà¸£à¸´à¸‡ à¸£à¸°à¸šà¸šà¸¢à¸·à¸™à¸¢à¸±à¸™à¸¢à¸­à¸”à¸à¸±à¸šà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™',
+                        'ไม่ต้องใส่ยอดเงินจริง ระบบยืนยันยอดกับปลายทางเท่านั้น',
                   ),
                 ),
                 if (_containsMoneyLikeText(_payloadRefController.text)) ...[
@@ -3757,12 +3757,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'à¸žà¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸„à¸¥à¹‰à¸²à¸¢à¸¢à¸­à¸”à¹€à¸‡à¸´à¸™',
+                          'พบข้อมูลที่คล้ายยอดเงิน',
                           style: TextStyle(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢ à¸£à¸°à¸šà¸šà¸™à¸µà¹‰à¹„à¸¡à¹ˆà¹€à¸à¹‡à¸šà¸¢à¸­à¸”à¸ˆà¸£à¸´à¸‡ à¹à¸™à¸°à¸™à¸³à¹ƒà¸«à¹‰à¹à¸—à¸™à¸„à¸³à¹€à¸›à¹‡à¸™ "à¸•à¸£à¸§à¸ˆà¸—à¸µà¹ˆà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡"',
+                          'เพื่อความปลอดภัย ระบบนี้ไม่เก็บยอดจริง แนะนำให้แทนคำเป็น "ตรวจที่ปลายทาง"',
                         ),
                         const SizedBox(height: 8),
                         OutlinedButton.icon(
@@ -3772,13 +3772,13 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                                       _payloadRefController.text)
                                   .replaceAll(
                                 '[institution-verified amount]',
-                                'à¸•à¸£à¸§à¸ˆà¸—à¸µà¹ˆà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡',
+                                'ตรวจที่ปลายทาง',
                               );
                             });
                           },
                           icon: const Icon(Icons.shield_outlined),
                           label: const Text(
-                            'à¹à¸—à¸™à¸„à¸³à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¹€à¸›à¹‡à¸™ "à¸•à¸£à¸§à¸ˆà¸—à¸µà¹ˆà¸›à¸¥à¸²à¸¢à¸—à¸²à¸‡"',
+                            'แทนคำอัตโนมัติเป็น "ตรวจที่ปลายทาง"',
                           ),
                         ),
                       ],
@@ -3789,12 +3789,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 TextField(
                   controller: _verificationHintController,
                   decoration:
-                      const InputDecoration(labelText: 'à¸„à¸³à¹ƒà¸šà¹‰à¸¢à¸·à¸™à¸¢à¸±à¸™à¸•à¸±à¸§à¸•à¸™'),
+                      const InputDecoration(labelText: 'คำใบ้ยืนยันตัวตน'),
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('à¹€à¸›à¸´à¸”à¸ªà¸´à¸—à¸˜à¸´à¹Œà¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸„à¸£à¸±à¹‰à¸‡à¹€à¸”à¸µà¸¢à¸§'),
+                  title: const Text('เปิดสิทธิ์ใช้งานครั้งเดียว'),
                   value: _oneTimeAccess,
                   onChanged: (value) {
                     setState(() => _oneTimeAccess = value);
@@ -3802,7 +3802,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('à¸•à¹‰à¸­à¸‡à¸¡à¸µà¸ªà¸±à¸à¸à¸²à¸“à¸¢à¸·à¸™à¸¢à¸±à¸™à¸§à¹ˆà¸²à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸•à¸­à¸š'),
+                  title: const Text('ต้องมีสัญญาณยืนยันว่าเจ้าของยังไม่ตอบ'),
                   value: _requireAliveConfirmation,
                   onChanged: (value) {
                     setState(() => _requireAliveConfirmation = value);
@@ -3816,12 +3816,12 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('à¸¢à¸à¹€à¸¥à¸´à¸'),
+          child: const Text('ยกเลิก'),
         ),
         if (_editorStep > 0)
           TextButton(
             onPressed: () => setState(() => _editorStep -= 1),
-            child: const Text('à¸¢à¹‰à¸­à¸™à¸à¸¥à¸±à¸š'),
+            child: const Text('ย้อนกลับ'),
           ),
         FilledButton(
           onPressed: () {
@@ -3871,7 +3871,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                       ? 'owner'
                       : widget.entry.recipient.role,
                   registeredLegalName: _kind == 'self_recovery'
-                      ? 'à¹€à¸ˆà¹‰à¸²à¸‚à¸­à¸‡à¸šà¸±à¸à¸Šà¸µ'
+                      ? 'เจ้าของบัญชี'
                       : _recipientNameController.text.trim(),
                   verificationHint: _kind == 'self_recovery'
                       ? ''
@@ -3915,7 +3915,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               ),
             );
           },
-          child: Text(_editorStep < 2 ? 'à¸–à¸±à¸”à¹„à¸›' : 'à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸œà¸™à¸™à¸µà¹‰'),
+          child: Text(_editorStep < 2 ? 'ถัดไป' : 'บันทึกแผนนี้'),
         ),
       ],
     );
@@ -3947,4 +3947,3 @@ class _Pill extends StatelessWidget {
     );
   }
 }
-
