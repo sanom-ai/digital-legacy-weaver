@@ -2498,6 +2498,10 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   int _editorStep = 0;
   late final TextEditingController _displayNameController;
   late final TextEditingController _payloadRefController;
+  late final TextEditingController _bankAssetsController;
+  late final TextEditingController _emailAssetsController;
+  late final TextEditingController _socialAssetsController;
+  late final TextEditingController _fileAssetsController;
   late final TextEditingController _recipientController;
   late final TextEditingController _recipientNameController;
   late final TextEditingController _verificationHintController;
@@ -2532,6 +2536,10 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
     _payloadRefController = TextEditingController(
       text: widget.entry.asset.payloadRef,
     );
+    _bankAssetsController = TextEditingController();
+    _emailAssetsController = TextEditingController();
+    _socialAssetsController = TextEditingController();
+    _fileAssetsController = TextEditingController();
     _recipientController = TextEditingController(
       text: widget.entry.recipient.destinationRef,
     );
@@ -2576,12 +2584,46 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
   void dispose() {
     _displayNameController.dispose();
     _payloadRefController.dispose();
+    _bankAssetsController.dispose();
+    _emailAssetsController.dispose();
+    _socialAssetsController.dispose();
+    _fileAssetsController.dispose();
     _recipientController.dispose();
     _recipientNameController.dispose();
     _verificationHintController.dispose();
     _triggerDaysController.dispose();
     _graceDaysController.dispose();
     super.dispose();
+  }
+
+  List<String> _structuredAssetLines() {
+    final lines = <String>[];
+    if (_bankAssetsController.text.trim().isNotEmpty) {
+      lines.add('บัญชีการเงิน: ${_bankAssetsController.text.trim()}');
+    }
+    if (_emailAssetsController.text.trim().isNotEmpty) {
+      lines.add('บัญชีอีเมล: ${_emailAssetsController.text.trim()}');
+    }
+    if (_socialAssetsController.text.trim().isNotEmpty) {
+      lines.add('บัญชีโซเชียล: ${_socialAssetsController.text.trim()}');
+    }
+    if (_fileAssetsController.text.trim().isNotEmpty) {
+      lines.add('ไฟล์สำคัญ: ${_fileAssetsController.text.trim()}');
+    }
+    return lines;
+  }
+
+  void _applyStructuredAssetsTemplate() {
+    final lines = _structuredAssetLines();
+    if (lines.isEmpty) {
+      return;
+    }
+    if (_payloadRefController.text.trim().isEmpty) {
+      _payloadRefController.text = lines.join('\n');
+    }
+    if (_displayNameController.text.trim().isEmpty) {
+      _displayNameController.text = 'ชุดสินทรัพย์ดิจิทัล (${lines.length} หมวด)';
+    }
   }
 
   @override
@@ -2660,6 +2702,73 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
                     onSelected: (value) => setState(() => _fallbackSms = value),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4EFE8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'รายการสินทรัพย์ดิจิทัล (กรอกแบบตรงๆ)',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'ช่วยให้ผู้รับเข้าใจง่ายว่าแผนนี้ครอบคลุมอะไรบ้าง',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _bankAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'บัญชีการเงิน (Bank/Exchange/Gold)',
+                  hintText: 'เช่น KBank, Bitkub, ร้านทอง A',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _emailAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'บัญชีอีเมล',
+                  hintText: 'เช่น Gmail, Outlook',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _socialAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'บัญชีโซเชียล',
+                  hintText: 'เช่น LINE, Facebook, X',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _fileAssetsController,
+                decoration: const InputDecoration(
+                  labelText: 'ไฟล์สำคัญ',
+                  hintText: 'เช่น รูปครอบครัว, เอกสารประกัน',
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _applyStructuredAssetsTemplate();
+                    });
+                  },
+                  icon: const Icon(Icons.auto_fix_high_rounded),
+                  label: const Text('เติมชื่อแผน/ข้อมูลอ้างอิงอัตโนมัติ'),
+                ),
               ),
             ] else if (_editorStep == 1) ...[
               const Text(
@@ -2859,6 +2968,7 @@ class _IntentEntryEditorDialogState extends State<_IntentEntryEditorDialog> {
               setState(() => _editorStep += 1);
               return;
             }
+            _applyStructuredAssetsTemplate();
             final inactivityDays =
                 int.tryParse(_triggerDaysController.text.trim()) ??
                     widget.entry.trigger.inactivityDays;
