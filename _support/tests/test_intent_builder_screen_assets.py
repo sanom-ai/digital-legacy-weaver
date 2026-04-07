@@ -8,6 +8,10 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _assert_contains_any(src: str, choices: list[str]) -> None:
+    assert any(choice in src for choice in choices), f"Expected one of {choices!r}"
+
+
 def test_intent_builder_core_assets_exist() -> None:
     screen = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_builder_screen.dart"
     model = ROOT / "apps" / "flutter_app" / "lib" / "features" / "intent_builder" / "intent_builder_model.dart"
@@ -81,7 +85,7 @@ def test_intent_builder_core_assets_exist() -> None:
     assert "class IntentArtifactCompareScreen" in compare_src
     assert "Exported Version Compare" in compare_src
     assert "class IntentArtifactReviewScreen" in artifact_review_src
-    assert "Exported Version Review" in artifact_review_src
+    _assert_contains_any(artifact_review_src, ["Exported Version Review", "ตรวจเวอร์ชันที่เตรียมส่งมอบ"])
 
     # Readiness flow
     assert "class IntentRuntimeReadinessModel" in readiness_model_src

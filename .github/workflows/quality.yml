@@ -39,5 +39,8 @@ jobs:
       - name: Repository hygiene check
         run: python tools/check_repo_hygiene.py
 
+      - name: Text encoding hygiene check
+        run: python tools/check_text_encoding_hygiene.py
+
       - name: Run unit tests
         run: python -m pytest _support/tests

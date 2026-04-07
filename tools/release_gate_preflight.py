@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
@@ -86,6 +88,17 @@ def main() -> int:
             ]
         )
     )
+    encoding_check = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "check_text_encoding_hygiene.py")],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if encoding_check.returncode != 0:
+        issues.append("Text encoding hygiene check failed (see details below).")
+        details = encoding_check.stdout.strip() or encoding_check.stderr.strip()
+        if details:
+            issues.append(details)
 
     backup_report = _latest_report(report_dir, "backup-restore-smoke-*.md")
     if backup_report is None:
