@@ -714,26 +714,26 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
     required int activeEntryCount,
   }) {
     if (activeEntryCount == 0) {
-      return "Status rule: activate at least one route before advancing readiness.";
+      return "เงื่อนไขสถานะ: ต้องเปิดใช้งานอย่างน้อย 1 รายการก่อนตั้งเป็นพร้อมใช้งาน";
     }
     if (artifact.report.errorCount > 0) {
-      return "Status rule: resolve blocking issues before marking this version reviewed or ready.";
+      return "เงื่อนไขสถานะ: ต้องแก้ปัญหาแบบบล็อกก่อน จึงจะตรวจทานหรือพร้อมใช้งานได้";
     }
     if (artifact.artifactState == IntentArtifactState.exported) {
-      return "Status rule: exported versions can be marked reviewed when blocking issues are clear and active routes remain present.";
+      return "เงื่อนไขสถานะ: หลังสร้างสแนปช็อตแล้ว ให้ตรวจทานได้เมื่อไม่มีปัญหาแบบบล็อกและยังมีรายการที่เปิดใช้งาน";
     }
     if (artifact.artifactState == IntentArtifactState.reviewed &&
         !artifactInSync) {
-      return "Status rule: reviewed versions can only be marked ready while the current draft still matches the exported version.";
+      return "เงื่อนไขสถานะ: สแนปช็อตที่ตรวจทานแล้วจะพร้อมใช้งานได้ เมื่อร่างล่าสุดยังตรงกับสแนปช็อต";
     }
     if (artifact.artifactState == IntentArtifactState.reviewed &&
         artifactInSync) {
-      return "Status rule: this reviewed version can move to ready because the draft is still in sync.";
+      return "เงื่อนไขสถานะ: สแนปช็อตนี้พร้อมเลื่อนไปสถานะพร้อมใช้งาน เพราะร่างล่าสุดยังตรงกัน";
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
-      return "Status rule: ready versions stay trustworthy only while the draft remains in sync with the exported version.";
+      return "เงื่อนไขสถานะ: สถานะพร้อมใช้งานจะเชื่อถือได้ ตราบใดที่ร่างล่าสุดยังตรงกับสแนปช็อต";
     }
-    return "Status rule: export a version first, then review it before marking it ready.";
+    return "เงื่อนไขสถานะ: ให้สร้างสแนปช็อตก่อน จากนั้นตรวจทาน แล้วค่อยตั้งเป็นพร้อมใช้งาน";
   }
 
   String _buildPolicyPaper(IntentCanonicalArtifactModel artifact) {
@@ -2702,22 +2702,22 @@ class _IntentEntryCard extends StatelessWidget {
     final receiver = entry.recipient.registeredLegalName.trim().isNotEmpty
         ? entry.recipient.registeredLegalName
         : (entry.recipient.destinationRef.isEmpty
-            ? 'Recipient not set'
+            ? 'ยังไม่ได้ระบุผู้รับ'
             : entry.recipient.destinationRef);
     final startCondition = switch (entry.trigger.mode) {
       'exact_date' when entry.trigger.scheduledAtUtc != null =>
-        'Starts on ${entry.trigger.scheduledAtUtc!.toLocal()} and waits ${entry.trigger.graceDays} days before release.',
+        'เริ่มตามวันเวลาที่ตั้งไว้ ${entry.trigger.scheduledAtUtc!.toLocal()} และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
       'exact_date' =>
-        'Starts on a scheduled date (not set yet) and waits ${entry.trigger.graceDays} days before release.',
+        'เริ่มตามวันเวลาที่กำหนด (ยังไม่ได้เลือกวันเวลา) และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
       'manual_release' =>
-        'Starts from manual emergency release and waits ${entry.trigger.graceDays} days before release.',
+        'เริ่มจากโหมดฉุกเฉินแบบปลดล็อกด้วยมือ และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
       _ =>
-        'Starts after ${entry.trigger.inactivityDays} days of inactivity and waits ${entry.trigger.graceDays} more days before release.',
+        'เริ่มเมื่อไม่พบการใช้งาน ${entry.trigger.inactivityDays} วัน และรอยืนยันซ้ำอีก ${entry.trigger.graceDays} วัน',
     };
-    final statusLabel = entry.status == 'active' ? 'Active' : 'Paused';
+    final statusLabel = entry.status == 'active' ? 'เปิดใช้งาน' : 'พักไว้';
     final kindLabel = entry.kind == 'legacy_delivery'
-        ? 'Beneficiary delivery'
-        : 'Self recovery';
+        ? 'ส่งต่อให้ผู้รับ'
+        : 'กู้คืนด้วยตัวเอง';
 
     final scheme = Theme.of(context).colorScheme;
     return Card(
@@ -2754,7 +2754,7 @@ class _IntentEntryCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Summary: deliver to $receiver',
+              'สรุป: ส่งต่อให้ $receiver',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
@@ -2762,48 +2762,48 @@ class _IntentEntryCard extends StatelessWidget {
             const SizedBox(height: 4),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              title: const Text('View details'),
+              title: const Text('ดูรายละเอียดเพิ่มเติม'),
               subtitle: const Text(
-                'Delivery channel, verification, and privacy settings',
+                'ช่องทางส่ง การยืนยันตัวตน และการตั้งค่าความเป็นส่วนตัว',
               ),
               children: [
                 const SizedBox(height: 6),
                 Text(
-                  'Recipient channel: ${entry.recipient.deliveryChannel}',
+                  'ช่องทางหลักของผู้รับ: ${entry.recipient.deliveryChannel}',
                 ),
                 const SizedBox(height: 4),
                 if (entry.recipient.verificationHint.trim().isNotEmpty) ...[
                   Text(
-                    'Verification hint: ${entry.recipient.verificationHint}',
+                    'คำใบ้ยืนยันตัวตน: ${entry.recipient.verificationHint}',
                   ),
                   const SizedBox(height: 4),
                 ],
                 Text(
-                  'Fallback channels: ${entry.recipient.fallbackChannels.join(', ')}',
+                  'ช่องทางสำรอง: ${entry.recipient.fallbackChannels.join(', ')}',
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Delivery method: ${entry.delivery.method}'
-                  '${entry.delivery.requireVerificationCode ? ' + verification code' : ''}'
-                  '${entry.delivery.requireTotp ? ' + authenticator app' : ''}',
+                  'รูปแบบการส่ง: ${entry.delivery.method}'
+                  '${entry.delivery.requireVerificationCode ? ' + รหัสยืนยัน' : ''}'
+                  '${entry.delivery.requireTotp ? ' + แอปยืนยันตัวตน' : ''}',
                 ),
                 const SizedBox(height: 4),
-                Text('Privacy profile: ${entry.privacy.profile}'),
+                Text('ระดับความเป็นส่วนตัว: ${entry.privacy.profile}'),
                 const SizedBox(height: 4),
                 Text(
-                  'Before release visibility: ${entry.privacy.preTriggerVisibility}',
+                  'ก่อนถึงเงื่อนไขให้เห็น: ${entry.privacy.preTriggerVisibility}',
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'After release visibility: ${entry.privacy.postTriggerVisibility}',
+                  'หลังถึงเงื่อนไขให้เห็น: ${entry.privacy.postTriggerVisibility}',
                 ),
                 const SizedBox(height: 4),
-                Text('Value disclosure mode: ${entry.privacy.valueDisclosureMode}'),
+                Text('การเปิดเผยมูลค่า: ${entry.privacy.valueDisclosureMode}'),
                 const SizedBox(height: 4),
                 Text(
-                  'Safety level: '
-                  '${entry.safeguards.requireMultisignal ? 'multi-signal required' : 'single signal'}'
-                  '${entry.safeguards.requireGuardianApproval ? ', guardian approval required' : ''}',
+                  'ระดับความปลอดภัย: '
+                  '${entry.safeguards.requireMultisignal ? 'ต้องยืนยันหลายสัญญาณ' : 'ยืนยันสัญญาณเดียว'}'
+                  '${entry.safeguards.requireGuardianApproval ? ', ต้องมีพยานร่วมยืนยัน' : ''}',
                 ),
               ],
             ),
@@ -2812,14 +2812,14 @@ class _IntentEntryCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                OutlinedButton(onPressed: onEdit, child: const Text('Edit')),
+                OutlinedButton(onPressed: onEdit, child: const Text('แก้ไข')),
                 FilledButton.tonal(
                   onPressed: onToggleStatus,
                   child: Text(
-                    entry.status == 'active' ? 'Pause route' : 'Activate route',
+                    entry.status == 'active' ? 'พักรายการ' : 'เปิดใช้งาน',
                   ),
                 ),
-                TextButton(onPressed: onRemove, child: const Text('Remove')),
+                TextButton(onPressed: onRemove, child: const Text('ลบ')),
               ],
             ),
           ],
