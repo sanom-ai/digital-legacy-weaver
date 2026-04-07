@@ -765,36 +765,36 @@ class _IntentBuilderScreenState extends ConsumerState<IntentBuilderScreen> {
         : selectedDestinations.join(", " );
 
     return '''
-Digital Legacy Policy Paper (Final)
+เอกสารสรุปนโยบายมรดกดิจิทัล (ฉบับสุดท้าย)
 
-Section 1: Intent Summary
-- Policy name: Family legacy handoff plan
-- Owner: ${widget.profile.id}
-- Beneficiary: $beneficiaryName ($beneficiaryEmail)
-- Privacy profile: ${widget.settings.tracePrivacyProfile}
-- Artifact ID: ${artifact.artifactId}
-- Generated at: ${artifact.generatedAt.toLocal()}
+ส่วนที่ 1: สรุปเจตจำนง
+- ชื่อแผน: แผนส่งมอบมรดกดิจิทัลให้ครอบครัว
+- เจ้าของแผน: ${widget.profile.id}
+- ผู้รับ: $beneficiaryName ($beneficiaryEmail)
+- ระดับความเป็นส่วนตัว: ${widget.settings.tracePrivacyProfile}
+- รหัสเอกสาร: ${artifact.artifactId}
+- เวลาสร้างเอกสาร: ${artifact.generatedAt.toLocal()}
 
-Section 2: Release Conditions
-- Start release checks after $inactivity days of inactivity.
-- Wait $grace extra safety-confirmation days before release.
-- Verification level: $verifyLevel
-- Cooldown before final reveal: 24 hours
+ส่วนที่ 2: เงื่อนไขการส่งมอบ
+- เริ่มตรวจการส่งมอบเมื่อขาดการติดต่อครบ $inactivity วัน
+- รอช่วงยืนยันความปลอดภัยเพิ่มเติมอีก $grace วันก่อนปล่อยข้อมูล
+- ระดับการยืนยันตัวตน: $verifyLevel
+- เวลาหน่วงก่อนเปิดข้อมูลจริง: 24 ชั่วโมง
 
-Section 3: Roles and Access
-- Beneficiary access: read-only delivery package.
-- System role: run trigger checks and dispatch through approved channels.
-- Primary release channel: ${primary?.releaseChannel ?? "secure_link"}
+ส่วนที่ 3: สิทธิ์และการเข้าถึง
+- สิทธิ์ผู้รับ: เข้าถึงแพ็กข้อมูลแบบอ่านอย่างเดียว
+- บทบาทระบบ: ตรวจเงื่อนไขและส่งมอบผ่านช่องทางที่อนุมัติไว้
+- ช่องทางส่งมอบหลัก: ${primary?.releaseChannel ?? "secure_link"}
 
-Section 4: Partner and Ecosystem Scope
-- Legal partner: $partnerLine
-- Ecosystem destinations: $destinationLine
-- Partner fee terms accepted: ${_partnerTermsAccepted ? "Accepted" : "Pending"}
+ส่วนที่ 4: พาร์ทเนอร์และปลายทาง
+- สำนักงานกฎหมาย: $partnerLine
+- ปลายทางใน ecosystem: $destinationLine
+- สถานะการยอมรับค่าธรรมเนียมพาร์ทเนอร์: ${_partnerTermsAccepted ? "ยอมรับแล้ว" : "ยังไม่ยอมรับ"}
 
-Notes
-- This summary reflects the current exported artifact.
-- The app does not store real balances or custody real funds.
-- Real balances must be verified directly at destination institutions (bank/exchange/legal partner).
+หมายเหตุ
+- สรุปนี้อ้างอิงจากเอกสารที่ export ล่าสุด
+- แอปไม่เก็บยอดเงินจริง และไม่ถือครองเงินผู้ใช้
+- ยอดเงินจริงต้องตรวจสอบกับปลายทางโดยตรง (ธนาคาร/Exchange/พาร์ทเนอร์กฎหมาย)
 ''';
   }
 
@@ -809,7 +809,7 @@ Notes
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("????????????? (Policy Paper)"),
+        title: const Text("????????????? (เอกสารสรุปนโยบาย)"),
         content: SizedBox(
           width: 560,
           child: SingleChildScrollView(
@@ -856,7 +856,7 @@ Notes
             onPressed: () {
               Clipboard.setData(ClipboardData(text: paper));
               messenger.showSnackBar(
-                const SnackBar(content: Text("?????? Policy Paper ????")),
+                const SnackBar(content: Text("?????? เอกสารสรุปนโยบาย ????")),
               );
             },
             child: const Text("????????????"),
@@ -940,7 +940,7 @@ Notes
           const SizedBox(width: 8),
           Expanded(child: Text(message)),
           if (isError && onRetry != null)
-            TextButton(onPressed: onRetry, child: const Text("Retry")),
+            TextButton(onPressed: onRetry, child: const Text("ลองใหม่")),
         ],
       ),
     );
@@ -1735,9 +1735,9 @@ Notes
                   const SizedBox(height: 12),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text("Enable shared approval"),
+                    title: const Text("เปิดใช้การยืนยันร่วมกัน"),
                     subtitle: const Text(
-                      "Recommended baseline: 2-of-3 for sensitive handoff.",
+                      "แนะนำให้ใช้ 2 จาก 3 คน สำหรับการส่งมอบที่สำคัญ",
                     ),
                     value: _document.globalSafeguards.guardianQuorumEnabled,
                     onChanged: (value) {
@@ -1917,9 +1917,9 @@ Notes
                   const SizedBox(height: 12),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text("Enable emergency access"),
+                    title: const Text("เปิดใช้โหมดฉุกเฉิน"),
                     subtitle: const Text(
-                      "Use only for incapacity cases (for example ICU), separate from regular inactivity release.",
+                      "ใช้เมื่อเจ้าของไม่สามารถตอบสนองได้เท่านั้น (เช่น ICU) แยกจากการส่งมอบตามการขาดการติดต่อ",
                     ),
                     value: _document.globalSafeguards.emergencyAccessEnabled,
                     onChanged: (value) {
@@ -1960,16 +1960,16 @@ Notes
                           iosBackgroundRiskAcknowledged: _document
                               .globalSafeguards.iosBackgroundRiskAcknowledged,
                         ),
-                        message: "Updated emergency access settings.",
+                        message: "อัปเดตการตั้งค่าโหมดฉุกเฉินแล้ว",
                       );
                     },
                   ),
                   if (_document.globalSafeguards.emergencyAccessEnabled) ...[
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text("Require beneficiary request"),
+                      title: const Text("ต้องมีคำขอจากผู้รับก่อน"),
                       subtitle: const Text(
-                        "Emergency access should begin with an explicit beneficiary request.",
+                        "โหมดฉุกเฉินจะเริ่มเมื่อผู้รับยื่นคำขออย่างชัดเจน",
                       ),
                       value: _document.globalSafeguards
                           .emergencyAccessRequiresBeneficiaryRequest,
@@ -2013,15 +2013,15 @@ Notes
                             iosBackgroundRiskAcknowledged: _document
                                 .globalSafeguards.iosBackgroundRiskAcknowledged,
                           ),
-                          message: "Updated beneficiary request requirement.",
+                          message: "อัปเดตเงื่อนไขคำขอจากผู้รับแล้ว",
                         );
                       },
                     ),
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text("Require shared approval"),
+                      title: const Text("ต้องผ่านการยืนยันร่วมกัน"),
                       subtitle: const Text(
-                        "Recommended so emergency access remains multi-party and auditable.",
+                        "แนะนำให้เปิดไว้ เพื่อให้โหมดฉุกเฉินโปร่งใสและตรวจสอบย้อนหลังได้",
                       ),
                       value: _document.globalSafeguards
                           .emergencyAccessRequiresGuardianQuorum,
@@ -2348,7 +2348,7 @@ Notes
                           onPressed: () {
                             _openPolicyPaper(_artifact!);
                           },
-                          child: const Text("ดู Policy Paper"),
+                          child: const Text("ดูเอกสารสรุปนโยบาย"),
                         ),
                         OutlinedButton(
                           onPressed: canMarkReviewed
@@ -2595,7 +2595,7 @@ Notes
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "How this plan works",
+                    "แผนนี้ทำงานอย่างไร",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -2614,14 +2614,14 @@ Notes
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Simple flow",
+                          "ลำดับการทำงานแบบย่อ",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 8),
-                        Text("1) Inactivity or scheduled date is reached."),
-                        Text("2) Safety checks run first."),
-                        Text("3) Recipient receives guided access steps."),
-                        Text("4) Access events are recorded for audit."),
+                        Text("1) ถึงเงื่อนไขวันเวลา หรือขาดการติดต่อที่ตั้งไว้"),
+                        Text("2) ระบบตรวจความปลอดภัยก่อนทุกครั้ง"),
+                        Text("3) ผู้รับเห็นขั้นตอนที่ชัดเจนและทำตามได้ทันที"),
+                        Text("4) ทุกเหตุการณ์ถูกบันทึกไว้เพื่อตรวจสอบย้อนหลัง"),
                       ],
                     ),
                   ),
