@@ -36,7 +36,7 @@ class _IntentArtifactHistoryScreenState
       builder: (context) => AlertDialog(
         title: const Text("คัดลอกเป็นเวอร์ชันล่าสุด"),
         content: Text(
-          "สร้างเวอร์ชันส่งออกใหม่จาก ${artifact.artifactId} ใช่ไหม? ประวัติเวอร์ชันเดิมจะยังอยู่เหมือนเดิม",
+          "ต้องการสร้างเวอร์ชันส่งออกใหม่จาก ${artifact.artifactId} ใช่ไหม? ประวัติเดิมจะยังอยู่เหมือนเดิม",
         ),
         actions: [
           TextButton(
@@ -59,7 +59,7 @@ class _IntentArtifactHistoryScreenState
       builder: (context) => AlertDialog(
         title: const Text("ลบเวอร์ชัน"),
         content: Text(
-          "ลบ ${artifact.artifactId} ออกจากประวัติเวอร์ชันในเครื่องนี้ใช่ไหม?",
+          "ต้องการลบ ${artifact.artifactId} ออกจากประวัติเวอร์ชันในเครื่องนี้ใช่ไหม?",
         ),
         actions: [
           TextButton(
@@ -84,7 +84,7 @@ class _IntentArtifactHistoryScreenState
     }
     if (artifact.promotedFromArtifactId != null &&
         artifact.promotedFromArtifactId!.isNotEmpty) {
-      badges.add("คัดลอก");
+      badges.add("คัดลอกมา");
     }
     if (artifact.artifactState == IntentArtifactState.ready) {
       badges.add("พร้อมใช้งาน");
@@ -148,12 +148,12 @@ class _IntentArtifactHistoryScreenState
                   if (widget.currentArtifact != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      "เวอร์ชันที่ปักล่าสุด: ${widget.currentArtifact!.artifactId} | ${_stateLabel(widget.currentArtifact!.artifactState)}",
+                      "เวอร์ชันล่าสุด: ${widget.currentArtifact!.artifactId} | ${_stateLabel(widget.currentArtifact!.artifactState)}",
                     ),
                   ],
                   const SizedBox(height: 8),
                   const Text(
-                    "การรีวิว เทียบเวอร์ชัน และคัดลอก ทำในเครื่องนี้ทั้งหมด เวอร์ชันเก่าจะคงอยู่จนกว่าจะลบ",
+                    "คุณสามารถรีวิว เทียบ และคัดลอกเวอร์ชันเดิมได้โดยไม่ทำให้ประวัติหาย",
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -174,7 +174,7 @@ class _IntentArtifactHistoryScreenState
                             setState(() => _historyFilter = 'ready'),
                       ),
                       ChoiceChip(
-                        label: const Text("คัดลอก"),
+                        label: const Text("คัดลอกมา"),
                         selected: _historyFilter == 'promoted',
                         onSelected: (_) =>
                             setState(() => _historyFilter = 'promoted'),
@@ -202,9 +202,7 @@ class _IntentArtifactHistoryScreenState
                           ),
                         ],
                         onChanged: (value) {
-                          if (value == null) {
-                            return;
-                          }
+                          if (value == null) return;
                           setState(() => _historySort = value);
                         },
                       ),
@@ -219,7 +217,7 @@ class _IntentArtifactHistoryScreenState
             const Card(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Text("ไม่มีเวอร์ชันที่ตรงกับตัวกรองตอนนี้"),
+                child: Text("ไม่พบเวอร์ชันที่ตรงกับตัวกรองตอนนี้"),
               ),
             ),
           ...visibleArtifactHistory.map(
@@ -231,7 +229,7 @@ class _IntentArtifactHistoryScreenState
                     "${artifact.generatedAt.toLocal()} | ${_stateLabel(artifact.artifactState)}",
                   ),
                   subtitle: Text(
-                    "เวอร์ชัน ${artifact.artifactId} | ${artifact.activeEntryCount} แผนที่ใช้งานอยู่",
+                    "เวอร์ชัน ${artifact.artifactId} | แผนที่เปิดใช้งาน ${artifact.activeEntryCount}",
                   ),
                   isThreeLine: _artifactBadges(artifact).isNotEmpty,
                   leading: _artifactBadges(artifact).isEmpty
@@ -265,8 +263,7 @@ class _IntentArtifactHistoryScreenState
                         child: const Text("รีวิว"),
                       ),
                       TextButton(
-                        onPressed:
-                            widget.currentArtifact != null &&
+                        onPressed: widget.currentArtifact != null &&
                                 artifact.artifactId !=
                                     widget.currentArtifact!.artifactId
                             ? () {
@@ -283,19 +280,14 @@ class _IntentArtifactHistoryScreenState
                         child: const Text("เทียบ"),
                       ),
                       TextButton(
-                        onPressed:
-                            widget.currentArtifact != null &&
+                        onPressed: widget.currentArtifact != null &&
                                 artifact.artifactId !=
                                     widget.currentArtifact!.artifactId
                             ? () async {
                                 final messenger = ScaffoldMessenger.of(context);
                                 final navigator = Navigator.of(context);
-                                final confirmed = await _confirmPromote(
-                                  artifact,
-                                );
-                                if (!confirmed) {
-                                  return;
-                                }
+                                final confirmed = await _confirmPromote(artifact);
+                                if (!confirmed) return;
                                 await widget.onPromote(artifact);
                                 if (!mounted) return;
                                 messenger.showSnackBar(
@@ -315,9 +307,7 @@ class _IntentArtifactHistoryScreenState
                           final messenger = ScaffoldMessenger.of(context);
                           final navigator = Navigator.of(context);
                           final confirmed = await _confirmRemove(artifact);
-                          if (!confirmed) {
-                            return;
-                          }
+                          if (!confirmed) return;
                           await widget.onRemove(artifact);
                           if (!mounted) return;
                           messenger.showSnackBar(

@@ -19,11 +19,10 @@ class IntentArtifactCompareScreen extends StatelessWidget {
     if (currentArtifact.activeEntryCount != compareArtifact.activeEntryCount) {
       changes.add("จำนวนแผนที่ใช้งานอยู่เปลี่ยน");
     }
-    if (currentArtifact.report.errorCount !=
-            compareArtifact.report.errorCount ||
+    if (currentArtifact.report.errorCount != compareArtifact.report.errorCount ||
         currentArtifact.report.warningCount !=
             compareArtifact.report.warningCount) {
-      changes.add("สถานะประเด็นเปลี่ยน");
+      changes.add("สถานะปัญหาเปลี่ยน");
     }
     final currentTraceCount =
         (currentArtifact.trace["entries"] as Map?)?.length ?? 0;
@@ -89,9 +88,7 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (changedFields.isEmpty)
-                    const Text(
-                      "ไม่พบความต่างสำคัญระหว่างสองเวอร์ชันนี้",
-                    )
+                    const Text("ไม่พบความต่างสำคัญระหว่างสองเวอร์ชันนี้")
                   else
                     ...changedFields.map(
                       (item) => Padding(
@@ -112,12 +109,8 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                   ),
                   _ComparisonRow(
                     label: "ที่มาของการคัดลอก",
-                    current:
-                        currentArtifact.promotedFromArtifactId ??
-                        "ส่งออกตรง",
-                    compare:
-                        compareArtifact.promotedFromArtifactId ??
-                        "ส่งออกตรง",
+                    current: currentArtifact.promotedFromArtifactId ?? "ส่งออกตรง",
+                    compare: compareArtifact.promotedFromArtifactId ?? "ส่งออกตรง",
                   ),
                   _ComparisonRow(
                     label: "เวลาที่สร้าง",
@@ -130,7 +123,7 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                     compare: "${compareArtifact.activeEntryCount}",
                   ),
                   _ComparisonRow(
-                    label: "สถานะประเด็น",
+                    label: "สถานะปัญหา",
                     current:
                         "ผิดพลาด ${currentArtifact.report.errorCount} / เตือน ${currentArtifact.report.warningCount}",
                     compare:
@@ -160,9 +153,7 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (ptnLineSummary.isEmpty)
-                    const Text(
-                      "ไม่พบความต่างระดับบรรทัดในนโยบาย",
-                    )
+                    const Text("ไม่พบความต่างระดับบรรทัดในนโยบาย")
                   else
                     ...ptnLineSummary.map(
                       (item) => Padding(
@@ -187,7 +178,7 @@ class IntentArtifactCompareScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "ดูเวอร์ชันล่าสุดเทียบกับเวอร์ชันก่อนหน้า เพื่อเข้าใจว่าแผนเปลี่ยนอย่างไรตามเวลา",
+                    "ดูความต่างระหว่างเวอร์ชันล่าสุดและเวอร์ชันที่นำมาเทียบ เพื่อให้มั่นใจว่าการเปลี่ยนแผนเป็นไปตามที่ตั้งใจ",
                   ),
                   const SizedBox(height: 12),
                   _ArtifactTextBlock(
