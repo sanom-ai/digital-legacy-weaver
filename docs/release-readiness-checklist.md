@@ -98,3 +98,11 @@ python tools/release_gate_preflight.py --max-age-days 30
 1. `app-release.aab` generated (Play Console package)
 2. `app-release.apk` generated (direct distribution / QA package)
 3. Store metadata and privacy disclosures reviewed in [Store Readiness Pack](./store-readiness.md)
+
+## 11) v0.1.7 Baseline Gate
+
+Lock baseline and verify core flow/security/docs in one command:
+
+```powershell
+python tools/v017_baseline_gate.py --max-age-days 30
+```
