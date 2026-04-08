@@ -33,6 +33,7 @@ Use this playbook to move from repository-ready to first controlled public usage
 1. Run workflow `App Release Pack`.
 2. Input tag (example `v0.1.0`) and prerelease mode.
 3. Confirm GitHub Release contains:
+- `app-release.aab`
 - `app-release.apk`
 - `digital-legacy-weaver-windows.zip`
 
