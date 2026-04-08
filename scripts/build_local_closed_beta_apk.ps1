@@ -44,10 +44,33 @@ Expected default path: $defaultPath
 "@
 }
 
+function Ensure-JavaHome {
+  $javaFromPath = Get-Command "java" -ErrorAction SilentlyContinue
+  if ($javaFromPath) {
+    return
+  }
+
+  $localJdkRoot = Join-Path $env:LOCALAPPDATA "Programs\DLW\jdk-21"
+  $localJavaExe = Join-Path $localJdkRoot "bin\java.exe"
+  if (Test-Path $localJavaExe) {
+    $env:JAVA_HOME = $localJdkRoot
+    $env:Path = "$localJdkRoot\bin;$env:Path"
+    return
+  }
+
+  throw @"
+Java runtime not found.
+Install JDK first (recommended):
+  .\scripts\setup_local_android_toolchain.ps1
+Then run this build script again.
+"@
+}
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $appDir = Join-Path $repoRoot "apps\flutter_app"
 $flutter = Resolve-Flutter
 $androidSdk = Resolve-AndroidSdk
+Ensure-JavaHome
 
 Write-Host "== Build Local Closed Beta APK ==" -ForegroundColor Cyan
 Write-Host "Flutter: $flutter" -ForegroundColor DarkGray
@@ -73,6 +96,15 @@ try {
   }
 
   Write-Host "Building release APK (local closed beta flags)..." -ForegroundColor Yellow
+  # Stabilize local Windows builds: avoid Kotlin daemon incremental cache
+  # errors that can appear after successful APK assembly.
+  $gradleTuning = "-Dkotlin.incremental=false -Dkotlin.compiler.execution.strategy=in-process"
+  if ([string]::IsNullOrWhiteSpace($env:GRADLE_OPTS)) {
+    $env:GRADLE_OPTS = $gradleTuning
+  }
+  elseif (-not $env:GRADLE_OPTS.Contains("kotlin.incremental=false")) {
+    $env:GRADLE_OPTS = "$env:GRADLE_OPTS $gradleTuning"
+  }
   & $flutter "build" "apk" "--release" `
     "--dart-define=LOCAL_CLOSED_BETA_MODE=true" `
     "--dart-define=CLOSED_BETA_MANUAL_CODE=true"
