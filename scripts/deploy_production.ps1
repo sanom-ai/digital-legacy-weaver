@@ -12,6 +12,43 @@ function Require-Cli([string]$name) {
   }
 }
 
+function Resolve-SupabaseRunner {
+  $supabaseCli = Get-Command "supabase" -ErrorAction SilentlyContinue
+  if ($supabaseCli) {
+    return @{
+      Type = "cli"
+      Path = $supabaseCli.Source
+    }
+  }
+
+  $npxCmd = "C:\Program Files\nodejs\npx.cmd"
+  if (Test-Path $npxCmd) {
+    return @{
+      Type = "npx"
+      Path = $npxCmd
+    }
+  }
+
+  throw "Supabase CLI not found. Install supabase CLI or Node.js npx."
+}
+
+function Invoke-Supabase {
+  param(
+    [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)]
+    [string[]]$Args
+  )
+
+  if ($script:SupabaseRunner.Type -eq "cli") {
+    & $script:SupabaseRunner.Path @Args
+  } else {
+    & $script:SupabaseRunner.Path "supabase" @Args
+  }
+
+  if ($LASTEXITCODE -ne 0) {
+    throw "supabase command failed: $($Args -join ' ')"
+  }
+}
+
 function Require-Env([string]$key) {
   $value = [Environment]::GetEnvironmentVariable($key)
   if ([string]::IsNullOrWhiteSpace($value)) {
@@ -21,7 +58,8 @@ function Require-Env([string]$key) {
 }
 
 Write-Host "== Digital Legacy Weaver Production Deploy ==" -ForegroundColor Cyan
-Require-Cli "supabase"
+$script:SupabaseRunner = Resolve-SupabaseRunner
+Write-Host "Supabase runner: $($script:SupabaseRunner.Type) ($($script:SupabaseRunner.Path))" -ForegroundColor DarkGray
 
 $supabaseUrl = Require-Env "SUPABASE_URL"
 $anonKey = Require-Env "SUPABASE_ANON_KEY"
@@ -45,26 +83,26 @@ if ([string]::IsNullOrWhiteSpace($resendKey) -and [string]::IsNullOrWhiteSpace($
 }
 
 Write-Host "Linking Supabase project..." -ForegroundColor Yellow
-supabase link --project-ref $ProjectRef
+Invoke-Supabase "link" "--project-ref" $ProjectRef
 
 if (-not $SkipDbPush) {
   Write-Host "Applying migrations..." -ForegroundColor Yellow
-  supabase db push
+  Invoke-Supabase "db" "push"
 } else {
   Write-Host "Skipping db push by request." -ForegroundColor DarkYellow
 }
 
 Write-Host "Deploying edge functions..." -ForegroundColor Yellow
-supabase functions deploy dispatch-trigger
-supabase functions deploy open-delivery-link
-supabase functions deploy manage-totp-factor
-supabase functions deploy review-legal-evidence
-supabase functions deploy manage-reviewer-keys
-supabase functions deploy handoff-notice
-supabase functions deploy runtime-status
+Invoke-Supabase "functions" "deploy" "dispatch-trigger"
+Invoke-Supabase "functions" "deploy" "open-delivery-link"
+Invoke-Supabase "functions" "deploy" "manage-totp-factor"
+Invoke-Supabase "functions" "deploy" "review-legal-evidence"
+Invoke-Supabase "functions" "deploy" "manage-reviewer-keys"
+Invoke-Supabase "functions" "deploy" "handoff-notice"
+Invoke-Supabase "functions" "deploy" "runtime-status"
 
 Write-Host "Setting function secrets..." -ForegroundColor Yellow
-supabase secrets set `
+Invoke-Supabase "secrets" "set" `
   SUPABASE_URL=$supabaseUrl `
   SUPABASE_ANON_KEY=$anonKey `
   SUPABASE_SERVICE_ROLE_KEY=$serviceRole `

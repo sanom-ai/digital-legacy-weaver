@@ -8,12 +8,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-function Require-Cli([string]$name) {
-  if (-not (Get-Command $name -ErrorAction SilentlyContinue)) {
-    throw "Required CLI not found: $name"
-  }
-}
-
 function Read-ResponseBody([object]$response) {
   if ($null -eq $response) { return "" }
   if ($response.PSObject.Properties.Name -contains "Content") {
@@ -21,8 +15,6 @@ function Read-ResponseBody([object]$response) {
   }
   return [string]$response
 }
-
-Require-Cli "supabase"
 
 if ([string]::IsNullOrWhiteSpace($AnonKey)) {
   $AnonKey = [Environment]::GetEnvironmentVariable("SUPABASE_ANON_KEY")
