@@ -18,6 +18,7 @@ Use this playbook to move from repository-ready to first controlled public usage
 - `e2e-runtime-adversarial.txt`
 - `e2e-runtime-summary.md`
 5. Confirm `flutter-quality.yml` is green on latest `main`.
+6. Enable and validate `Runtime Dispatch AI Ops` scheduled workflow (hourly).
 
 ## Phase 1.5: App onboarding readiness
 

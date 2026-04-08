@@ -4,8 +4,9 @@ Use `system_heartbeats` as internal proof that scheduler is alive.
 
 ## Recommended external checks
 
-1. UptimeRobot/Cron-job.org calls `dispatch-trigger` on schedule.
-2. Secondary monitor checks heartbeat freshness:
+1. Enable workflow `Runtime Dispatch AI Ops` (hourly) to invoke `dispatch-trigger` automatically.
+2. Optional fallback: UptimeRobot/Cron-job.org calls `dispatch-trigger` on schedule.
+3. Secondary monitor checks heartbeat freshness:
 - Query latest row where `source = 'dispatch-trigger'`
 - Alert if no `status='ok'` within 26 hours
 
