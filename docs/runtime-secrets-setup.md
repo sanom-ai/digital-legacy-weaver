@@ -88,3 +88,17 @@ python tools/release_gate_preflight.py --max-age-days 30
 2. Rotate `SUPABASE_SERVICE_ROLE_KEY` if leaked.
 3. Rotate internal keys (`HANDOFF_INTERNAL_KEY`, reviewer keys) every 90 days.
 4. Update local + GitHub secrets together, then run smoke checks.
+
+## 7) Post-rotation verification (required)
+
+After any key rotation:
+
+1. Re-run runtime guard workflow once (`Runtime Dispatch AI Ops`)
+2. Run release preflight locally:
+
+```powershell
+python tools/release_gate_preflight.py --max-age-days 30
+python tools/v017_baseline_gate.py --max-age-days 30
+```
+
+3. Confirm latest `Quality`, `Flutter Quality`, and `Security Gate` are green on `main`
