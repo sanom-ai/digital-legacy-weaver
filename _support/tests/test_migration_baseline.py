@@ -5,8 +5,24 @@ ROOT = Path(__file__).resolve().parents[2]
 MIGRATIONS = ROOT / "supabase" / "migrations"
 
 
+def _resolve_migration(name: str) -> Path:
+    direct = MIGRATIONS / name
+    if direct.exists():
+        return direct
+
+    # Backward/forward-compatible lookup by stable slug.
+    # Example:
+    # - old: 20260405_0004_unlock_rate_limit.sql
+    # - new: 20260405000400_unlock_rate_limit.sql
+    slug = name.split("_", 2)[2]
+    matches = sorted(MIGRATIONS.glob(f"*_{slug}"))
+    assert matches, f"missing migration: {name}"
+    assert len(matches) == 1, f"ambiguous migration slug: {slug} -> {matches}"
+    return matches[0]
+
+
 def _read(name: str) -> str:
-    return (MIGRATIONS / name).read_text(encoding="utf-8")
+    return _resolve_migration(name).read_text(encoding="utf-8")
 
 
 def test_required_migration_files_exist() -> None:
@@ -32,9 +48,8 @@ def test_required_migration_files_exist() -> None:
         "20260405_0019_reliability_and_beneficiary_identity.sql",
         "20260407_0025_runtime_dispatch_schedules.sql",
     ]
-    existing = {p.name for p in MIGRATIONS.glob("*.sql")}
     for name in required:
-        assert name in existing, f"missing migration: {name}"
+        _ = _resolve_migration(name)
 
 
 def test_unlock_rate_limit_table_defined() -> None:
