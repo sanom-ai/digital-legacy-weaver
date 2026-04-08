@@ -49,6 +49,7 @@ class AppStatePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final styling = _resolveStyling(scheme);
+    final panelTitle = _resolvedTitle();
     final horizontal = compact ? 14.0 : 16.0;
     final vertical = compact ? 12.0 : 16.0;
 
@@ -64,8 +65,8 @@ class AppStatePanel extends StatelessWidget {
         ),
       ),
       child: layout == AppStateLayout.centered
-          ? _buildCenteredContent(context, styling)
-          : _buildInlineContent(context, styling),
+          ? _buildCenteredContent(context, styling, panelTitle)
+          : _buildInlineContent(context, styling, panelTitle),
     );
 
     if (layout == AppStateLayout.centered) {
@@ -77,7 +78,11 @@ class AppStatePanel extends StatelessWidget {
     return panel;
   }
 
-  Widget _buildInlineContent(BuildContext context, _AppStateStyling styling) {
+  Widget _buildInlineContent(
+    BuildContext context,
+    _AppStateStyling styling,
+    String? panelTitle,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -96,9 +101,9 @@ class AppStatePanel extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (title != null) ...[
+                  if (panelTitle != null) ...[
                     Text(
-                      title!,
+                      panelTitle,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -122,7 +127,11 @@ class AppStatePanel extends StatelessWidget {
     );
   }
 
-  Widget _buildCenteredContent(BuildContext context, _AppStateStyling styling) {
+  Widget _buildCenteredContent(
+    BuildContext context,
+    _AppStateStyling styling,
+    String? panelTitle,
+  ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -135,9 +144,9 @@ class AppStatePanel extends StatelessWidget {
           centered: true,
         ),
         const SizedBox(height: 14),
-        if (title != null) ...[
+        if (panelTitle != null) ...[
           Text(
-            title!,
+            panelTitle,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
@@ -158,6 +167,21 @@ class AppStatePanel extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  String? _resolvedTitle() {
+    final provided = title?.trim();
+    if (provided != null && provided.isNotEmpty) {
+      return provided;
+    }
+    return switch (tone) {
+      AppStateTone.loading => "กำลังอัปเดตข้อมูล",
+      AppStateTone.empty => "ยังไม่มีข้อมูลในหน้านี้",
+      AppStateTone.error => "เกิดปัญหาชั่วคราว",
+      AppStateTone.offline => "ออฟไลน์ชั่วคราว",
+      AppStateTone.success => "พร้อมใช้งาน",
+      AppStateTone.info => null,
+    };
   }
 
   _AppStateStyling _resolveStyling(ColorScheme scheme) {
@@ -272,4 +296,3 @@ class _AppStateStyling {
   final Color iconColor;
   final IconData icon;
 }
-

@@ -8,12 +8,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-function Require-Cli([string]$name) {
-  if (-not (Get-Command $name -ErrorAction SilentlyContinue)) {
-    throw "Required CLI not found: $name"
-  }
-}
-
 function Read-ResponseBody([object]$response) {
   if ($null -eq $response) { return "" }
   if ($response.PSObject.Properties.Name -contains "Content") {
@@ -21,8 +15,6 @@ function Read-ResponseBody([object]$response) {
   }
   return [string]$response
 }
-
-Require-Cli "supabase"
 
 if ([string]::IsNullOrWhiteSpace($AnonKey)) {
   $AnonKey = [Environment]::GetEnvironmentVariable("SUPABASE_ANON_KEY")
@@ -124,6 +116,19 @@ try {
 } catch {
   $errorBody = Read-ResponseBody $_.Exception.Response
   Write-Host "Expected reviewer-admin-auth-required response when x-reviewer-admin-key is missing:" -ForegroundColor DarkYellow
+  Write-Host $errorBody
+}
+
+Write-Host ""
+Write-Host "== Smoke: runtime-status (reviewer auth contract) ==" -ForegroundColor Cyan
+$runtimeBody = @{ window_hours = 24 } | ConvertTo-Json
+try {
+  $runtimeResponse = Invoke-WebRequest -Uri "$baseUrl/runtime-status" -Method Post -Headers $headers -Body $runtimeBody
+  Write-Host "Status: $($runtimeResponse.StatusCode)" -ForegroundColor Yellow
+  Write-Host (Read-ResponseBody $runtimeResponse)
+} catch {
+  $errorBody = Read-ResponseBody $_.Exception.Response
+  Write-Host "Expected reviewer-auth-required response when x-reviewer-key is missing:" -ForegroundColor DarkYellow
   Write-Host $errorBody
 }
 

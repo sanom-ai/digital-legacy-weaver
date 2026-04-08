@@ -12,6 +12,7 @@ import 'package:digital_legacy_weaver/features/intent_builder/intent_runtime_rea
 import 'package:digital_legacy_weaver/features/onboarding/onboarding_setup_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_provider.dart';
+import 'package:digital_legacy_weaver/features/runtime/runtime_status_screen.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
 import 'package:digital_legacy_weaver/features/settings/privacy_profile_preset.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_provider.dart';
@@ -639,6 +640,20 @@ class DashboardScreen extends ConsumerWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => const SafetySettingsScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          _DashboardActionCard(
+            title: "สถานะ Runtime ของทีม",
+            subtitle:
+                "ดู dispatch health, last run และเหตุผลที่ fail ล่าสุด เพื่อแก้ไขได้เร็วขึ้น",
+            icon: Icons.monitor_heart_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const RuntimeStatusScreen(),
                 ),
               );
             },

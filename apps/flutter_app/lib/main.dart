@@ -47,10 +47,7 @@ class _AppEntryState extends State<_AppEntry> {
       if (!AppConfig.isConfigured) {
         return const ConfigLandingScreen(unlockAttempt: true);
       }
-      return UnlockDeliveryScreen(
-        initialAccessId: Uri.base.queryParameters["access_id"],
-        initialAccessKey: Uri.base.queryParameters["access_key"],
-      );
+      return const UnlockDeliveryScreen();
     }
     return const AuthGate();
   }
