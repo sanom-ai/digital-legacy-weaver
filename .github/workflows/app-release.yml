@@ -167,6 +167,27 @@ jobs:
           name: app-windows-zip
           path: dist
 
+      - name: Normalize release asset paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          apk_path="$(find dist -type f -name 'app-release.apk' | head -n 1)"
+          aab_path="$(find dist -type f -name 'app-release.aab' | head -n 1)"
+          windows_zip_path="$(find dist -type f -name 'digital-legacy-weaver-windows.zip' | head -n 1)"
+
+          if [[ -z "${apk_path}" || -z "${aab_path}" || -z "${windows_zip_path}" ]]; then
+            echo "Missing release artifacts after download."
+            echo "apk_path=${apk_path:-<missing>}"
+            echo "aab_path=${aab_path:-<missing>}"
+            echo "windows_zip_path=${windows_zip_path:-<missing>}"
+            exit 1
+          fi
+
+          cp "${apk_path}" dist/app-release.apk
+          cp "${aab_path}" dist/app-release.aab
+          cp "${windows_zip_path}" dist/digital-legacy-weaver-windows.zip
+
       - name: Build release notes
         shell: pwsh
         run: |

@@ -33,6 +33,7 @@ In GitHub Releases for the selected tag:
 ## Notes
 
 1. Workflow bootstraps missing Flutter platform folders automatically.
-2. Release notes are generated automatically in the workflow.
-3. This app is a technical coordination layer and does not replace legal will procedures.
-4. `app-release.aab` is the package for Play Store submission.
+2. Workflow normalizes downloaded artifact paths before publishing release assets.
+3. Release notes are generated automatically in the workflow.
+4. This app is a technical coordination layer and does not replace legal will procedures.
+5. `app-release.aab` is the package for Play Store submission.

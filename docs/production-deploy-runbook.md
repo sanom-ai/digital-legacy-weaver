@@ -4,7 +4,8 @@
 
 1. Supabase project created and reachable
 2. Supabase CLI installed and authenticated
-3. Environment variables are set:
+3. Runtime secrets prepared. See [Runtime Secrets Setup](./runtime-secrets-setup.md)
+4. Environment variables are set:
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
