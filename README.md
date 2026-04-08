@@ -157,6 +157,12 @@ flutter run --dart-define=LOCAL_CLOSED_BETA_MODE=true --dart-define=CLOSED_BETA_
 .\scripts\run_local_closed_beta.ps1
 ```
 
+First-time Android setup for local APK build (free, one-time):
+
+```powershell
+.\scripts\setup_local_android_toolchain.ps1
+```
+
 Build APK for team trial (local closed beta):
 
 ```powershell

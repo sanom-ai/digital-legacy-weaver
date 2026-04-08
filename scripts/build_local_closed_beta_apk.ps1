@@ -56,6 +56,14 @@ Write-Host "App dir:  $appDir" -ForegroundColor DarkGray
 
 Push-Location $appDir
 try {
+  if (-not (Test-Path (Join-Path $appDir "android\app\build.gradle"))) {
+    Write-Host "Android project scaffold not found. Bootstrapping with flutter create..." -ForegroundColor Yellow
+    & $flutter "create" "--platforms=android" "--project-name" "digital_legacy_weaver" "."
+    if ($LASTEXITCODE -ne 0) {
+      throw "flutter create --platforms=android failed"
+    }
+  }
+
   if (-not $SkipPubGet) {
     Write-Host "Running flutter pub get..." -ForegroundColor Yellow
     & $flutter "pub" "get"
