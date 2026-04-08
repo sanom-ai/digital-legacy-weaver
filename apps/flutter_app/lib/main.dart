@@ -44,6 +44,9 @@ class _AppEntryState extends State<_AppEntry> {
   Widget build(BuildContext context) {
     final path = Uri.base.path.toLowerCase();
     if (path == "/unlock" || path.endsWith("/unlock")) {
+      if (AppConfig.localClosedBetaModeEnabled) {
+        return const UnlockDeliveryScreen(localTestMode: true);
+      }
       if (!AppConfig.isConfigured) {
         return const ConfigLandingScreen(unlockAttempt: true);
       }
