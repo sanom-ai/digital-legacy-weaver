@@ -44,8 +44,12 @@ Optional:
 
 ## Scheduler setup (manual)
 
-Create daily invocation for `dispatch-trigger`.
-Recommended: once per day in UTC, fixed time, with alerting if missed.
+Choose one primary scheduler for `dispatch-trigger`:
+
+1. GitHub Actions workflow `Runtime Dispatch AI Ops` (recommended, hourly).
+2. External scheduler (UptimeRobot/Cron-job.org) calling the function endpoint.
+
+Recommended cadence: hourly with alerting if missed.
 
 ## Post-deploy verification
 

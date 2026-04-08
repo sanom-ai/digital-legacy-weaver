@@ -20,6 +20,8 @@ Use this guide before running:
 | `REVIEWER_ADMIN_API_KEY` | Generate random high-entropy secret | Admin reviewer key rotation/listing |
 | `RESEND_API_KEY` | Resend dashboard | Optional if using SendGrid |
 | `SENDGRID_API_KEY` | SendGrid dashboard | Optional if using Resend |
+| `OPENAI_API_KEY` | OpenAI platform key | Optional for AI ops natural-language analysis |
+| `AI_OPS_MODEL` | GitHub repository variable | Optional, defaults to `gpt-4o-mini` |
 | `HANDOFF_PROVIDER_WEBHOOK_URL` | Partner backend endpoint | Optional |
 | `HANDOFF_SIGNING_SECRET` | Shared secret with webhook target | Optional but recommended |
 
@@ -66,6 +68,11 @@ If CI deploy/runtime jobs need them, also add:
 3. `REVIEWER_API_KEY`
 4. `REVIEWER_ADMIN_API_KEY`
 5. `RESEND_API_KEY` and/or `SENDGRID_API_KEY`
+6. `OPENAI_API_KEY` (for `Runtime Dispatch AI Ops` workflow)
+
+Repository variable:
+
+1. `AI_OPS_MODEL` (optional, example: `gpt-4o-mini`)
 
 ## 5) Verify before deploy
 

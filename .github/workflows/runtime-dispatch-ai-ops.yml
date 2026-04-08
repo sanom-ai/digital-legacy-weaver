@@ -1,0 +1,99 @@
+name: Runtime Dispatch AI Ops
+
+on:
+  workflow_dispatch:
+    inputs:
+      invoke_dispatch:
+        description: "Invoke dispatch-trigger before AI ops analysis"
+        required: false
+        default: "true"
+      hours:
+        description: "Lookback window for events (hours)"
+        required: false
+        default: "24"
+      fail_on_critical:
+        description: "Fail workflow when AI ops detects critical risk"
+        required: false
+        default: "true"
+  schedule:
+    - cron: "5 * * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-ai-ops:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve runtime readiness
+        id: readiness
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [[ -z "${SUPABASE_URL:-}" ]] && missing+=("SUPABASE_URL")
+          [[ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]] && missing+=("SUPABASE_SERVICE_ROLE_KEY")
+          [[ -z "${SUPABASE_ANON_KEY:-}" ]] && missing+=("SUPABASE_ANON_KEY")
+
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "missing=${missing[*]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "missing=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run runtime dispatch + AI ops guard
+        if: steps.readiness.outputs.ready == 'true'
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AI_OPS_MODEL: ${{ vars.AI_OPS_MODEL || 'gpt-4o-mini' }}
+        run: |
+          set -euo pipefail
+          hours="${{ github.event.inputs.hours || '24' }}"
+          invoke_dispatch="true"
+          fail_on_critical="${{ github.event.inputs.fail_on_critical || 'true' }}"
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            invoke_dispatch="${{ github.event.inputs.invoke_dispatch || 'true' }}"
+          fi
+
+          args=(--hours "$hours" --warn-threshold 50 --stale-hours 26)
+          if [[ "$invoke_dispatch" == "true" ]]; then
+            args+=(--invoke-dispatch)
+          fi
+          if [[ "$fail_on_critical" == "true" ]]; then
+            args+=(--fail-on-critical)
+          fi
+
+          python tools/runtime_ai_ops_guard.py "${args[@]}"
+
+      - name: Skip summary (missing secrets)
+        if: steps.readiness.outputs.ready != 'true'
+        shell: bash
+        run: |
+          echo "Runtime Dispatch AI Ops skipped: missing secrets -> ${{ steps.readiness.outputs.missing }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload AI ops reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-ops-runtime-reports
+          path: ops/reports/ai-ops-runtime-*.md
+          if-no-files-found: ignore
