@@ -71,6 +71,20 @@ $appDir = Join-Path $repoRoot "apps\flutter_app"
 $flutter = Resolve-Flutter
 $androidSdk = Resolve-AndroidSdk
 Ensure-JavaHome
+$bootstrapCreated = $false
+$bootstrapGeneratedPaths = @(
+  ".gitignore",
+  ".metadata",
+  "README.md",
+  "android",
+  "test\widget_test.dart",
+  ".idea",
+  "digital_legacy_weaver.iml"
+)
+$preExistingPaths = @{}
+foreach ($relativePath in $bootstrapGeneratedPaths) {
+  $preExistingPaths[$relativePath] = Test-Path (Join-Path $appDir $relativePath)
+}
 
 Write-Host "== Build Local Closed Beta APK ==" -ForegroundColor Cyan
 Write-Host "Flutter: $flutter" -ForegroundColor DarkGray
@@ -85,6 +99,7 @@ try {
     if ($LASTEXITCODE -ne 0) {
       throw "flutter create --platforms=android failed"
     }
+    $bootstrapCreated = $true
   }
 
   if (-not $SkipPubGet) {
@@ -114,6 +129,18 @@ try {
 }
 finally {
   Pop-Location
+}
+
+if ($bootstrapCreated) {
+  foreach ($relativePath in $bootstrapGeneratedPaths) {
+    if ($preExistingPaths[$relativePath]) {
+      continue
+    }
+    $fullPath = Join-Path $appDir $relativePath
+    if (Test-Path $fullPath) {
+      Remove-Item -LiteralPath $fullPath -Recurse -Force
+    }
+  }
 }
 
 $apkPath = Join-Path $appDir "build\app\outputs\flutter-apk\app-release.apk"
