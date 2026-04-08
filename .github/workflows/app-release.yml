@@ -184,9 +184,23 @@ jobs:
             exit 1
           fi
 
-          cp "${apk_path}" dist/app-release.apk
-          cp "${aab_path}" dist/app-release.aab
-          cp "${windows_zip_path}" dist/digital-legacy-weaver-windows.zip
+          normalize_copy() {
+            local src="$1"
+            local dest="$2"
+            local src_real
+            local dest_real
+            src_real="$(realpath "${src}")"
+            dest_real="$(realpath -m "${dest}")"
+            if [[ "${src_real}" == "${dest_real}" ]]; then
+              echo "Skip copy (already normalized): ${dest}"
+              return 0
+            fi
+            cp "${src}" "${dest}"
+          }
+
+          normalize_copy "${apk_path}" dist/app-release.apk
+          normalize_copy "${aab_path}" dist/app-release.aab
+          normalize_copy "${windows_zip_path}" dist/digital-legacy-weaver-windows.zip
 
       - name: Build release notes
         shell: pwsh
