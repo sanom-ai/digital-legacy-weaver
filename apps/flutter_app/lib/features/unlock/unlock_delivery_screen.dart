@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:digital_legacy_weaver/core/config/app_config.dart';
 import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
 import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
@@ -10,10 +12,12 @@ class UnlockDeliveryScreen extends StatefulWidget {
     super.key,
     this.initialAccessId,
     this.initialAccessKey,
+    this.localTestMode = false,
   });
 
   final String? initialAccessId;
   final String? initialAccessKey;
+  final bool localTestMode;
 
   @override
   State<UnlockDeliveryScreen> createState() => _UnlockDeliveryScreenState();
@@ -51,6 +55,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   String? _manualVerificationCode;
   DateTime? _manualVerificationCodeExpiresAt;
   bool _openedFromExternalLink = false;
+  bool _localTestMode = false;
+  String? _localIssuedCode;
+  DateTime? _localIssuedCodeExpiresAt;
 
   bool get _hasAccessLink =>
       _accessIdController.text.trim().isNotEmpty &&
@@ -74,7 +81,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _guardianConfirmed;
 
   bool get _manualModeEnabled =>
-      AppConfig.closedBetaManualCodeEnabled && _closedBetaManualMode;
+      _localTestMode ||
+      (AppConfig.closedBetaManualCodeEnabled && _closedBetaManualMode);
 
   bool get _canUnlock =>
       !_busy &&
@@ -134,6 +142,15 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   @override
   void initState() {
     super.initState();
+    _localTestMode =
+        widget.localTestMode || AppConfig.localClosedBetaModeEnabled;
+    if (_localTestMode) {
+      _closedBetaManualMode = true;
+      _antiScamChecklistAccepted = true;
+      _guardianConfirmed = true;
+      _message =
+          "Local closed beta mode is active. You can test recipient flow without production backend or live email.";
+    }
     final initAccessId = (widget.initialAccessId ?? "").trim();
     final initAccessKey = (widget.initialAccessKey ?? "").trim();
     if (initAccessId.isNotEmpty) {
@@ -241,6 +258,23 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _manualVerificationCodeExpiresAt = null;
     });
     try {
+      if (_localTestMode) {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        final generatedCode = (100000 + Random().nextInt(900000)).toString();
+        final expiresAt = DateTime.now().add(const Duration(minutes: 10));
+        setState(() {
+          _requestedCode = true;
+          _messageIsError = false;
+          _message =
+              "สร้างรหัสทดสอบ local แล้ว ใช้รหัสนี้ปลดล็อกต่อในหน้าเดียวกันได้ทันที";
+          _codeRequestAttempts = 0;
+          _manualVerificationCode = generatedCode;
+          _manualVerificationCodeExpiresAt = expiresAt;
+          _localIssuedCode = generatedCode;
+          _localIssuedCodeExpiresAt = expiresAt;
+        });
+        return;
+      }
       final action =
           _manualModeEnabled ? "request_code_manual" : "request_code";
       final response = await Supabase.instance.client.functions.invoke(
@@ -311,6 +345,32 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _lastAction = "unlock";
     });
     try {
+      if (_localTestMode) {
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        final expectedCode = (_localIssuedCode ?? "").trim();
+        final providedCode = _codeController.text.trim();
+        final codeExpired = _localIssuedCodeExpiresAt != null &&
+            DateTime.now().isAfter(_localIssuedCodeExpiresAt!);
+        if (expectedCode.isEmpty || codeExpired) {
+          throw Exception("local_test_code_missing_or_expired");
+        }
+        if (providedCode != expectedCode) {
+          throw Exception("local_test_code_invalid");
+        }
+        setState(() {
+          _message = "เปิดชุดรับมอบทดสอบ local สำเร็จแล้ว";
+          _messageIsError = false;
+          _items = _buildLocalMockReceiptItems();
+          _unlockFailures = 0;
+          _codeRequestAttempts = 0;
+          _receiptOpened = true;
+          _manualVerificationCode = null;
+          _manualVerificationCodeExpiresAt = null;
+          _localIssuedCode = null;
+          _localIssuedCodeExpiresAt = null;
+        });
+        return;
+      }
       final response = await Supabase.instance.client.functions.invoke(
         "open-delivery-link",
         body: {
@@ -392,6 +452,24 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _lastAction = "report_wrong_recipient";
     });
     try {
+      if (_localTestMode) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        setState(() {
+          _message =
+              "หยุดชุดรับมอบ local แล้ว และล้างรหัสทดสอบเรียบร้อย สามารถขอรหัสใหม่ได้ทันที";
+          _messageIsError = false;
+          _codeController.clear();
+          _totpController.clear();
+          _beneficiaryNameController.clear();
+          _verificationPhraseController.clear();
+          _manualVerificationCode = null;
+          _manualVerificationCodeExpiresAt = null;
+          _localIssuedCode = null;
+          _localIssuedCodeExpiresAt = null;
+          _receiptOpened = false;
+        });
+        return;
+      }
       final response = await Supabase.instance.client.functions.invoke(
         "open-delivery-link",
         body: {
@@ -664,6 +742,44 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 
+  List<Map<String, dynamic>> _buildLocalMockReceiptItems() {
+    return <Map<String, dynamic>>[
+      {
+        "id": "local-item-1",
+        "kind": "legacy_delivery",
+        "title": "บัญชีหลักสำหรับครอบครัว",
+        "visibility_policy": "route_only",
+        "value_disclosure_mode": "institution_verified_only",
+        "verification_route":
+            "ตรวจยอดและสถานะสิทธิ์กับธนาคารหรือสถาบันปลายทางโดยตรง",
+        "instruction_summary":
+            "ยื่นเอกสารตามขั้นตอนปลายทาง แล้วใช้รหัสอ้างอิงตามที่เจ้าของตั้งค่าไว้",
+      },
+      {
+        "id": "local-item-2",
+        "kind": "archive_reference",
+        "title": "เอกสารสำคัญอ้างอิง",
+        "visibility_policy": "route_and_instructions",
+        "value_disclosure_mode": "hidden",
+        "verification_route":
+            "ติดต่อสำนักงานกฎหมายหรือพยานที่ระบุไว้เพื่อยืนยันเจตจำนงก่อนเปิดเอกสาร",
+        "instruction_summary":
+            "เอกสารจริงอยู่กับปลายทางที่ยืนยันตัวตนแล้วเท่านั้น",
+      },
+      {
+        "id": "local-item-3",
+        "kind": "self_recovery",
+        "title": "เส้นทางกู้คืนเจ้าของ",
+        "visibility_policy": "existence_only",
+        "value_disclosure_mode": "hidden",
+        "verification_route":
+            "ใช้ช่องทางกู้คืนทางการของผู้ให้บริการ โดยไม่ส่งรหัสผ่านผ่านแชต",
+        "instruction_summary":
+            "โหมดนี้แสดงเพื่อเทสต์ UX เท่านั้น ไม่ใช่การปลดล็อกบัญชีจริง",
+      },
+    ];
+  }
+
   String _manualCodeExpiryLabel() {
     final expiresAt = _manualVerificationCodeExpiresAt;
     if (expiresAt == null) {
@@ -688,39 +804,49 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   }
 
   Widget _buildClosedBetaModeCard() {
-    if (!AppConfig.closedBetaManualCodeEnabled) {
+    if (!_localTestMode && !AppConfig.closedBetaManualCodeEnabled) {
       return const SizedBox.shrink();
     }
+    final lockedToLocalMode = _localTestMode;
     return _buildPanel(
       color: const Color(0xFFF0F8FF),
       borderColor: const Color(0xFFBFDDF7),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "โหมดทดสอบปิด (Closed beta)",
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            "ใช้โหมดนี้เมื่อต้องทดสอบกับผู้ใช้จริงแบบไม่พึ่งอีเมล production ระบบจะคืนรหัสแบบใช้ครั้งเดียวให้ในแอปนี้เท่านั้น",
+          Text(
+            lockedToLocalMode
+                ? "โหมด Local Closed Beta"
+                : "โหมดทดสอบปิด (Closed beta)",
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            value: _closedBetaManualMode,
-            onChanged: _busy
-                ? null
-                : (value) {
-                    setState(() {
-                      _closedBetaManualMode = value;
-                      _manualVerificationCode = null;
-                      _manualVerificationCodeExpiresAt = null;
-                    });
-                  },
-            title: const Text("เปิดใช้ manual code path"),
-            subtitle: const Text("ปิดไว้เมื่อทดสอบผ่านอีเมลปกติ"),
+          Text(
+            lockedToLocalMode
+                ? "กำลังใช้โหมดทดสอบบนเครื่อง (local) แบบไม่พึ่ง production backend และไม่ส่งอีเมลจริง ระบบจะคืนรหัสแบบใช้ครั้งเดียวภายในแอปนี้เท่านั้น"
+                : "ใช้โหมดนี้เมื่อต้องทดสอบกับผู้ใช้จริงแบบไม่พึ่งอีเมล production ระบบจะคืนรหัสแบบใช้ครั้งเดียวให้ในแอปนี้เท่านั้น",
           ),
+          const SizedBox(height: 6),
+          if (!lockedToLocalMode)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _closedBetaManualMode,
+              onChanged: _busy
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _closedBetaManualMode = value;
+                        _manualVerificationCode = null;
+                        _manualVerificationCodeExpiresAt = null;
+                      });
+                    },
+              title: const Text("เปิดใช้ manual code path"),
+              subtitle: const Text("ปิดไว้เมื่อทดสอบผ่านอีเมลปกติ"),
+            ),
+          if (lockedToLocalMode)
+            const Text(
+              "โหมด local จะบังคับใช้ manual code path เพื่อป้องกันการทดสอบผิดสภาพแวดล้อม",
+            ),
           if (_closedBetaManualMode) ...[
             const SizedBox(height: 6),
             const Text(
@@ -835,6 +961,12 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
 
   String _friendlyActionError(String action, Object error) {
     final lower = error.toString().toLowerCase();
+    if (lower.contains("local_test_code_missing_or_expired")) {
+      return "รหัสทดสอบ local หมดอายุหรือยังไม่ได้ขอรหัสใหม่ กรุณากดขอรหัสยืนยันอีกครั้ง";
+    }
+    if (lower.contains("local_test_code_invalid")) {
+      return "รหัสทดสอบ local ไม่ถูกต้อง กรุณาคัดลอกรหัสล่าสุดจากการ์ดรหัสทดสอบแล้วลองใหม่";
+    }
     final actionLabel = switch (action) {
       "request_code" => "การขอรหัสยืนยัน",
       "unlock" => "การเปิดชุดรับมอบ",

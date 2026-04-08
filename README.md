@@ -149,6 +149,34 @@ Flutter run with live backend:
 flutter run --dart-define=SUPABASE_URL=$env:SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$env:SUPABASE_ANON_KEY
 ```
 
+Local closed beta (no production backend required):
+
+```powershell
+flutter run --dart-define=LOCAL_CLOSED_BETA_MODE=true --dart-define=CLOSED_BETA_MANUAL_CODE=true
+# or use helper script:
+.\scripts\run_local_closed_beta.ps1
+```
+
+First-time Android setup for local APK build (free, one-time):
+
+```powershell
+.\scripts\setup_local_android_toolchain.ps1
+```
+
+Build APK for team trial (local closed beta):
+
+```powershell
+flutter build apk --release --dart-define=LOCAL_CLOSED_BETA_MODE=true --dart-define=CLOSED_BETA_MANUAL_CODE=true
+# or use helper script:
+.\scripts\build_local_closed_beta_apk.ps1
+```
+
+APK output path:
+
+```text
+apps/flutter_app/build/app/outputs/flutter-apk/app-release.apk
+```
+
 Local quality gate:
 
 ```powershell

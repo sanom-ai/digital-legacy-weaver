@@ -1,7 +1,9 @@
+import 'package:digital_legacy_weaver/core/config/app_config.dart';
 import 'package:digital_legacy_weaver/features/auth/demo_scenarios.dart';
 import 'package:digital_legacy_weaver/features/intent_builder/intent_builder_screen.dart';
 import 'package:digital_legacy_weaver/features/profile/profile_model.dart';
 import 'package:digital_legacy_weaver/features/settings/safety_settings_model.dart';
+import 'package:digital_legacy_weaver/features/unlock/unlock_delivery_screen.dart';
 import 'package:flutter/material.dart';
 
 class ConfigLandingScreen extends StatefulWidget {
@@ -99,6 +101,14 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
             'Skip demo and start shaping your own plan immediately.',
           ),
         ),
+      ),
+    );
+  }
+
+  void _openLocalRecipientFlow(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const UnlockDeliveryScreen(localTestMode: true),
       ),
     );
   }
@@ -351,6 +361,60 @@ class _ConfigLandingScreenState extends State<ConfigLandingScreen> {
                       ),
                     ),
                   ),
+                  if (AppConfig.localClosedBetaModeEnabled) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.science_outlined,
+                              color: Color(0xFF0E7C86),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _tr(
+                                      'ทดสอบโหมดผู้รับแบบ Local Closed Beta',
+                                      'Test recipient flow in Local Closed Beta',
+                                    ),
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _tr(
+                                      'โหมดนี้ไม่ใช้ backend production และไม่ส่งอีเมลจริง เหมาะสำหรับลอง flow กับทีมทันที',
+                                      'No production backend or live email is used. Ideal for immediate team trials.',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  FilledButton.tonalIcon(
+                                    onPressed: () =>
+                                        _openLocalRecipientFlow(context),
+                                    icon: const Icon(Icons.play_arrow_rounded),
+                                    label: Text(
+                                      _tr(
+                                        'เริ่มทดสอบหน้าผู้รับ (Local)',
+                                        'Start recipient local test',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   if (compact) ...[
                     _buildJourneySection(theme),

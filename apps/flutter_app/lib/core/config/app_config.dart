@@ -6,6 +6,10 @@ class AppConfig {
     "CLOSED_BETA_MANUAL_CODE",
     defaultValue: false,
   );
+  static const localClosedBetaModeEnabled = bool.fromEnvironment(
+    "LOCAL_CLOSED_BETA_MODE",
+    defaultValue: false,
+  );
 
   static bool get isConfigured =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;

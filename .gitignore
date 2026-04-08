@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 docs/reports/
 ops/backups/
+ops/reports/apk-builds/
 supabase/.temp/
 .pytest_cache/
 .coverage
