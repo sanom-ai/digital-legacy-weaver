@@ -11,6 +11,9 @@ alter table public.user_safety_settings
   add column if not exists ios_background_risk_acknowledged boolean not null default false;
 
 alter table public.user_safety_settings
+  drop constraint if exists user_safety_settings_proof_of_life_mode_check;
+
+alter table public.user_safety_settings
   add constraint user_safety_settings_proof_of_life_mode_check
   check (proof_of_life_check_mode in ('biometric_tap', 'single_tap', 'verification_code'));
 

@@ -15,6 +15,7 @@
 - `HANDOFF_INTERNAL_KEY`
 - at least one of: `RESEND_API_KEY`, `SENDGRID_API_KEY`
 - optional: `HANDOFF_PROVIDER_WEBHOOK_URL`, `HANDOFF_SIGNING_SECRET`
+5. Migration file versions use unique numeric prefixes (recommended 14 digits, for example `20260405000100_*`).
 
 ## Deploy command
 

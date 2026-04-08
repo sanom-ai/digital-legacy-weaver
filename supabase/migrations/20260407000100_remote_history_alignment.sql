@@ -1,0 +1,12 @@
+-- Remote history alignment migration.
+-- Purpose:
+-- 1) Keep local migration history compatible with production migration table.
+-- 2) Do not change schema/data.
+--
+-- Context:
+-- Production already contains migration version `20260407000100` in
+-- `supabase_migrations.schema_migrations`, but this repository previously
+-- had no local file with that exact version.
+--
+-- This migration is intentionally a no-op.
+select 1;
