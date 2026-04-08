@@ -10,7 +10,12 @@ Secure delivery unlock endpoint with second-factor verification.
 - generate 6-digit verification code only when no active challenge exists
 - email code to intended recipient
 
-2. `unlock`:
+2. `request_code_manual` (closed beta only):
+- same validation and rate-limit path as `request_code`
+- requires `BETA_MANUAL_CODE_ENABLED=true` on function secrets
+- returns one-time code in response body for in-app manual test flow (no email provider required)
+
+3. `unlock`:
 - validate access credentials again
 - verify code (hash match, expiry, attempts)
 - count failed attempts across verification code, beneficiary identity, and TOTP checks
@@ -18,19 +23,23 @@ Secure delivery unlock endpoint with second-factor verification.
 - optionally verify TOTP code when `user_safety_settings.require_totp_unlock = true`
 - consume challenge and access key (one-time)
 - return encrypted recovery bundle items plus runtime delivery context from live dispatch records
-3. Abuse guard:
+4. Abuse guard:
 - DB-backed rate limits by client IP and access ID
 - temporary blocking window on excessive attempts
-4. Security event logging:
+5. Security event logging:
 - logs `rate_limited`, `access_denied`, `invalid_code`, `invalid_totp`, `unlock_temporary_lock`, `unlock_success`, and `unlock_error`
 - stored in `security_events` for monitoring and incident response
-5. Global safety control:
+6. Global safety control:
 - if `system_safety_controls.unlock_enabled = false`, endpoint returns `503` and blocks unlock attempts
 
 ## Request body
 
 ```json
 { "action": "request_code", "access_id": "...", "access_key": "..." }
+```
+
+```json
+{ "action": "request_code_manual", "access_id": "...", "access_key": "..." }
 ```
 
 ```json
@@ -72,6 +81,7 @@ Optional (but recommended):
 
 - `RESEND_API_KEY`
 - `SENDGRID_API_KEY`
+- `BETA_MANUAL_CODE_ENABLED` (`true` only in closed beta environments)
 
 ## Deploy
 

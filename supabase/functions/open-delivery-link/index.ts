@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-type Action = "request_code" | "unlock" | "report_wrong_recipient";
+type Action = "request_code" | "request_code_manual" | "unlock" | "report_wrong_recipient";
 
 type RequestPayload = {
   action: Action;
@@ -38,6 +38,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SENDGRID_API_KEY = Deno.env.get("SENDGRID_API_KEY");
+const BETA_MANUAL_CODE_ENABLED = (Deno.env.get("BETA_MANUAL_CODE_ENABLED") ?? "false").toLowerCase() === "true";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -712,24 +713,45 @@ async function registerChallengeFailure(
   });
 }
 
-async function requestCode(accessId: string, accessKey: string) {
+async function requestCode(accessId: string, accessKey: string, manualMode = false) {
   const valid = await getValidAccessKey(accessId, accessKey);
   const activeChallenge = await getActiveChallenge(valid.id);
   if (activeChallenge && new Date(activeChallenge.expires_at).getTime() > Date.now()) {
+    if (manualMode) {
+      await supabase
+        .from("delivery_access_challenges")
+        .update({ consumed_at: nowIso() })
+        .eq("id", activeChallenge.id);
+    } else {
+      await logSecurityEvent({
+        eventType: "challenge_reuse_guard",
+        severity: "info",
+        actorScope: "access_id",
+        actorRaw: accessId,
+        accessId,
+        ownerId: valid.owner_id,
+        mode: valid.mode,
+        details: { reason: "active_challenge_exists", challengeId: activeChallenge.id },
+      });
+      return {
+        ok: true,
+        message: "A verification code is already active for this receipt. Please use it or wait for expiration before requesting another code.",
+      };
+    }
+  }
+
+  if (manualMode && !BETA_MANUAL_CODE_ENABLED) {
     await logSecurityEvent({
-      eventType: "challenge_reuse_guard",
-      severity: "info",
+      eventType: "manual_beta_code_denied",
+      severity: "warn",
       actorScope: "access_id",
       actorRaw: accessId,
       accessId,
       ownerId: valid.owner_id,
       mode: valid.mode,
-      details: { reason: "active_challenge_exists", challengeId: activeChallenge.id },
+      details: { reason: "beta_manual_code_disabled" },
     });
-    return {
-      ok: true,
-      message: "A verification code is already active for this receipt. Please use it or wait for expiration before requesting another code.",
-    };
+    throw new Error("Closed beta manual code path is disabled.");
   }
   const code = String(Math.floor(100000 + Math.random() * 900000));
   const codeHash = await sha256Hex(code);
@@ -741,6 +763,27 @@ async function requestCode(accessId: string, accessKey: string) {
     expires_at: expiresAt,
     max_attempts: 5,
   });
+
+  if (manualMode) {
+    await logSecurityEvent({
+      eventType: "manual_beta_code_issued",
+      severity: "warn",
+      actorScope: "access_id",
+      actorRaw: accessId,
+      accessId,
+      ownerId: valid.owner_id,
+      mode: valid.mode,
+      details: { expiresAt },
+    });
+    return {
+      ok: true,
+      manual_mode: true,
+      manual_code: code,
+      expires_at: expiresAt,
+      message:
+        "Closed beta code generated in-app. Share through a pre-arranged trusted channel only, and enter it in the app directly.",
+    };
+  }
 
   const to = await getTargetEmail(valid.owner_id, valid.mode);
   await sendEmail(
@@ -897,10 +940,18 @@ Deno.serve(async (req) => {
     }
     const clientIp = extractClientIp(req);
 
-    if (payload.action === "request_code") {
+    if (payload.action === "request_code" || payload.action === "request_code_manual") {
       await enforceRateLimit("request_code_by_ip", clientIp, 12, 15, 30);
       await enforceRateLimit("request_code_by_access_id", payload.access_id, 4, 15, 30);
-      const result = await requestCode(payload.access_id, payload.access_key);
+      if (payload.action === "request_code_manual") {
+        await enforceRateLimit("request_code_manual_by_ip", clientIp, 4, 15, 30);
+        await enforceRateLimit("request_code_manual_by_access_id", payload.access_id, 2, 15, 30);
+      }
+      const result = await requestCode(
+        payload.access_id,
+        payload.access_key,
+        payload.action === "request_code_manual",
+      );
       return new Response(JSON.stringify(result), {
         status: 200,
         headers: { "Content-Type": "application/json" },

@@ -128,6 +128,19 @@ try {
 }
 
 Write-Host ""
+Write-Host "== Smoke: runtime-status (reviewer auth contract) ==" -ForegroundColor Cyan
+$runtimeBody = @{ window_hours = 24 } | ConvertTo-Json
+try {
+  $runtimeResponse = Invoke-WebRequest -Uri "$baseUrl/runtime-status" -Method Post -Headers $headers -Body $runtimeBody
+  Write-Host "Status: $($runtimeResponse.StatusCode)" -ForegroundColor Yellow
+  Write-Host (Read-ResponseBody $runtimeResponse)
+} catch {
+  $errorBody = Read-ResponseBody $_.Exception.Response
+  Write-Host "Expected reviewer-auth-required response when x-reviewer-key is missing:" -ForegroundColor DarkYellow
+  Write-Host $errorBody
+}
+
+Write-Host ""
 Write-Host "== Smoke: handoff-notice (internal auth contract) ==" -ForegroundColor Cyan
 $handoffBody = @{
   case_id = "smoke-case-legacy"

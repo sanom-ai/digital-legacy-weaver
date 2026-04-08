@@ -120,7 +120,7 @@ function buildProviderHandoffHtml(args: {
   <p><strong>Recommended safe path:</strong> open the Digital Legacy Weaver app yourself and enter the handoff packet below.</p>
   <p>Handoff packet:</p>
   <pre>access_id: ${accessId || "(missing)"}\naccess_key: ${accessKey || "(missing)"}</pre>
-  <p>Optional direct route (only if already verified): <a href="${args.secureLink}">${args.secureLink}</a></p>
+  <p><strong>Do not click links from forwarded messages.</strong> Always open the app yourself and paste the handoff packet manually.</p>
   <p>Trigger summary: ${args.triggerSummary}</p>
   <p>Provider handoff checklist:</p>
   <ul>

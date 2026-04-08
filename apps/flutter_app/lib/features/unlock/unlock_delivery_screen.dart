@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:digital_legacy_weaver/core/config/app_config.dart';
 import 'package:digital_legacy_weaver/core/widgets/app_feedback.dart';
+import 'package:digital_legacy_weaver/core/widgets/app_state_panel.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UnlockDeliveryScreen extends StatefulWidget {
   const UnlockDeliveryScreen({
@@ -44,6 +47,10 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
   bool _receiptOpened = false;
   bool _antiScamChecklistAccepted = false;
   bool _guardianConfirmed = false;
+  bool _closedBetaManualMode = AppConfig.closedBetaManualCodeEnabled;
+  String? _manualVerificationCode;
+  DateTime? _manualVerificationCodeExpiresAt;
+  bool _openedFromExternalLink = false;
 
   bool get _hasAccessLink =>
       _accessIdController.text.trim().isNotEmpty &&
@@ -65,6 +72,9 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _hasAccessLink &&
       _antiScamChecklistAccepted &&
       _guardianConfirmed;
+
+  bool get _manualModeEnabled =>
+      AppConfig.closedBetaManualCodeEnabled && _closedBetaManualMode;
 
   bool get _canUnlock =>
       !_busy &&
@@ -131,18 +141,17 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     }
     if (initAccessKey.isNotEmpty) {
       _accessKeyController.text = initAccessKey;
-      _message = "ตรวจพบข้อมูลรับมอบแล้ว ขอรหัสยืนยันเพื่อทำต่อได้เลย";
+      _message = "ตรวจพบข้อมูลรับมอบแล้ว ขอรหัสยืนยันในแอปเพื่อทำต่อได้เลย";
     }
 
     final params = Uri.base.queryParameters;
-    final accessId = (params["access_id"] ?? "").trim();
-    final accessKey = (params["access_key"] ?? "").trim();
-    if (accessId.isNotEmpty && _accessIdController.text.isEmpty) {
-      _accessIdController.text = accessId;
-    }
-    if (accessKey.isNotEmpty && _accessKeyController.text.isEmpty) {
-      _accessKeyController.text = accessKey;
-      _message = "ตรวจพบข้อมูลรับมอบแล้ว ขอรหัสยืนยันเพื่อทำต่อได้เลย";
+    final linkHasCredentials = (params["access_id"] ?? "").trim().isNotEmpty ||
+        (params["access_key"] ?? "").trim().isNotEmpty;
+    if (linkHasCredentials) {
+      _openedFromExternalLink = true;
+      _messageIsError = true;
+      _message =
+          "เพื่อความปลอดภัย แอปจะไม่กรอก Access ID/Access Key อัตโนมัติจากลิงก์ กรุณาคัดลอกข้อมูลแล้วกรอกเองในหน้านี้เท่านั้น";
     }
   }
 
@@ -228,22 +237,35 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
       _message = null;
       _networkIssue = false;
       _lastAction = "request_code";
+      _manualVerificationCode = null;
+      _manualVerificationCodeExpiresAt = null;
     });
     try {
+      final action =
+          _manualModeEnabled ? "request_code_manual" : "request_code";
       final response = await Supabase.instance.client.functions.invoke(
         "open-delivery-link",
         body: {
-          "action": "request_code",
+          "action": action,
           "access_id": _accessIdController.text.trim(),
           "access_key": _accessKeyController.text.trim(),
         },
       );
       final data = response.data as Map<String, dynamic>?;
+      final manualCode = (data?["manual_code"] ?? "").toString().trim();
+      final expiresAtRaw = (data?["expires_at"] ?? "").toString().trim();
       setState(() {
-        _message = (data?["message"] ?? "ส่งคำขอรหัสยืนยันแล้ว").toString();
+        _message = (data?["message"] ??
+                (_manualModeEnabled
+                    ? "สร้างรหัสทดสอบแบบปิดแล้ว กรุณาใช้ในแอปนี้เท่านั้น"
+                    : "ส่งคำขอรหัสยืนยันแล้ว"))
+            .toString();
         _messageIsError = false;
         _codeRequestAttempts = 0;
         _requestedCode = true;
+        _manualVerificationCode = manualCode.isEmpty ? null : manualCode;
+        _manualVerificationCodeExpiresAt =
+            expiresAtRaw.isEmpty ? null : DateTime.tryParse(expiresAtRaw);
       });
     } catch (e) {
       setState(() {
@@ -318,6 +340,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         _unlockFailures = 0;
         _codeRequestAttempts = 0;
         _receiptOpened = true;
+        _manualVerificationCode = null;
+        _manualVerificationCodeExpiresAt = null;
       });
     } catch (e) {
       setState(() {
@@ -386,6 +410,8 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
         _totpController.clear();
         _beneficiaryNameController.clear();
         _verificationPhraseController.clear();
+        _manualVerificationCode = null;
+        _manualVerificationCodeExpiresAt = null;
       });
     } catch (e) {
       setState(() {
@@ -638,6 +664,135 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     );
   }
 
+  String _manualCodeExpiryLabel() {
+    final expiresAt = _manualVerificationCodeExpiresAt;
+    if (expiresAt == null) {
+      return "ใช้ทันทีภายในแอปนี้ แล้วขอใหม่เมื่อหมดเวลา";
+    }
+    final local = expiresAt.toLocal();
+    final minute = local.minute.toString().padLeft(2, "0");
+    return "รหัสนี้หมดอายุเวลา ${local.hour}:$minute";
+  }
+
+  Future<void> _copyManualCode() async {
+    final code = (_manualVerificationCode ?? "").trim();
+    if (code.isEmpty) {
+      return;
+    }
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!mounted) return;
+    AppFeedback.showSuccess(
+      context,
+      "คัดลอกรหัสทดสอบแล้ว ใช้วางในช่องรหัสยืนยันของหน้านี้เท่านั้น",
+    );
+  }
+
+  Widget _buildClosedBetaModeCard() {
+    if (!AppConfig.closedBetaManualCodeEnabled) {
+      return const SizedBox.shrink();
+    }
+    return _buildPanel(
+      color: const Color(0xFFF0F8FF),
+      borderColor: const Color(0xFFBFDDF7),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "โหมดทดสอบปิด (Closed beta)",
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            "ใช้โหมดนี้เมื่อต้องทดสอบกับผู้ใช้จริงแบบไม่พึ่งอีเมล production ระบบจะคืนรหัสแบบใช้ครั้งเดียวให้ในแอปนี้เท่านั้น",
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _closedBetaManualMode,
+            onChanged: _busy
+                ? null
+                : (value) {
+                    setState(() {
+                      _closedBetaManualMode = value;
+                      _manualVerificationCode = null;
+                      _manualVerificationCodeExpiresAt = null;
+                    });
+                  },
+            title: const Text("เปิดใช้ manual code path"),
+            subtitle: const Text("ปิดไว้เมื่อทดสอบผ่านอีเมลปกติ"),
+          ),
+          if (_closedBetaManualMode) ...[
+            const SizedBox(height: 6),
+            const Text(
+              "ข้อกำหนด: รหัสทดสอบต้องส่งต่อผ่านช่องทางที่นัดหมายล่วงหน้าเท่านั้น และห้ามแชร์ในที่สาธารณะ",
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManualCodeResultCard() {
+    final code = (_manualVerificationCode ?? "").trim();
+    if (code.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return _buildPanel(
+      color: const Color(0xFFEAF9F3),
+      borderColor: const Color(0xFFB8E2CF),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.key_rounded),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "รหัสยืนยันสำหรับ Closed beta",
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SelectableText(
+            code,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 4,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(_manualCodeExpiryLabel()),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _copyManualCode,
+                icon: const Icon(Icons.copy_rounded),
+                label: const Text("คัดลอกรหัส"),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _manualVerificationCode = null;
+                    _manualVerificationCodeExpiresAt = null;
+                  });
+                },
+                icon: const Icon(Icons.clear_rounded),
+                label: const Text("ซ่อนรหัส"),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildReceiverFirstMessageCard() {
     return _buildPanel(
       color: const Color(0xFFFFF8EF),
@@ -759,41 +914,24 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
     if (_message == null) {
       return const SizedBox.shrink();
     }
-    final scheme = Theme.of(context).colorScheme;
-    final color = _messageIsError
-        ? scheme.errorContainer.withValues(alpha: 0.35)
-        : scheme.tertiaryContainer.withValues(alpha: 0.38);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(_message!),
-          if (_messageIsError && _networkIssue) ...[
-            const SizedBox(height: 10),
-            OutlinedButton(
-              onPressed: _busy
-                  ? null
-                  : () async {
-                      if (_lastAction == "request_code") {
-                        await _requestCode();
-                        return;
-                      }
-                      if (_lastAction == "unlock") {
-                        await _unlock();
-                      }
-                    },
-              child: const Text("ลองใหม่อีกครั้ง"),
-            ),
-          ],
-        ],
-      ),
+    return AppStatePanel(
+      message: _message!,
+      tone: _messageIsError
+          ? (_networkIssue ? AppStateTone.offline : AppStateTone.error)
+          : AppStateTone.success,
+      actionLabel: _messageIsError && _networkIssue ? "ลองใหม่อีกครั้ง" : null,
+      onAction: _messageIsError && _networkIssue
+          ? () async {
+              if (_busy) return;
+              if (_lastAction == "request_code") {
+                await _requestCode();
+                return;
+              }
+              if (_lastAction == "unlock") {
+                await _unlock();
+              }
+            }
+          : null,
     );
   }
 
@@ -1009,8 +1147,20 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                   _buildReceiverFirstMessageCard(),
                   const SizedBox(height: 12),
                   _buildSecurityNoticeCard(),
+                  if (_openedFromExternalLink) ...[
+                    const SizedBox(height: 12),
+                    _buildPanel(
+                      color: const Color(0xFFFFF3EE),
+                      borderColor: const Color(0xFFF1BEAF),
+                      child: const Text(
+                        "ตรวจพบว่าหน้านี้ถูกเปิดจากลิงก์ภายนอก กรุณาอย่าดำเนินการจากลิงก์โดยตรง ให้กรอก Access ID และ Access Key ด้วยตัวเองในแอปเท่านั้น",
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   _buildAntiScamChecklistCard(),
+                  const SizedBox(height: 12),
+                  _buildClosedBetaModeCard(),
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
@@ -1147,7 +1297,11 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _canRequestCode ? _requestCode : null,
-                          child: const Text("ขอรหัสยืนยันในแอป"),
+                          child: Text(
+                            _manualModeEnabled
+                                ? "สร้างรหัสทดสอบในแอป"
+                                : "ขอรหัสยืนยันในแอป",
+                          ),
                         ),
                       ),
                     ],
@@ -1171,10 +1325,17 @@ class _UnlockDeliveryScreenState extends State<UnlockDeliveryScreen> {
                           color: scheme.outlineVariant.withValues(alpha: 0.45),
                         ),
                       ),
-                      child: const Text(
-                        "ส่งรหัสแล้ว ตรวจช่องทางที่ลงทะเบียนไว้ แล้วกลับมาปลดล็อกต่อได้เลย",
+                      child: Text(
+                        _manualModeEnabled
+                            ? "สร้างรหัสทดสอบในแอปแล้ว ใช้ต่อในหน้าจอนี้ได้ทันที โดยไม่ต้องพึ่งอีเมล production"
+                            : "ส่งรหัสแล้ว ตรวจช่องทางที่ลงทะเบียนไว้ แล้วกลับมาปลดล็อกต่อได้เลย",
                       ),
                     ),
+                  ],
+                  if (_manualModeEnabled &&
+                      _manualVerificationCode != null) ...[
+                    const SizedBox(height: 10),
+                    _buildManualCodeResultCard(),
                   ],
                   const SizedBox(height: 10),
                   TextField(

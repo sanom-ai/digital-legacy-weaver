@@ -32,6 +32,10 @@ $reviewerAdminApiKey = Require-Env "REVIEWER_ADMIN_API_KEY"
 $handoffInternalKey = Require-Env "HANDOFF_INTERNAL_KEY"
 $handoffWebhook = [Environment]::GetEnvironmentVariable("HANDOFF_PROVIDER_WEBHOOK_URL")
 $handoffSigningSecret = [Environment]::GetEnvironmentVariable("HANDOFF_SIGNING_SECRET")
+$betaManualCode = [Environment]::GetEnvironmentVariable("BETA_MANUAL_CODE_ENABLED")
+if ([string]::IsNullOrWhiteSpace($betaManualCode)) {
+  $betaManualCode = "false"
+}
 
 # At least one provider key is required
 $resendKey = [Environment]::GetEnvironmentVariable("RESEND_API_KEY")
@@ -57,6 +61,7 @@ supabase functions deploy manage-totp-factor
 supabase functions deploy review-legal-evidence
 supabase functions deploy manage-reviewer-keys
 supabase functions deploy handoff-notice
+supabase functions deploy runtime-status
 
 Write-Host "Setting function secrets..." -ForegroundColor Yellow
 supabase secrets set `
@@ -69,6 +74,7 @@ supabase secrets set `
   HANDOFF_INTERNAL_KEY=$handoffInternalKey `
   HANDOFF_PROVIDER_WEBHOOK_URL=$handoffWebhook `
   HANDOFF_SIGNING_SECRET=$handoffSigningSecret `
+  BETA_MANUAL_CODE_ENABLED=$betaManualCode `
   RESEND_API_KEY=$resendKey `
   SENDGRID_API_KEY=$sendgridKey
 
