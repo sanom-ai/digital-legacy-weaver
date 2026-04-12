@@ -225,7 +225,7 @@ jobs:
           Set-Content -Path dist/RELEASE_NOTES.md -Value ($body -join "`n") -Encoding utf8
 
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.tag }}
           name: ${{ github.event.inputs.release_title }}
