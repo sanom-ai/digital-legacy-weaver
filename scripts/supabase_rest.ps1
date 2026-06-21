@@ -3,7 +3,8 @@ $ErrorActionPreference = "Stop"
 function New-SupabaseRestHeaders {
   param(
     [Parameter(Mandatory = $true)]
-    [string]$ServiceRoleKey
+    [string]$ServiceRoleKey,
+    [string]$AnonKey = [Environment]::GetEnvironmentVariable("SUPABASE_ANON_KEY")
   )
 
   $headers = @{
@@ -15,7 +16,11 @@ function New-SupabaseRestHeaders {
     $headers["Authorization"] = "Bearer $ServiceRoleKey"
   } else {
     # Supabase secret API keys (sb_secret_...) are server-only bearer tokens.
-    # Sending them as apikey can make REST reject the request as browser use.
+    # REST still requires a public apikey header, so pair the anon key with service bearer auth.
+    if ([string]::IsNullOrWhiteSpace($AnonKey)) {
+      throw "Missing environment variable: SUPABASE_ANON_KEY is required when SUPABASE_SERVICE_ROLE_KEY is a secret API key."
+    }
+    $headers["apikey"] = $AnonKey
     $headers["Authorization"] = "Bearer $ServiceRoleKey"
   }
 

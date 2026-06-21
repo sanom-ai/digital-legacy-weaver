@@ -23,6 +23,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
           "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -33,6 +34,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           RETENTION_DAYS: ${{ github.event.inputs.retention_days || '30' }}
         run: |
           ./scripts/run_maintenance_cleanup.ps1 -RetentionDays $env:RETENTION_DAYS
