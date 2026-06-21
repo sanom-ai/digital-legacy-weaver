@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Resolve cleanup readiness
         id: readiness
@@ -23,8 +23,11 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_OPS_ENABLED: ${{ vars.SUPABASE_OPS_ENABLED }}
         run: |
-          $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
+          $enabled = "$env:SUPABASE_OPS_ENABLED".Trim().ToLowerInvariant() -eq "true"
+          $ready = $enabled -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
           "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Run Cleanup RPC
@@ -33,6 +36,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           RETENTION_DAYS: ${{ github.event.inputs.retention_days || '30' }}
         run: |
           ./scripts/run_maintenance_cleanup.ps1 -RetentionDays $env:RETENTION_DAYS
@@ -41,4 +45,4 @@ jobs:
         if: steps.readiness.outputs.ready != 'true'
         shell: pwsh
         run: |
-          "Maintenance Cleanup skipped: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "Maintenance Cleanup skipped: Supabase ops are disabled. Set repository variable SUPABASE_OPS_ENABLED=true when ready to run live Supabase cleanup." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
