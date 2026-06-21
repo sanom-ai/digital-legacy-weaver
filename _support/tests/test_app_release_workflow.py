@@ -22,7 +22,7 @@ def test_app_release_workflow_builds_android_and_windows_and_publishes_release()
     assert "flutter build apk --release" in src
     assert "flutter build appbundle --release" in src
     assert "flutter build windows --release" in src
-    assert "softprops/action-gh-release@v2" in src
+    assert "softprops/action-gh-release@v3" in src
     assert "app-release.apk" in src
     assert "app-release.aab" in src
     assert "digital-legacy-weaver-windows.zip" in src
