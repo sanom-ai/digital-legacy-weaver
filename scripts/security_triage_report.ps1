@@ -6,6 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. "$PSScriptRoot/supabase_rest.ps1"
 $script:ApiDegradedReason = $null
 
 function Require-Env([string]$key) {
@@ -22,21 +23,8 @@ function Invoke-SupabaseGet {
     [string]$ServiceRoleKey,
     [string]$PathAndQuery
   )
-  $headers = @{
-    "Content-Type" = "application/json"
-  }
-
-  if ($ServiceRoleKey -like "eyJ*") {
-    $headers["apikey"] = $ServiceRoleKey
-    $headers["Authorization"] = "Bearer $ServiceRoleKey"
-  } else {
-    # New secret API keys (sb_secret...) are not JWTs.
-    # Use them as apikey only, without Authorization bearer token.
-    $headers["apikey"] = $ServiceRoleKey
-  }
-
   try {
-    return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
+    return Invoke-SupabaseRest -Method Get -BaseUrl $BaseUrl -ServiceRoleKey $ServiceRoleKey -PathAndQuery $PathAndQuery
   } catch {
     $rawParts = @()
     if ($_.Exception -and $_.Exception.Message) {
