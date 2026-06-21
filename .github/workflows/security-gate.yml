@@ -31,8 +31,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_OPS_ENABLED: ${{ vars.SUPABASE_OPS_ENABLED }}
         run: |
-          $ready = (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
+          $enabled = "$env:SUPABASE_OPS_ENABLED".Trim().ToLowerInvariant() -eq "true"
+          $ready = $enabled -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) -and (-not [string]::IsNullOrWhiteSpace($env:SUPABASE_SERVICE_ROLE_KEY))
           "missing=" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
@@ -54,7 +56,7 @@ jobs:
         run: |
           $missing = "${{ steps.readiness.outputs.missing }}"
           if ([string]::IsNullOrWhiteSpace($missing)) {
-            "Security Gate skipped: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            "Security Gate skipped: Supabase ops are disabled. Set repository variable SUPABASE_OPS_ENABLED=true when ready to run live Supabase triage." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           } else {
             "Security Gate skipped: $missing" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
