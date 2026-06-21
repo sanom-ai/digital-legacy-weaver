@@ -234,7 +234,7 @@ class DashboardScreen extends ConsumerWidget {
 
                         void openHistory() {
                           final artifact = readiness.currentArtifact;
-                          final history = artifactHistoryAsync.valueOrNull;
+                          final history = artifactHistoryAsync.value;
                           if (artifact == null || history == null) {
                             openBuilder();
                             return;
