@@ -49,3 +49,23 @@ function Invoke-SupabaseRest {
 
   return Invoke-RestMethod -Method $Method -Uri $uri -Headers $headers -Body $Body
 }
+
+function Test-SupabaseRestAuthUnsupported {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$ErrorRecord
+  )
+
+  $rawParts = @()
+  if ($ErrorRecord.Exception -and $ErrorRecord.Exception.Message) {
+    $rawParts += $ErrorRecord.Exception.Message
+  }
+  if ($ErrorRecord.ErrorDetails -and $ErrorRecord.ErrorDetails.Message) {
+    $rawParts += $ErrorRecord.ErrorDetails.Message
+  }
+  $raw = ($rawParts -join " | ").ToLowerInvariant()
+
+  return $raw.Contains("forbidden use of secret api key in browser") -or
+    $raw.Contains("expected 3 parts in jwt") -or
+    $raw.Contains("no api key found in request")
+}

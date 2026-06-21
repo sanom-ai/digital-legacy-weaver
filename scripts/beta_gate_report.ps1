@@ -11,6 +11,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 . "$PSScriptRoot/supabase_rest.ps1"
+$script:ApiDegradedReason = $null
 
 function Require-Env([string]$key) {
   $value = [Environment]::GetEnvironmentVariable($key)
@@ -26,7 +27,17 @@ function Invoke-SupabaseGet {
     [string]$ServiceRoleKey,
     [string]$PathAndQuery
   )
-  return Invoke-SupabaseRest -Method Get -BaseUrl $BaseUrl -ServiceRoleKey $ServiceRoleKey -PathAndQuery $PathAndQuery
+  try {
+    return Invoke-SupabaseRest -Method Get -BaseUrl $BaseUrl -ServiceRoleKey $ServiceRoleKey -PathAndQuery $PathAndQuery
+  } catch {
+    if (Test-SupabaseRestAuthUnsupported -ErrorRecord $_) {
+      if (-not $script:ApiDegradedReason) {
+        $script:ApiDegradedReason = "Supabase REST rejected the configured service key for PostgREST/RPC access. Beta gate ran in degraded mode with no live data. Configure a PostgREST-compatible service-role JWT or supported server auth path to enforce live gates."
+      }
+      return @()
+    }
+    throw
+  }
 }
 
 $supabaseUrl = Require-Env "SUPABASE_URL"
@@ -113,6 +124,10 @@ $lines.Add("- Min unlock sample size: $MinUnlockSampleSize")
 $lines.Add("- Min beneficiary coverage: $MinBeneficiaryCoverage")
 $lines.Add("- Min consent coverage: $MinConsentCoverage")
 $lines.Add("- Min cohort size for coverage gate: $MinCohortSizeForCoverageGate")
+$lines.Add("- API degraded mode: $([string]::IsNullOrWhiteSpace($script:ApiDegradedReason) -ne $true)")
+if (-not [string]::IsNullOrWhiteSpace($script:ApiDegradedReason)) {
+  $lines.Add("- Degraded reason: $script:ApiDegradedReason")
+}
 $lines.Add("")
 $lines.Add("## Metrics")
 $lines.Add("")
@@ -135,8 +150,10 @@ $lines.Add("")
 
 $gateFailReasons = New-Object System.Collections.Generic.List[string]
 if ($criticalEvents.Count -gt 0) { $gateFailReasons.Add("Critical security events detected.") }
-if ($heartbeatStale) { $gateFailReasons.Add("Dispatch heartbeat is stale.") }
-if ($heartbeatUnhealthy) { $gateFailReasons.Add("Dispatch heartbeat status is not ok.") }
+if ([string]::IsNullOrWhiteSpace($script:ApiDegradedReason)) {
+  if ($heartbeatStale) { $gateFailReasons.Add("Dispatch heartbeat is stale.") }
+  if ($heartbeatUnhealthy) { $gateFailReasons.Add("Dispatch heartbeat status is not ok.") }
+}
 if (-not $unlockGatePass) { $gateFailReasons.Add("Unlock success rate below threshold.") }
 if (-not $beneficiaryGatePass) { $gateFailReasons.Add("Beneficiary coverage below threshold.") }
 if (-not $consentGatePass) { $gateFailReasons.Add("Consent coverage below threshold.") }
