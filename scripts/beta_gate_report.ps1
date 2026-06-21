@@ -10,6 +10,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. "$PSScriptRoot/supabase_rest.ps1"
 
 function Require-Env([string]$key) {
   $value = [Environment]::GetEnvironmentVariable($key)
@@ -25,12 +26,7 @@ function Invoke-SupabaseGet {
     [string]$ServiceRoleKey,
     [string]$PathAndQuery
   )
-  $headers = @{
-    "apikey"        = $ServiceRoleKey
-    "Authorization" = "Bearer $ServiceRoleKey"
-    "Content-Type"  = "application/json"
-  }
-  return Invoke-RestMethod -Method Get -Uri "$BaseUrl/rest/v1/$PathAndQuery" -Headers $headers
+  return Invoke-SupabaseRest -Method Get -BaseUrl $BaseUrl -ServiceRoleKey $ServiceRoleKey -PathAndQuery $PathAndQuery
 }
 
 $supabaseUrl = Require-Env "SUPABASE_URL"

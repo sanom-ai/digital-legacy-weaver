@@ -10,6 +10,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. "$PSScriptRoot/supabase_rest.ps1"
 
 function Require-Env([string]$key) {
   $value = [Environment]::GetEnvironmentVariable($key)
@@ -22,12 +23,6 @@ function Require-Env([string]$key) {
 $supabaseUrl = Require-Env "SUPABASE_URL"
 $serviceRole = Require-Env "SUPABASE_SERVICE_ROLE_KEY"
 
-$headers = @{
-  "apikey"        = $serviceRole
-  "Authorization" = "Bearer $serviceRole"
-  "Content-Type"  = "application/json"
-}
-
 $body = @{
   p_dispatch_enabled = ($Dispatch -eq "on")
   p_unlock_enabled = ($Unlock -eq "on")
@@ -35,7 +30,6 @@ $body = @{
   p_updated_by = $UpdatedBy
 } | ConvertTo-Json
 
-$uri = "$supabaseUrl/rest/v1/rpc/set_system_safety_controls"
 Write-Host "Updating global safety controls..." -ForegroundColor Cyan
-$result = Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
+$result = Invoke-SupabaseRest -Method Post -BaseUrl $supabaseUrl -ServiceRoleKey $serviceRole -PathAndQuery "rpc/set_system_safety_controls" -Body $body
 $result | ConvertTo-Json -Depth 5
