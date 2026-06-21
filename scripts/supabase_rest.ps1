@@ -14,9 +14,9 @@ function New-SupabaseRestHeaders {
     $headers["apikey"] = $ServiceRoleKey
     $headers["Authorization"] = "Bearer $ServiceRoleKey"
   } else {
-    # Supabase secret API keys (sb_secret_...) are not JWT bearer tokens.
-    # Sending them as Authorization can make REST reject the request as browser use.
-    $headers["apikey"] = $ServiceRoleKey
+    # Supabase secret API keys (sb_secret_...) are server-only bearer tokens.
+    # Sending them as apikey can make REST reject the request as browser use.
+    $headers["Authorization"] = "Bearer $ServiceRoleKey"
   }
 
   return $headers
